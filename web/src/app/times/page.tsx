@@ -14,7 +14,7 @@ export default async function TeamsPage() {
       <header className="space-y-2">
         <h1 className="text-3xl font-bold text-ink">Times</h1>
         <p className="max-w-3xl text-ink-2">
-          {teams.length} times universitários. Na página de cada time: diagnóstico comparado com a liga, quem cobre quem dentro do time e os rounds que foram jogados fora ou virados.
+          {teams.length} times universitários, ordenados pela força. Na página de cada time: diagnóstico comparado com a liga, quem cobre quem, onde o time morre, a evolução no campeonato e as decisões de economia.
         </p>
       </header>
       <TeamTable teams={teams} />
