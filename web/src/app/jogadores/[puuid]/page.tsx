@@ -6,6 +6,9 @@ import type { Moment, Player } from "@/lib/types";
 import { MatchImpactChart, RoleRadar } from "@/components/analise/PlayerCharts";
 import { Badge, CompareRow, InsightPanel, PercentileRow, PlayerLink, Section, StatTile, TeamLink, Td, Th, WpaBar } from "@/components/analise/ui";
 
+// só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   return (await getIndex()).players.map((p) => ({ puuid: p.puuid }));
 }

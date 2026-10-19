@@ -114,7 +114,8 @@ export default function MatchView({ match, minimap }: { match: Match; minimap?: 
         <p className="mt-2 text-xs text-muted">A cor embaixo do número indica quem venceu o round.</p>
       </section>
 
-      <div ref={detailRef} id={`round-${sel}`} className="scroll-mt-4">
+      {/* scroll-mt: margem para o cabeçalho fixo do site não cobrir o topo do round */}
+      <div ref={detailRef} id={`round-${sel}`} className="scroll-mt-24">
         <RoundDetail match={match} round={round} describe={describe} minimap={minimap} onPrev={() => setSel(Math.max(1, sel - 1))} onNext={() => setSel(Math.min(match.rounds.length, sel + 1))} />
       </div>
     </div>

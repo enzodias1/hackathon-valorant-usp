@@ -6,6 +6,9 @@ import type { Comparison, Team, TeamMetric } from "@/lib/types";
 import SynergyGraph from "@/components/analise/SynergyGraph";
 import { Badge, CompareLegend, CompareRow, InsightPanel, PlayerLink, Section, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
 
+// só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   return (await getIndex()).team_list.map((t) => ({ slug: t.slug }));
 }

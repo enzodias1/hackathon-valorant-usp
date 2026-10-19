@@ -34,15 +34,22 @@ export default function MatchTable({ rows }: { rows: MatchRow[] }) {
       teams.set(r.red.slug, r.red.name);
       teams.set(r.blue.slug, r.blue.name);
     }
+    // competição inteira ("Univavá") e cada fase ("Univavá · Classificatória 1"); o valor é o próprio rótulo
+    const competicao: { value: string; label: string }[] = [];
+    for (const c of uniq(rows.map((r) => r.competition))) {
+      const stages = uniq(rows.filter((r) => r.competition === c && r.stage).map((r) => r.stage as string));
+      competicao.push({ value: c, label: stages.length ? `${c} (todas as fases)` : c });
+      for (const s of stages) competicao.push({ value: competitionLabel(c, s), label: `${c} · ${s}` });
+    }
     return {
-      competicao: uniq(rows.map((r) => r.competition)).map((c) => ({ value: c, label: c })),
+      competicao,
       time: [...teams].map(([value, label]) => ({ value, label })).sort((a, b) => a.label.localeCompare(b.label, "pt-BR")),
       mapa: uniq(rows.map((r) => r.map)).map((m) => ({ value: m, label: m })),
     };
   }, [rows]);
 
   const shown = rows.filter((r) =>
-    (!filters.competicao || r.competition === filters.competicao) &&
+    (!filters.competicao || r.competition === filters.competicao || competitionLabel(r.competition, r.stage) === filters.competicao) &&
     (!filters.time || r.red.slug === filters.time || r.blue.slug === filters.time) &&
     (!filters.mapa || r.map === filters.mapa));
 

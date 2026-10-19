@@ -6,6 +6,9 @@ import type { Color, Match } from "@/lib/types";
 import MatchView from "@/components/analise/MatchView";
 import { PlayerLink, Section, TeamLink, Td, Th, WpaBar } from "@/components/analise/ui";
 
+// só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   return (await getIndex()).matches.map((m) => ({ id: m.id }));
 }
