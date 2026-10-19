@@ -7,10 +7,10 @@ Ele é atualizado a cada entrega. Na dúvida, chame o Enzo.
 
 | Membro | Tarefa | Status | Entrega |
 |---|---|---|---|
-| Camila (Direito) | [Nomes dos 68 times](#camila--nomes-dos-68-times) | 🟡 A fazer | Planilha preenchida → Enzo |
-| Nukan (C. Computação) | [Minimapa "replay" do round](#nukan--minimapa-replay-do-round) | ⏳ Aguardando acesso ao repositório | Pull Request `minimapa` |
-| Azi (Eng. de Software) | [Estrutura do site + deploy](#azi--estrutura-do-site--deploy) | ⏳ Aguardando acesso ao repositório | Pull Request `estrutura` + link da Vercel |
-| Jodão (Gestão da Informação) | [Entrevistas com jogadores/coaches](#jodão--entrevistas-com-jogadorescoaches) | 🟡 Em andamento | Resumo → Enzo |
+| Camila | [Nomes dos 68 times](#camila--nomes-dos-68-times) | 🟡 A fazer | Planilha preenchida → Enzo |
+| Nukan | [Minimapa "replay" do round](#nukan--minimapa-replay-do-round) | ⏳ Aguardando acesso ao repositório | Pull Request `minimapa` |
+| Azi | [Estrutura do site + deploy](#azi--estrutura-do-site--deploy) | ⏳ Aguardando acesso ao repositório | Pull Request `estrutura` + link da Vercel |
+| Jodão | [Entrevistas com jogadores/coaches](#jodão--entrevistas-com-jogadorescoaches) | 🟡 Em andamento | Resumo → Enzo |
 
 Legenda: ⏳ aguardando · 🟡 a fazer / em andamento · 🔵 entregue, em revisão · ✅ concluída
 
