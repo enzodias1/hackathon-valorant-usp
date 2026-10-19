@@ -18,14 +18,14 @@ import pandas as pd
 from scipy.special import expit, logit
 from sklearn.linear_model import LogisticRegression
 
-from insights import TEAM_METRICS, Z_SIGNIFICANT
+from insights import NOISE_METRICS, TEAM_METRICS, Z_SIGNIFICANT
 
 ROOT = Path(__file__).resolve().parents[1]
 P = ROOT / "data" / "processed"
 MIN_MAPS_EVOLUTION = 8
 STAGE_ORDER = ["Rush Series Esquenta", "Rush Series Esquenta 2", "Univavá · Classificatória 1", "Univavá · Classificatória 2",
                "Rush Series Inclusivo", "Univavá · Classificatória 3", "Univavá · Classificatória 4", "Univavá · Fase de Grupos"]
-CHANGE_KEYS = ["atk_win", "def_win", "fb_rate", "win_after_fb", "postplant_win", "retake_win", "throw_rate", "traded_death_rate", "isolated_death_rate"]
+CHANGE_KEYS = [k for k in ["atk_win", "def_win", "fb_rate", "win_after_fb", "postplant_win", "retake_win", "throw_rate", "traded_death_rate", "isolated_death_rate"] if k not in NOISE_METRICS]
 
 
 def stage_of(m):

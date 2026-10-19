@@ -135,6 +135,11 @@ def mean_test(values, league_mean, higher_is_better=True, min_n=MIN_N):
     return {"value": float(m), "league": float(league_mean), "n": n, "z": float(z), "significant": bool(sig), "good": bool((z > 0) == higher_is_better) if sig else None}
 
 
+# Metrics with no between-team signal: across teams with >= 100 rounds, the spread of their z-scores is what pure chance
+# produces (sd(z) = 0.97 for throw_rate, vs. 1.0 for noise; 2.2 for traded deaths). They stay visible in tables, but never
+# become a claim (strength / weakness / attention / "what changed"). Checked by pipeline/checks.py.
+NOISE_METRICS = {"throw_rate"}
+
 FDR_Q = 0.10  # Benjamini-Hochberg: at most ~10% of the claims shown on a page are expected to be false positives
 
 
@@ -167,7 +172,7 @@ def make_insights(comparisons, texts, fmt=pct, limit=4, higher_is_better=None):
     plus 'attention': unfavorable trends that are not significant yet, so strong teams still get something to work on."""
     strengths, weaknesses, attention = [], [], []
     for key, c in comparisons.items():
-        if key not in texts or c.get("z") is None or c.get("value") is None:
+        if key not in texts or key in NOISE_METRICS or c.get("z") is None or c.get("value") is None:
             continue
         t = texts[key]
         item = {"key": key, "z": round(c["z"], 2), "n": c["n"]}

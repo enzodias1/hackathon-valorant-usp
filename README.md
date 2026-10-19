@@ -38,6 +38,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 .venv/Scripts/python pipeline/economy.py                      # conselheiro de economia: forçar ou economizar?
 .venv/Scripts/python pipeline/zones.py                        # onde cada time morre (regiões do mapa + grade de calor)
 .venv/Scripts/python pipeline/export.py                       # JSON do site em web/public/data (formato em web/DADOS.md)
+.venv/Scripts/python pipeline/checks.py                       # 31 checagens de consistência (falha se algum número não fechar)
 .venv/Scripts/python pipeline/teams_sheet.py                  # planilha de nomes dos times (para_equipe/)
 ```
 
@@ -66,3 +67,12 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
   adversário, força, lado, placar, round) e bootstrap por partida. Depois de perder o pistol, forçar: +0,74 round [+0,47; +1,00];
   depois de perder um round sem full buy: +0,63 [+0,45; +0,81]. Robusto a horizonte de 2/4 rounds e a confrontos equilibrados.
   É evidência observacional, apresentada como tal.
+- **Variação só pelo tempo:** entre um evento e outro, a chance de vitória muda só porque o relógio corre (ex.: defesa segurando até o
+  tempo acabar). Essa parte não é creditada a ninguém; o impacto de cada jogada é a mudança no instante do evento.
+- **Métricas sem sinal entre times** (hoje: rounds jogados fora): a dispersão entre os times é a do acaso (dp(z) = 0,97), então elas
+  aparecem nas tabelas, mas nunca viram ponto forte/fraco nem "mudou". `checks.py` recalcula isso a cada execução.
+
+## Checagens de consistência (`pipeline/checks.py`)
+Propriedades que precisam valer se os números estiverem certos, por exemplo: quem planta é sempre do ataque; vitória após first blood +
+após first death = 100%; o impacto de cada kill soma zero entre os times; depois da última kill de um round de eliminação o vencedor está
+com ~100%; ADR, KAST e K/D da liga em faixas plausíveis; nenhum link quebrado entre as páginas. Hoje: **31/31 ok**.

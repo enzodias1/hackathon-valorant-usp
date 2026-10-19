@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from insights import (PLAYER_TEXT, ROLE_EXPECTED, TEAM_METRICS, TEAM_TEXT, Z_SIGNIFICANT, bh_adjust, binom, br, make_insights,
+from insights import (NOISE_METRICS, PLAYER_TEXT, ROLE_EXPECTED, TEAM_METRICS, TEAM_TEXT, Z_SIGNIFICANT, bh_adjust, binom, br, make_insights,
                       mean_test, pct, pp, team_counts)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -178,7 +178,9 @@ def export_teams(t, names):
                          "league_win": league_buy.get(b), "z": zb, "significant": sig, "good": (zb > 0) if sig else None})
 
         # every claim on the team page is one family for multiple-testing control (Benjamini-Hochberg)
-        bh_adjust({**comps, "wins_above_expected": wae, **{f"buy:{b['buy']}": b for b in buys}})
+        for k in NOISE_METRICS & comps.keys():  # no between-team signal: shown in tables, never a claim
+            comps[k].update(significant=False, good=None)
+        bh_adjust({**{k: c for k, c in comps.items() if k not in NOISE_METRICS}, "wins_above_expected": wae, **{f"buy:{b['buy']}": b for b in buys}})
         metrics = [{"key": k, "label": TEAM_METRICS[k][0], "higher_is_better": TEAM_METRICS[k][1], **c} for k, c in comps.items()]
         ins = make_insights(comps, TEAM_TEXT, higher_is_better={k: v[1] for k, v in TEAM_METRICS.items()})
 
