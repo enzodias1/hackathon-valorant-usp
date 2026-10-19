@@ -72,6 +72,12 @@ Crie também uma página de teste em `web/src/app/dev/minimap/page.tsx` que carr
 > - eventos com `after_round_end: true` aconteceram depois do desarme/explosão: desenhe esmaecidos.
 >
 > O Enzo vai encaixar o componente na tela de partida. Se a assinatura for diferente, avise.
+
+> **Pedido extra (20/10), se der tempo:** o minimapa também vai ser usado num **mapa de calor das mortes** na página do time.
+> Para não duplicar código, separe duas peças reaproveitáveis no mesmo arquivo (ou em `web/src/lib/minimap.ts`):
+> - `toMinimap(xy: [number, number], t: MapTransform): { u: number; v: number }`, a fórmula de coordenadas (0–1);
+> - `MinimapBase({ src, children })`, a imagem do minimapa com um `<svg viewBox="0 0 1 1">` por cima, onde os desenhos entram.
+> O Enzo usa as duas para desenhar a grade de calor (formato em `web/DADOS.md`, seção `zones/<slug>.json`).
 O formato dos dados e a **fórmula de coordenadas (já validada)** estão em [`web/DADOS.md`](web/DADOS.md).
 Use React + SVG por cima de uma `<img>`, sem bibliotecas novas, e Tailwind para o estilo.
 
