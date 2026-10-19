@@ -571,6 +571,10 @@ def main():
     write(OUT / "index.json", {"teams": names, "team_list": teams, "players": players, "matches": matches})
     write(OUT / "league.json", {**league_t, "player": league_p})
     write(OUT / "economy.json", t["economy"])
+    # regions where each team dies + heat grid (pipeline/zones.py)
+    (OUT / "zones").mkdir(parents=True, exist_ok=True)
+    for f in (P / "zones").glob("*.json"):
+        (OUT / "zones" / f.name).write_text(f.read_text(encoding="utf-8"), encoding="utf-8")
     for d in ("matches", "teams", "players"):
         files = list((OUT / d).glob("*.json"))
         print(f"{d:8s} {len(files):4d} files  {sum(f.stat().st_size for f in files) / 1e6:5.1f} MB")

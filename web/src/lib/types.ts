@@ -234,6 +234,30 @@ export interface Team {
   evolution: TeamEvolution;
 }
 
+// ---------------------------------------------------------------- onde o time morre (zones/<slug>.json)
+export interface Zone {
+  zone: string;
+  deaths: number;
+  share: number;
+  league_share: number;
+  untraded_rate: number;
+  league_untraded_rate: number;
+  isolated_rate: number | null;
+  significant: boolean;
+  worse_than_league: boolean;
+  z: number | null;
+}
+
+export interface TeamZones {
+  team: string;
+  grid_size: number;
+  maps: {
+    code: string; map: string; minimap: string | null; transform: MapTransform; deaths: number;
+    // grid: [coluna (u), linha (v), mortes, mortes sem trade] na grade grid_size × grid_size do minimapa
+    sides: Partial<Record<Side, { deaths: number; rounds: number; zones: Zone[]; grid: [number, number, number, number][] }>>;
+  }[];
+}
+
 // ---------------------------------------------------------------- economia ("forçar ou economizar?")
 export type EcoDecision = "Economizar" | "Meio-termo" | "Forçar";
 

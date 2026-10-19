@@ -165,3 +165,22 @@ Validado plotando todas as mortes de Ascent: caem exatamente nas áreas jogávei
 ## Cores
 `Red` / `Blue` são os lados internos da partida (não são os lados de ataque/defesa, que trocam no round 13).
 Para ataque/defesa use `round.attacker`.
+
+## `zones/<slug>.json` (onde o time morre)
+```jsonc
+{
+  "team": "<slug>", "grid_size": 32,
+  "maps": [ {
+    "code": "Ascent", "map": "Ascent", "minimap": "<url>", "transform": { ... }, "deaths": 677,
+    "sides": { "Ataque": {
+      "deaths": 311, "rounds": 100,
+      "zones": [ { "zone": "B · Ponto", "deaths": 61, "share": 0.20, "league_share": 0.15,
+                   "untraded_rate": 0.61, "league_untraded_rate": 0.72, "isolated_rate": 0.12,
+                   "significant": false, "worse_than_league": false, "z": -1.9 } ],
+      "grid": [ [col, row, mortes, mortes_sem_trade] ]   // grade 32×32 em coordenadas do minimapa (col = u·32, row = v·32)
+    }, "Defesa": { ... } }
+  } ]
+}
+```
+Cada morte é atribuída à região nomeada (callout oficial) mais próxima. Para desenhar a grade sobre o minimapa:
+a célula `[col, row]` ocupa `left = col/32`, `top = row/32` da imagem (mesma orientação da fórmula de coordenadas acima).
