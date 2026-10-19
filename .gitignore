@@ -1,0 +1,5 @@
+.venv/
+__pycache__/
+data/processed/
+node_modules/
+.next/
