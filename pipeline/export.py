@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from insights import (PLAYER_TEXT, ROLE_EXPECTED, TEAM_METRICS, TEAM_TEXT, Z_SIGNIFICANT, binom, make_insights,
+from insights import (PLAYER_TEXT, ROLE_EXPECTED, TEAM_METRICS, TEAM_TEXT, Z_SIGNIFICANT, binom, br, make_insights,
                       mean_test, pct, pp, team_counts)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -169,9 +169,9 @@ def export_teams(t, names):
         if wae["significant"]:
             item = {"key": "wins_above_expected", "z": round(z, 2), "n": len(g)}
             if z > 0:
-                ins["strengths"].insert(0, {**item, "text": f"Vencem {W - E:.0f} rounds a mais do que a economia previa ({wae['per100']:+.1f} a cada 100 rounds): decisões e duelos rendem acima do equipamento."})
+                ins["strengths"].insert(0, {**item, "text": f"Vencem {W - E:.0f} rounds a mais do que a economia previa ({br(wae['per100'])} a cada 100 rounds): decisões e duelos rendem acima do equipamento."})
             else:
-                ins["weaknesses"].insert(0, {**item, "text": f"Vencem {E - W:.0f} rounds a menos do que a economia previa ({wae['per100']:+.1f} a cada 100 rounds).",
+                ins["weaknesses"].insert(0, {**item, "text": f"Vencem {E - W:.0f} rounds a menos do que a economia previa ({br(wae['per100'])} a cada 100 rounds).",
                                              "tip": "Compare a tabela de economia: em qual tipo de compra o time rende abaixo do esperado?"})
         ins["strengths"], ins["weaknesses"] = ins["strengths"][:4], ins["weaknesses"][:4]
 
@@ -349,7 +349,7 @@ def export_players(t, names):
             if abs(zs) >= Z_SIGNIFICANT:
                 better, worse = ("ataque", "defesa") if zs > 0 else ("defesa", "ataque")
                 notes.append({"key": "side", "z": round(float(zs), 2),
-                              "text": f"Você rende mais na {better}: {max(a.mean(), d.mean()):+.1f} pp por round contra {min(a.mean(), d.mean()):+.1f} pp na {worse}."})
+                              "text": f"Você rende mais na {better}: {pp(max(a.mean(), d.mean()))} por round contra {pp(min(a.mean(), d.mean()))} na {worse}."})
         if p.role_eligible:
             p_kd, p_wpa = percentile("kd", p.kd), percentile("wpa_per_round", p.wpa_per_round)
             if p_kd is not None and p_wpa is not None and abs(p_wpa - p_kd) >= 25:

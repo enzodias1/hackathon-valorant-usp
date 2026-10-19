@@ -102,8 +102,13 @@ def pct(x):
     return f"{x * 100:.0f}%"
 
 
+def br(x, fmt="+.1f"):
+    """Number with Brazilian decimal comma and a real minus sign: -3.4 -> '−3,4'."""
+    return format(x, fmt).replace(".", ",").replace("-", "−")
+
+
 def pp(x):
-    return f"{x:+.1f} pp"
+    return f"{br(x)} pp"
 
 
 def binom(k, n, p, higher_is_better=True):

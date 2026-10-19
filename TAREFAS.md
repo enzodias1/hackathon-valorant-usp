@@ -106,3 +106,37 @@ Use React + SVG por cima de uma `<img>`, sem bibliotecas novas, e Tailwind para 
 **Por quê:** valida que o produto resolve um problema real e vira argumento no pitch ("conversamos com X jogadores"). Pesa nos critérios de Impacto e Usabilidade.
 
 **Como entregar:** um resumo para o Enzo com (a) quem foi entrevistado (time/função), (b) as perguntas que eles querem responder, (c) frases marcantes, que servem para o vídeo.
+
+---
+
+# Próximas tarefas (começar quando terminar a atual)
+
+| Membro | Tarefa | Status | Entrega |
+|---|---|---|---|
+| Jodão | [Roteiro do vídeo pitch](#jodão--roteiro-do-vídeo-pitch) | ⏳ Depois das entrevistas | Documento com o roteiro → Enzo |
+| Camila | [Apresentação (slides)](#camila--apresentação-slides) | ⏳ Depois da planilha | Link da apresentação → Enzo |
+
+## Jodão — Roteiro do vídeo pitch
+**O que fazer:** escrever o roteiro do vídeo de **no máximo 5 minutos**, com o que se fala e o que aparece na tela em cada trecho.
+Sugestão de estrutura (ajuste com o que ouviu nas entrevistas):
+
+| Tempo | Trecho | O que mostrar |
+|---|---|---|
+| 0:00–0:30 | **Problema:** times universitários não têm analista, e as estatísticas comuns (K/D, ACS) não dizem o que fazer. "O K/D mente." | Frase de um entrevistado |
+| 0:30–1:15 | **Como usamos os dados:** 336 partidas do UNIVAVÁ e da Rush Series; um modelo calcula a chance de vitória do round a cada kill, validado em partidas que ele nunca viu (acerta como um meteorologista: quando diz 75%, acontece 74% das vezes) | Gráfico de momentum de uma partida |
+| 1:15–3:45 | **Demonstração:** (1) tela de um time: diagnóstico + grafo de sinergia; (2) partida UFMT Turuna × Macklogic Red, **round 12**: 4 contra 2 com 99% de chance, triplo da Jett e desarme 0,1 s antes de morrer; (3) tela de um jogador: impacto vs. K/D e "o papel que você realmente joga" | O site rodando |
+| 3:45–4:30 | **Valor para jogadores e times:** o que o coach ganha (rounds para revisar no VOD, duplas que se cobrem, decisões de economia) + resultado das entrevistas | Frases e números |
+| 4:30–5:00 | **Viabilidade e próximos passos:** roda com qualquer partida no formato oficial, custo zero de servidor (site estático), próximos recursos | Tela inicial + nome da equipe |
+
+**Por quê:** o vídeo é a **entrega principal** do hackathon, e o critério "Qualidade do protótipo e da apresentação" depende dele. Um roteiro com tempo marcado evita estourar os 5 minutos.
+
+**Como entregar:** documento (Google Docs ou similar) com o roteiro para o Enzo revisar. O site já pode ser explorado rodando `npm run dev` na pasta `web`, ou pelo link da Vercel quando o Azi publicar.
+
+## Camila — Apresentação (slides)
+**O que fazer:** montar a apresentação que acompanha o vídeo (o edital pede o link dela na entrega), com 6 a 8 slides na mesma ordem do roteiro: problema → dados e método → demonstração (prints do site) → valor → viabilidade → equipe.
+Use poucos textos e números grandes (ex.: "336 partidas", "41% vs. 6%: chance de a morte ser trocada perto e longe de um aliado").
+Atenção aos direitos de imagem: logos e artes do VALORANT só se forem de uso permitido pela Riot (você já conferiu a política); prefira prints do nosso próprio site.
+
+**Por quê:** a apresentação é entregue junto com o vídeo, e a banca pode consultá-la depois. Ela também serve de base visual para gravar o vídeo.
+
+**Como entregar:** link da apresentação (Google Slides, Canva…) para o Enzo, com permissão de visualização.
