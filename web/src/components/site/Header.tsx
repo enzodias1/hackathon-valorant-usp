@@ -9,6 +9,7 @@ const NAV = [
   { href: "/partidas", label: "Partidas" },
   { href: "/times", label: "Times" },
   { href: "/jogadores", label: "Jogadores" },
+  { href: "/economia", label: "Economia" },
 ];
 
 export default function Header() {

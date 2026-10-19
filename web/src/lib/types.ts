@@ -33,6 +33,8 @@ export interface TeamSummary {
   rounds: number;
   round_win: number;
   competitions: string[];
+  strength_rank: number;
+  strength: number;
 }
 
 export interface PlayerSummary {
@@ -227,6 +229,57 @@ export interface Team {
   };
   decisive: { throws: DecisiveRound[]; comebacks: DecisiveRound[] };
   matches: { id: string; date: string; competition: string; stage: string | null; map: string; opponent: string; opponent_name: string; score_for: number; score_against: number; won: boolean }[];
+  strength: { theta: number; p_vs_avg: number; rank: number; of: number; reliable: boolean };
+  economy: TeamEconomy[];
+  evolution: TeamEvolution;
+}
+
+// ---------------------------------------------------------------- economia ("forçar ou economizar?")
+export type EcoDecision = "Economizar" | "Meio-termo" | "Forçar";
+
+export interface TeamEconomy {
+  context: string;
+  label: string;
+  n: number;
+  decisions: Partial<Record<EcoDecision, { n: number; win_now: number; rounds_next3: number | null }>>;
+  league_best: EcoDecision;
+  insight: string | null;
+}
+
+export interface EffectCI {
+  effect: number;
+  ci90: [number, number];
+  significant: boolean;
+}
+
+export interface EconomyContext {
+  n: number;
+  n_horizon: number;
+  decisions: Partial<Record<EcoDecision, { n: number; win_now: number; rounds_next3: number | null; n_next3: number; next_full_buy: number; avg_credits: number; avg_spent: number }>>;
+  adjusted_vs_save: Partial<Record<EcoDecision, EffectCI>>;
+  robustness: Record<string, { n: number; effects: Partial<Record<EcoDecision, EffectCI>> }>;
+  by_credits: Record<string, EconomyContext["decisions"]>;
+}
+
+export interface Economy {
+  definitions: { full_buy_credits: number; save_max_spent_share: number; force_min_spent_share: number; horizon_rounds: number; controls: string[] };
+  contexts: Record<string, EconomyContext>;
+}
+
+// ---------------------------------------------------------------- evolução no campeonato
+export interface TeamEvolution {
+  available: boolean;
+  periods: { before: string; after: string; maps_before: number; maps_after: number } | null;
+  stages: {
+    etapa: string; date: string; maps: number; rounds: number; round_win: number; opp_strength: number;
+    above_level_per100: number; above_level_se100: number; above_level_z: number;
+    traded_death_rate: number | null; isolated_death_rate: number | null;
+  }[];
+  changes: {
+    key: string; label: string; higher_is_better: boolean; before: number; after: number; n_before: number; n_after: number;
+    z: number; significant: boolean; improved: boolean; harder_opponents: boolean; text?: string;
+  }[];
+  players: { puuid: string; name: string; stages: { etapa: string; rounds: number; wpa_per_round: number }[] }[];
 }
 
 // ---------------------------------------------------------------- jogador
@@ -269,4 +322,5 @@ export interface Player {
   best_plays: Moment[];
   costliest_deaths: Moment[];
   partners: { puuid: string; name: string; rounds_together: number; they_traded_you: number; your_deaths_with_them_alive: number; you_traded_them: number; their_assists_on_your_kills: number }[];
+  stages: { etapa: string; team: string; rounds: number; wpa_per_round: number; kd: number }[];
 }

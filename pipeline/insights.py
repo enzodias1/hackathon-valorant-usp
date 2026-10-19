@@ -135,6 +135,30 @@ def mean_test(values, league_mean, higher_is_better=True, min_n=MIN_N):
     return {"value": float(m), "league": float(league_mean), "n": n, "z": float(z), "significant": bool(sig), "good": bool((z > 0) == higher_is_better) if sig else None}
 
 
+FDR_Q = 0.10  # Benjamini-Hochberg: at most ~10% of the claims shown on a page are expected to be false positives
+
+
+def bh_adjust(comparisons, q=FDR_Q):
+    """Multiple-testing control per page (team / player): a comparison stays 'significant' only if it survives
+    Benjamini-Hochberg among all comparisons of that page. Keeps z; adds two-sided p and the BH threshold used."""
+    from scipy.stats import norm
+    keys = [k for k, c in comparisons.items() if c.get("z") is not None and c.get("n", 0) >= MIN_N]
+    p = {k: float(2 * norm.sf(abs(comparisons[k]["z"]))) for k in keys}
+    order = sorted(keys, key=lambda k: p[k])
+    m, cutoff = len(order), 0
+    for i, k in enumerate(order, start=1):
+        if p[k] <= q * i / m:
+            cutoff = i
+    passed = set(order[:cutoff])
+    # BH never accepts p > q, so whatever passes was already significant individually (|z| >= 1.645) and keeps its direction
+    for k, c in comparisons.items():
+        c["p"] = p.get(k)
+        c["significant"] = bool(c.get("significant")) and k in passed
+        if not c["significant"]:
+            c["good"] = None
+    return comparisons
+
+
 TREND_Z = 1.0  # "attention" items: unfavorable direction, not significant yet (~84% one-sided)
 
 

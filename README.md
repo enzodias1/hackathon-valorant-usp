@@ -34,6 +34,8 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 .venv/Scripts/python pipeline/etl.py "../Dados .Json"         # data/processed/*.parquet (+ checagens)
 .venv/Scripts/python pipeline/winprob.py                      # modelo de prob. de vitória + impacto (WPA)
 .venv/Scripts/python pipeline/team.py                         # sinergia, papéis por comportamento, perfil dos times
+.venv/Scripts/python pipeline/evolution.py                    # força dos times (Bradley-Terry) e evolução no campeonato
+.venv/Scripts/python pipeline/economy.py                      # conselheiro de economia: forçar ou economizar?
 .venv/Scripts/python pipeline/export.py                       # JSON do site em web/public/data (formato em web/DADOS.md)
 .venv/Scripts/python pipeline/teams_sheet.py                  # planilha de nomes dos times (para_equipe/)
 ```
@@ -53,3 +55,13 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 - **Papéis por comportamento** (percentis na liga, mín. 60 rounds): Entrada, Suporte, Lurk, Âncora.
   Validação: 72% dos duelistas → Entrada; 71% dos sentinelas → Lurk, sem o modelo ver o agente.
 - **Round "jogado fora":** o time chegou a ≥ 80% de probabilidade e perdeu. **Virada:** ≤ 20% e venceu.
+- **Controle de falsos positivos:** toda afirmação de "ponto forte/fraco" ou "mudou" passa por Benjamini-Hochberg (q = 10%) dentro
+  da página (time ou jogador). Sem isso, com 15 métricas por time, ~1–2 insights por time seriam ruído.
+- **Força dos times:** Bradley-Terry nos rounds, descontando a economia (regularizado: times com poucos mapas ficam perto da média).
+- **Evolução:** primeira × segunda metade dos mapas de cada time, com o esperado de cada evento ajustado pela força do adversário
+  e pela economia (senão todo time "piora" na Fase de Grupos, onde os adversários são mais fortes). Só times com ≥ 8 mapas.
+- **Economia (forçar ou economizar?):** rounds sem dinheiro para full buy (dinheiro + armas carregadas < 20 mil). Decisão pelo % do
+  dinheiro gasto (≤ 35% economizar, ≥ 65% forçar). Resultado: rounds vencidos neste e nos 2 seguintes, com controles (dinheiro, armas,
+  adversário, força, lado, placar, round) e bootstrap por partida. Depois de perder o pistol, forçar: +0,74 round [+0,47; +1,00];
+  depois de perder um round sem full buy: +0,63 [+0,45; +0,81]. Robusto a horizonte de 2/4 rounds e a confrontos equilibrados.
+  É evidência observacional, apresentada como tal.

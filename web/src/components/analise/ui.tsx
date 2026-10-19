@@ -55,7 +55,7 @@ const INSIGHT_STYLE = {
 export function InsightPanel({ insights, empty }: { insights: Insights; empty?: string }) {
   const groups = (["strengths", "weaknesses", "attention", "notes"] as const).filter((k) => (insights[k] ?? []).length > 0);
   if (!groups.length)
-    return <p className="text-sm text-ink-2">{empty ?? "Amostra pequena: nenhuma diferença em relação à liga é estatisticamente confiável ainda."}</p>;
+    return <p className="text-sm text-ink-2">{empty ?? "Nenhuma diferença em relação à liga passou no teste estatístico: nas métricas analisadas, o desempenho está dentro da faixa normal da liga (ou a amostra ainda é pequena para afirmar)."}</p>;
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {groups.map((k) => (
@@ -124,6 +124,59 @@ export function WpaBar({ value, max, digits = 1 }: { value: number; max: number;
              style={value >= 0 ? { left: "50%", width: `${w}%` } : { right: "50%", width: `${w}%` }} />
       </div>
       <span className="tabular whitespace-nowrap text-sm text-ink">{pp(value, digits)}</span>
+    </div>
+  );
+}
+
+/** Efeito estimado (ponto) com intervalo de 90% (traço) num eixo simétrico em torno de zero. */
+export function EffectRow({ label, sub, effect, ci, domain = 1.5, unit = "round", highlight }: {
+  label: string; sub?: string; effect: number | null; ci?: [number, number]; domain?: number; unit?: string; highlight?: boolean;
+}) {
+  const pos = (x: number) => Math.min(100, Math.max(0, 50 + (x / domain) * 50));
+  const sig = ci ? ci[0] > 0 || ci[1] < 0 : false;
+  const color = !sig ? "bg-ink-2" : (effect ?? 0) > 0 ? "bg-good" : "bg-bad";
+  const fmt = (x: number) => `${x > 0 ? "+" : x < 0 ? "−" : ""}${Math.abs(x).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return (
+    <div className={`grid grid-cols-[minmax(0,1fr)] items-center gap-x-4 gap-y-1 rounded-lg px-2 py-2 sm:grid-cols-[13rem_minmax(0,1fr)_11rem] ${highlight ? "bg-surface-2" : ""}`}>
+      <div>
+        <div className="text-sm text-ink">{label}</div>
+        {sub && <div className="text-xs text-muted">{sub}</div>}
+      </div>
+      <div className="relative h-6" title={effect == null ? "referência" : `${fmt(effect)} ${unit}${ci ? ` (90%: ${fmt(ci[0])} a ${fmt(ci[1])})` : ""}`}>
+        <div className="absolute inset-x-0 top-1/2 h-px bg-axis" />
+        <div className="absolute top-0 h-6 w-px bg-muted" style={{ left: "50%" }} />
+        {ci && <div className={`absolute top-1/2 h-1 -translate-y-1/2 rounded-full ${color} opacity-50`} style={{ left: `${pos(ci[0])}%`, width: `${pos(ci[1]) - pos(ci[0])}%` }} />}
+        {effect != null && <div className={`absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full ring-2 ring-surface ${color}`} style={{ left: `calc(${pos(effect)}% - 6px)` }} />}
+      </div>
+      <div className="tabular text-sm text-ink-2">
+        {effect == null ? <span className="text-muted">referência (0)</span> : (
+          <><span className="text-ink">{fmt(effect)} {unit}</span>{ci && <span className="text-muted"> · {fmt(ci[0])} a {fmt(ci[1])}</span>}</>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Uma etapa do campeonato: desempenho acima/abaixo do próprio nível, com faixa de incerteza (90%). */
+export function StageRow({ label, sub, value, se, domain = 25 }: { label: string; sub?: string; value: number; se: number; domain?: number }) {
+  const pos = (x: number) => Math.min(100, Math.max(0, 50 + (x / domain) * 50));
+  // barra neutra de propósito: cada etapa isolada não passa por controle de falsos positivos;
+  // as afirmações de mudança ficam na lista "O que mudou" (já com Benjamini-Hochberg)
+  const lo = value - 1.645 * se, hi = value + 1.645 * se;
+  const fmt = (x: number) => `${x > 0 ? "+" : x < 0 ? "−" : ""}${Math.abs(x).toLocaleString("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 })}`;
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)] items-center gap-x-4 gap-y-1 py-2 sm:grid-cols-[15rem_minmax(0,1fr)_9rem]">
+      <div>
+        <div className="text-sm text-ink">{label}</div>
+        {sub && <div className="text-xs text-muted">{sub}</div>}
+      </div>
+      <div className="relative h-6" title={`${fmt(value)} rounds a cada 100 (90%: ${fmt(lo)} a ${fmt(hi)})`}>
+        <div className="absolute top-0 h-6 w-px bg-muted" style={{ left: "50%" }} />
+        <div className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-ink-2 opacity-30" style={{ left: `${pos(lo)}%`, width: `${pos(hi) - pos(lo)}%` }} />
+        <div className="absolute top-1/2 h-3 -translate-y-1/2 rounded-sm bg-ink-2"
+             style={value >= 0 ? { left: "50%", width: `${pos(value) - 50}%` } : { right: "50%", width: `${50 - pos(value)}%` }} />
+      </div>
+      <div className="tabular text-sm"><span className="text-ink">{fmt(value)}</span> <span className="text-muted">± {Math.abs(1.645 * se).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}</span></div>
     </div>
   );
 }

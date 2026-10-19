@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from insights import (PLAYER_TEXT, ROLE_EXPECTED, TEAM_METRICS, TEAM_TEXT, Z_SIGNIFICANT, binom, br, make_insights,
+from insights import (PLAYER_TEXT, ROLE_EXPECTED, TEAM_METRICS, TEAM_TEXT, Z_SIGNIFICANT, bh_adjust, binom, br, make_insights,
                       mean_test, pct, pp, team_counts)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -71,6 +71,9 @@ def load():
     t["team_rounds"] = t["team_rounds"][t["team_rounds"].team.notna()]
     t["player_name"] = t["player_match"].sort_values("match_id").groupby("puuid").name.last().to_dict()
     t["agents_by_name"] = {a["name"]: a for a in LOOKUP["agents"].values()}
+    for n in ("team_strength", "team_stage", "team_changes", "player_stage", "economy_team"):
+        t[n] = pd.read_parquet(P / f"{n}.parquet")
+    t["economy"] = json.loads((P / "economy.json").read_text(encoding="utf-8"))
     t["wpa_pm"] = t["wp_credits"].groupby(["match_id", "puuid"]).wpa.sum() * 100
     return t
 
@@ -158,14 +161,27 @@ def export_teams(t, names):
         d = dc[dc.team == slug]
         counts = team_counts(g, d)
         comps = {k: binom(s, n, league_rate[k], TEAM_METRICS[k][1]) for k, (s, n) in counts.items()}
-        metrics = [{"key": k, "label": TEAM_METRICS[k][0], "higher_is_better": TEAM_METRICS[k][1], **c} for k, c in comps.items()]
-        ins = make_insights(comps, TEAM_TEXT, higher_is_better={k: v[1] for k, v in TEAM_METRICS.items()})
 
         # rounds won above what the economy (model, round start) predicted
         W, E, var = g.won.sum(), g.p0.sum(), (g.p0 * (1 - g.p0)).sum()
         z = (W - E) / math.sqrt(var) if var > 0 else 0.0
-        wae = {"wins": int(W), "expected": float(E), "diff": float(W - E), "per100": float((W - E) / len(g) * 100), "z": z,
+        wae = {"wins": int(W), "expected": float(E), "diff": float(W - E), "per100": float((W - E) / len(g) * 100), "z": z, "n": len(g),
                "significant": bool(abs(z) >= Z_SIGNIFICANT and len(g) >= 15)}
+        wae["good"] = (z > 0) if wae["significant"] else None
+
+        buys = []
+        for b, gb in g.groupby("buy"):
+            Wb, Eb, vb = gb.won.sum(), gb.p0.sum(), (gb.p0 * (1 - gb.p0)).sum()
+            zb = (Wb - Eb) / math.sqrt(vb) if vb > 0 else 0.0
+            sig = bool(abs(zb) >= Z_SIGNIFICANT and len(gb) >= 15)
+            buys.append({"buy": b, "rounds": len(gb), "n": len(gb), "win": gb.won.mean(), "expected": gb.p0.mean(),
+                         "league_win": league_buy.get(b), "z": zb, "significant": sig, "good": (zb > 0) if sig else None})
+
+        # every claim on the team page is one family for multiple-testing control (Benjamini-Hochberg)
+        bh_adjust({**comps, "wins_above_expected": wae, **{f"buy:{b['buy']}": b for b in buys}})
+        metrics = [{"key": k, "label": TEAM_METRICS[k][0], "higher_is_better": TEAM_METRICS[k][1], **c} for k, c in comps.items()]
+        ins = make_insights(comps, TEAM_TEXT, higher_is_better={k: v[1] for k, v in TEAM_METRICS.items()})
+
         if wae["significant"]:
             item = {"key": "wins_above_expected", "z": round(z, 2), "n": len(g)}
             if z > 0:
@@ -175,12 +191,6 @@ def export_teams(t, names):
                                              "tip": "Compare a tabela de economia: em qual tipo de compra o time rende abaixo do esperado?"})
         ins["strengths"], ins["weaknesses"] = ins["strengths"][:4], ins["weaknesses"][:4]
 
-        buys = []
-        for b, gb in g.groupby("buy"):
-            Wb, Eb, vb = gb.won.sum(), gb.p0.sum(), (gb.p0 * (1 - gb.p0)).sum()
-            zb = (Wb - Eb) / math.sqrt(vb) if vb > 0 else 0.0
-            buys.append({"buy": b, "rounds": len(gb), "win": gb.won.mean(), "expected": gb.p0.mean(), "league_win": league_buy.get(b),
-                         "z": zb, "significant": bool(abs(zb) >= Z_SIGNIFICANT and len(gb) >= 15)})
         order = ["Pistol", "Eco", "Semi-eco", "Semi-buy", "Full buy"]
         buys.sort(key=lambda x: order.index(x["buy"]) if x["buy"] in order else 99)
 
@@ -257,14 +267,97 @@ def export_teams(t, names):
             "maps": maps, "buys": buys, "roster": roster, "synergy": synergy,
             "decisive": {"throws": decisive(g[g.throw], "wp_max", False), "comebacks": decisive(g[g.comeback], "wp_min", True)},
             "matches": mlist,
+            "strength": team_strength(t, slug),
+            "economy": team_economy(t, slug),
+            "evolution": team_evolution(t, slug, [r["puuid"] for r in roster if r["core"]]),
         }
         write(OUT / "teams" / f"{slug}.json", doc)
         summary.append({"slug": slug, "name": info["name"], "tag": info["tag"], "maps": len(mlist), "map_wins": doc["record"]["map_wins"],
                         "rounds": team_rounds_n, "round_win": doc["record"]["round_win"],
-                        "competitions": sorted({x["competition"] for x in mlist})})
+                        "competitions": sorted({x["competition"] for x in mlist}),
+                        "strength_rank": doc["strength"]["rank"], "strength": doc["strength"]["p_vs_avg"]})
     league = {"team_rates": league_rate, "buy_win": league_buy.to_dict(), "map_atk_win": league_map_atk.to_dict(),
               "pair_trade_rate": league_pair_trade}
     return summary, league
+
+
+def team_strength(t, slug):
+    s = t["team_strength"].set_index("team")
+    r = s.loc[slug]
+    return {"theta": float(r.theta), "p_vs_avg": float(r.p_vs_avg), "rank": int(r["rank"]), "of": int(len(s)),
+            "reliable": bool(r.rounds >= 100)}
+
+
+ECON_TEXT = {
+    "perdeu o pistol": "Depois de perder o pistol",
+    "perdeu o round anterior": "Depois de perder um round sem dinheiro para full buy",
+}
+
+
+def team_economy(t, slug):
+    """The team's own force/save decisions vs. what the league data suggests."""
+    lg, et = t["economy"]["contexts"], t["economy_team"]
+    out = []
+    for ctx, info in lg.items():
+        rows = et[(et.team == slug) & (et.context == ctx)]
+        n = int(rows.n.sum())
+        decisions = {r.decision: {"n": int(r.n), "win_now": r.wins / r.n, "rounds_next3": None if pd.isna(r.rounds_next3) else float(r.rounds_next3)}
+                     for r in rows.itertuples(index=False)}
+        eff = info["adjusted_vs_save"]
+        sig = {k: v for k, v in eff.items() if v["significant"] and v["effect"] > 0}
+        best = max(sig, key=lambda k: sig[k]["effect"]) if sig else "Economizar"
+        text = None
+        if n >= 5:
+            mine = max(decisions, key=lambda k: decisions[k]["n"])
+            share_best = decisions.get(best, {"n": 0})["n"] / n
+            verb = {"Economizar": "economizaram", "Meio-termo": "fizeram meia compra", "Forçar": "forçaram"}
+            if best != "Economizar" and share_best < 0.5:
+                e = eff[best]
+                text = (f"{ECON_TEXT[ctx]}, vocês {verb[mine]} em {decisions[mine]['n']} de {n} vezes. Na liga, em situações parecidas, "
+                        f"quem {'forçou' if best == 'Forçar' else 'fez meia compra'} venceu em média {br(e['effect'], '+.2f')} round nos 3 rounds seguintes "
+                        f"(intervalo de 90%: {br(e['ci90'][0], '+.2f')} a {br(e['ci90'][1], '+.2f')}).")
+            elif best != "Economizar":
+                text = f"{ECON_TEXT[ctx]}, vocês {verb[best]} em {decisions[best]['n']} de {n} vezes, como os dados da liga indicam."
+        out.append({"context": ctx, "label": ECON_TEXT[ctx], "n": n, "decisions": decisions, "league_best": best, "insight": text})
+    return out
+
+
+def team_evolution(t, slug, core):
+    st = t["team_stage"][t["team_stage"].team == slug].sort_values("etapa_idx")
+    ch = t["team_changes"][t["team_changes"].team == slug]
+    stages = [{"etapa": r.etapa, "date": r.date.isoformat(), "maps": int(r.maps), "rounds": int(r.rounds), "round_win": r.round_win,
+               "opp_strength": float(1 / (1 + math.exp(-r.opp_theta))), "above_level_per100": r.above_level_per100,
+               "above_level_se100": r.above_level_se100, "above_level_z": r.above_level_z,
+               "traded_death_rate": r.traded_death_rate, "isolated_death_rate": r.isolated_death_rate} for r in st.itertuples(index=False)]
+    changes = []
+    if len(ch):
+        fam = {r.key: {"z": float(r.z), "n": int(min(r.n_before, r.n_after)), "significant": bool(abs(r.z) >= Z_SIGNIFICANT),
+                       "good": bool(r.improved) if abs(r.z) >= Z_SIGNIFICANT else None} for r in ch.itertuples(index=False)}
+        bh_adjust(fam)
+        for r in ch.itertuples(index=False):
+            c = fam[r.key]
+            harder = r.opp_theta_after - r.opp_theta_before > 0.2
+            item = {"key": r.key, "label": r.label, "higher_is_better": bool(r.higher_is_better), "before": r.before, "after": r.after,
+                    "n_before": int(r.n_before), "n_after": int(r.n_after), "z": float(r.z), "significant": c["significant"],
+                    "improved": bool(r.improved), "harder_opponents": bool(harder)}
+            if c["significant"]:
+                fmt = (lambda x: f"{br(x, '+.1f')}") if r.key == "above_level" else pct
+                item["text"] = (f"{'Melhorou' if r.improved else 'Piorou'}: {r.label.lower()} passou de {fmt(r.before)} para {fmt(r.after)}"
+                                f"{', mesmo enfrentando adversários mais fortes' if harder and r.improved else ''} (já descontada a força dos adversários).")
+            changes.append(item)
+        meta = ch.iloc[0]
+        periods = {"before": meta.period_before, "after": meta.period_after, "maps_before": int(meta.maps_before), "maps_after": int(meta.maps_after)}
+    else:
+        periods = None
+    ps = t["player_stage"]
+    players = []
+    for pu in core:
+        x = ps[(ps.puuid == pu) & (ps.team == slug)].sort_values("etapa_idx")
+        if len(x):
+            players.append({"puuid": pu, "name": t["player_name"].get(pu), "stages": [{"etapa": r.etapa, "rounds": int(r.rounds), "wpa_per_round": r.wpa_per_round}
+                                                                                         for r in x.itertuples(index=False)]})
+    return {"available": periods is not None, "periods": periods, "stages": stages,
+            "changes": sorted(changes, key=lambda c: (not c["significant"], -abs(c["z"]))), "players": players}
 
 
 # ----------------------------------------------------------------------------------------------- players
@@ -330,6 +423,15 @@ def export_players(t, names):
             "first_duel": binom(stints.fk.sum(), stints.fk.sum() + stints.fd.sum(), 0.5, True),
             "clutch_win": binom(stints.clutch_won.sum(), stints.clutch_att.sum(), league["clutch_win"], True),
         }
+        # side split (Welch z on per-round WPA) is also a claim on the page -> same multiple-testing family
+        a, d = g_pr[g_pr.side == "Ataque"].wpa, g_pr[g_pr.side == "Defesa"].wpa
+        side_c = {"z": None, "n": 0, "significant": False}
+        if len(a) >= 30 and len(d) >= 30:
+            se = math.sqrt(a.var(ddof=1) / len(a) + d.var(ddof=1) / len(d))
+            zs = (a.mean() - d.mean()) / se if se > 0 else 0.0
+            side_c = {"z": float(zs), "n": int(min(len(a), len(d))), "significant": abs(zs) >= Z_SIGNIFICANT, "good": None}
+        bh_adjust({**comps, "side": side_c})
+
         fmt = {k: (pp if k in ("kill_value", "death_cost") else pct) for k in comps}
         hib = {k: k != "isolated_death_rate" for k in comps}
         ins = {"strengths": [], "weaknesses": [], "attention": []}
@@ -341,15 +443,10 @@ def export_players(t, names):
             ins[part].sort(key=lambda x: -abs(x["z"]))
         ins["attention"] = ins["attention"][:2]
         notes = []
-        # side split (Welch z on per-round WPA)
-        a, d = g_pr[g_pr.side == "Ataque"].wpa, g_pr[g_pr.side == "Defesa"].wpa
-        if len(a) >= 30 and len(d) >= 30:
-            se = math.sqrt(a.var(ddof=1) / len(a) + d.var(ddof=1) / len(d))
-            zs = (a.mean() - d.mean()) / se if se > 0 else 0
-            if abs(zs) >= Z_SIGNIFICANT:
-                better, worse = ("ataque", "defesa") if zs > 0 else ("defesa", "ataque")
-                notes.append({"key": "side", "z": round(float(zs), 2),
-                              "text": f"Você rende mais na {better}: {pp(max(a.mean(), d.mean()))} por round contra {pp(min(a.mean(), d.mean()))} na {worse}."})
+        if side_c["significant"]:
+            better, worse = ("ataque", "defesa") if side_c["z"] > 0 else ("defesa", "ataque")
+            notes.append({"key": "side", "z": round(side_c["z"], 2),
+                          "text": f"Você rende mais na {better}: {pp(max(a.mean(), d.mean()))} por round contra {pp(min(a.mean(), d.mean()))} na {worse}."})
         if p.role_eligible:
             p_kd, p_wpa = percentile("kd", p.kd), percentile("wpa_per_round", p.wpa_per_round)
             if p_kd is not None and p_wpa is not None and abs(p_wpa - p_kd) >= 25:
@@ -424,6 +521,9 @@ def export_players(t, names):
                      "axes": {a: p[f"axis_{a}"] for a in AXES} if p.role_eligible else None},
             "comparisons": comps, "insights": ins,
             "agents": agents, "maps": maps, "matches": matches, "best_plays": best, "costliest_deaths": worst, "partners": partners,
+            "stages": [{"etapa": r.etapa, "team": r.team, "rounds": int(r.rounds), "wpa_per_round": r.wpa_per_round,
+                        "kd": r.kills / max(r.deaths, 1)}
+                       for r in t["player_stage"][t["player_stage"].puuid == puuid].sort_values("etapa_idx").itertuples(index=False)],
         }
         write(OUT / "players" / f"{puuid}.json", doc)
         index.append({"puuid": puuid, "name": p["name"], "team": slug, "rounds": rounds, "agent_role": p.main_agent_role,
@@ -470,6 +570,7 @@ def main():
     players, league_p = export_players(t, names)
     write(OUT / "index.json", {"teams": names, "team_list": teams, "players": players, "matches": matches})
     write(OUT / "league.json", {**league_t, "player": league_p})
+    write(OUT / "economy.json", t["economy"])
     for d in ("matches", "teams", "players"):
         files = list((OUT / d).glob("*.json"))
         print(f"{d:8s} {len(files):4d} files  {sum(f.stat().st_size for f in files) / 1e6:5.1f} MB")

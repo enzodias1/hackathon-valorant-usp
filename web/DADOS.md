@@ -99,6 +99,19 @@ No código, carregue com `fetch("/data/index.json")` e `fetch(\`/data/matches/${
 Glossário para leigos: **log loss / Brier** = erro das probabilidades (menor é melhor); **AUC** = capacidade de separar
 quem vence de quem perde (1 = perfeito, 0,5 = moeda); **ECE / calibração** = quando o modelo diz 70%, acontece ~70% das vezes?
 
+## Campos novos (20/10)
+- `teams/<slug>.json`:
+  - `strength`: `{ theta, p_vs_avg, rank, of, reliable }`. Força do time (ranking de 1 a 68; `p_vs_avg` = chance de vencer um round contra um time médio).
+  - `economy`: lista por situação ("perdeu o pistol", "perdeu o round anterior") com as decisões do time
+    (`Economizar` / `Meio-termo` / `Forçar` → `n`, `win_now`, `rounds_next3`), `league_best` e `insight` (texto pronto ou `null`).
+  - `evolution`: `{ available, periods, stages[], changes[], players[] }`. `stages` = desempenho acima do próprio nível por etapa
+    (`above_level_per100` ± 1,645 × `above_level_se100`); `changes` = 1ª × 2ª metade (`significant` já com Benjamini-Hochberg; `text` quando confirmada).
+- `players/<puuid>.json`: `stages` = impacto por etapa (`etapa`, `team`, `rounds`, `wpa_per_round`, `kd`).
+- `index.json` → `team_list[]`: `strength_rank`, `strength`.
+- `economy.json`: dados do conselheiro de economia (`definitions`, `contexts[situação]` → `decisions`, `adjusted_vs_save` com `ci90`,
+  `robustness`, `by_credits`).
+- Em todas as comparações, `significant` agora já inclui o controle de falsos positivos por página (Benjamini-Hochberg, q = 10%).
+
 ## `league.json`
 Referências da liga inteira (taxas médias dos times, vitória por tipo de compra, ataque por mapa, médias de jogador).
 

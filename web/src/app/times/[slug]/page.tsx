@@ -4,7 +4,7 @@ import { getIndex, getTeam } from "@/lib/data";
 import { competitionLabel, date, nick, num, pct } from "@/lib/format";
 import type { Comparison, Team, TeamMetric } from "@/lib/types";
 import SynergyGraph from "@/components/analise/SynergyGraph";
-import { Badge, CompareLegend, CompareRow, InsightPanel, PlayerLink, Section, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
+import { Badge, CompareLegend, CompareRow, InsightPanel, PlayerLink, Section, StageRow, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
 
 // só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
 export const dynamicParams = false;
@@ -53,7 +53,8 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
         <StatTile label="Rounds além da economia" value={`${wae.diff >= 0 ? "+" : "−"}${num(Math.abs(wae.diff))}`}
                   tone={wae.significant ? (wae.diff > 0 ? "good" : "bad") : undefined}
                   sub={`${wae.per100 >= 0 ? "+" : ""}${num(wae.per100, 1)} a cada 100 rounds${wae.significant ? "" : " · não conclusivo"}`} />
-        <StatTile label="Titulares" value={team.synergy.nodes.length} sub={`${team.roster.length} jogadores no total`} />
+        <StatTile label="Força na liga" value={`${team.strength.rank}º de ${team.strength.of}`}
+                  sub={team.strength.reliable ? `vence ${pct(team.strength.p_vs_avg)} dos rounds contra um time médio` : "poucos rounds: estimativa imprecisa"} />
       </div>
 
       <Section title="Diagnóstico" subtitle="Comparação com a média da liga. Só viram ponto forte ou fraco as diferenças estatisticamente confiáveis para o tamanho da amostra.">
@@ -62,6 +63,11 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
 
       <Section title="Sinergia: quem cobre quem" subtitle="Trade = vingar a morte de um aliado em até 5 segundos. Duplas que se cobrem transformam mortes em duelos trocados.">
         <SynergyGraph synergy={team.synergy} />
+      </Section>
+
+      <Section title="Evolução no campeonato"
+               subtitle="Rounds vencidos acima ou abaixo do esperado em cada etapa, a cada 100 rounds. O esperado já desconta a força dos adversários e a economia, então mostra se o time jogou acima do próprio nível. A faixa clara é o intervalo de 90%.">
+        <Evolution team={team} />
       </Section>
 
       <Section title="Comparação com a liga" subtitle="Cada linha mostra o time (ponto) e a média da liga (traço)." aside={<CompareLegend />}>
@@ -121,7 +127,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
           <p className="mt-2 text-xs text-muted">Entre parênteses: vitória média do ataque naquele mapa, na liga.</p>
         </Section>
 
-        <Section title="Economia" subtitle="Vitórias por tipo de compra do time vs. o esperado pelo modelo (que considera a compra dos dois lados).">
+        <Section title="Vitórias por tipo de compra" subtitle="Vitórias do time em cada tipo de compra vs. o esperado pelo modelo (que considera a compra dos dois lados).">
           <div className="divide-y divide-line/50">
             {team.buys.map((b) => {
               const c: Comparison = { value: b.win, league: b.expected, n: b.rounds, z: b.z, significant: b.significant, good: b.significant ? b.z > 0 : null };
@@ -130,6 +136,40 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
           </div>
         </Section>
       </div>
+
+      <Section title="Forçar ou economizar?"
+               subtitle="As decisões do time quando não havia dinheiro para full buy, comparadas com o que rendeu mais rounds na liga em situações parecidas."
+               aside={<Link href="/economia" className="text-sm text-accent hover:underline">Como chegamos nisso →</Link>}>
+        <div className="grid gap-4 md:grid-cols-2">
+          {team.economy.map((e) => (
+            <div key={e.context} className="rounded-lg bg-surface-2 p-4">
+              <h3 className="text-sm font-medium text-ink">{e.label}</h3>
+              {e.n === 0 ? <p className="mt-2 text-sm text-ink-2">Nenhuma situação assim nos dados.</p> : (
+                <>
+                  <table className="mt-2 w-full text-sm">
+                    <thead><tr className="text-left text-xs text-muted"><th className="py-1">Decisão</th><th className="py-1 text-right">Vezes</th><th className="py-1 text-right">Venceu o round</th><th className="py-1 text-right">Rounds nos 3 seguintes</th></tr></thead>
+                    <tbody>
+                      {(["Economizar", "Meio-termo", "Forçar"] as const).map((d) => {
+                        const x = e.decisions[d];
+                        return (
+                          <tr key={d} className="border-t border-line/50">
+                            <td className="py-1.5 text-ink">{d}{e.league_best === d && <span className="ml-1.5 text-xs text-good">✓ melhor na liga</span>}</td>
+                            <td className="tabular py-1.5 text-right text-ink">{x?.n ?? 0}</td>
+                            <td className="tabular py-1.5 text-right text-ink-2">{x ? pct(x.win_now) : "—"}</td>
+                            <td className="tabular py-1.5 text-right text-ink-2">{x?.rounds_next3 != null ? num(x.rounds_next3, 1) : "—"}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  {e.insight && <p className="mt-3 text-sm text-ink">💡 {e.insight}</p>}
+                  {e.n < 5 && <p className="mt-2 text-xs text-muted">Poucas situações para tirar conclusões sobre o time.</p>}
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      </Section>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Section title="Rounds jogados fora" subtitle="O time chegou a esta chance de vitória e perdeu o round. Os melhores rounds para revisar no VOD.">
@@ -163,6 +203,45 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
         </div>
       </Section>
     </main>
+  );
+}
+
+function Evolution({ team }: { team: Team }) {
+  const ev = team.evolution;
+  const confirmed = ev.changes.filter((c) => c.significant);
+  return (
+    <div className="space-y-5">
+      <div className="divide-y divide-line/50">
+        {ev.stages.map((s) => (
+          <StageRow key={s.etapa} label={s.etapa} sub={`${s.maps} mapas · ${pct(s.round_win)} dos rounds · adversários: ${pct(s.opp_strength)} contra um time médio`}
+                    value={s.above_level_per100} se={s.above_level_se100} />
+        ))}
+      </div>
+      {ev.available ? (
+        <div>
+          <h3 className="mb-2 text-sm font-medium text-ink-2">
+            O que mudou: primeira metade ({ev.periods!.before}, {ev.periods!.maps_before} mapas) × segunda metade ({ev.periods!.after}, {ev.periods!.maps_after} mapas)
+          </h3>
+          {confirmed.length ? (
+            <ul className="space-y-2">
+              {confirmed.map((c) => (
+                <li key={c.key} className="flex gap-3 rounded-lg bg-surface-2 p-3 text-sm">
+                  <span className={`font-bold ${c.improved ? "text-good" : "text-bad"}`} aria-hidden>{c.improved ? "▲" : "▼"}</span>
+                  <span className="text-ink">{c.text}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-ink-2">
+              Nenhuma mudança confirmada estatisticamente. As diferenças entre as duas metades estão dentro do que o acaso explicaria com essa quantidade de mapas.
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="text-sm text-ink-2">Menos de 8 mapas: ainda não dá para comparar períodos.</p>
+      )}
+      <p className="text-xs text-muted">Mudanças só aparecem quando passam no teste estatístico com controle de falsos positivos (Benjamini-Hochberg), já descontada a força dos adversários.</p>
+    </div>
   );
 }
 

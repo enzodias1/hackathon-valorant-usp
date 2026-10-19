@@ -3,7 +3,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { cache } from "react";
-import type { DataIndex, Match, Player, Team } from "./types";
+import type { DataIndex, Economy, Match, Player, Team } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "public", "data");
 
@@ -14,4 +14,5 @@ async function readJson<T>(...parts: string[]): Promise<T> {
 export const getIndex = cache(() => readJson<DataIndex>("index.json"));
 export const getMatch = cache((id: string) => readJson<Match>("matches", `${id}.json`));
 export const getTeam = cache((slug: string) => readJson<Team>("teams", `${slug}.json`));
+export const getEconomy = cache(() => readJson<Economy>("economy.json"));
 export const getPlayer = cache((puuid: string) => readJson<Player>("players", `${decodeURIComponent(puuid)}.json`));

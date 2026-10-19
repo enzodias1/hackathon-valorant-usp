@@ -106,6 +106,23 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
         <MatchImpactChart matches={p.matches} />
       </Section>
 
+      {p.stages.length > 1 && (
+        <Section title="Evolução no campeonato" subtitle="Impacto médio por round em cada etapa. Etapas com poucos rounds variam muito; compare com cautela.">
+          <div className="divide-y divide-line/50">
+            {p.stages.map((s) => (
+              <div key={`${s.etapa}-${s.team}`} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-2 sm:grid-cols-[18rem_minmax(0,1fr)_6rem]">
+                <div>
+                  <div className="text-sm text-ink">{s.etapa}</div>
+                  <div className="text-xs text-muted">{s.rounds} rounds{p.teams.length > 1 ? ` · ${p.teams.find((t) => t.slug === s.team)?.name ?? s.team}` : ""}</div>
+                </div>
+                <WpaBar value={s.wpa_per_round} max={Math.max(...p.stages.map((x) => Math.abs(x.wpa_per_round)), 1)} />
+                <span className={`tabular hidden text-right text-sm sm:block ${s.rounds < 60 ? "text-muted" : "text-ink-2"}`}>K/D {num(s.kd, 2)}</span>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-2">
         <Section title="Jogadas que mais mudaram rounds" subtitle="Chance de vitória do time antes → depois da jogada.">
           <MomentList items={p.best_plays} kind="play" />

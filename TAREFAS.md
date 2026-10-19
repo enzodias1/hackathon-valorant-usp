@@ -132,6 +132,11 @@ o link na prática, e o Enzo não consegue testar isso daqui.
 
 **Como entregar:** Pull Request da branch `como-funciona` (ver [Como entregar](#como-entregar)). Antes, rode `git pull origin main` e `npm install`.
 
+> **Atualização (20/10):** o Enzo adicionou o link **"Economia"** no cabeçalho (`Header.tsx`), para a nova página `/economia`.
+> Ao incluir "Como funciona", rode `git merge main` antes, para não dar conflito. Vale explicar também, na sua página, dois métodos
+> novos: o **controle de falsos positivos** (Benjamini-Hochberg: só mostramos ponto forte/fraco quando não é ruído) e o
+> **conselheiro de economia** (resumo e números no `README.md`, em "Decisões de métrica").
+
 ---
 
 ## Jodão — Entrevistas com jogadores/coaches
