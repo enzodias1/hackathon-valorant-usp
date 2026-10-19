@@ -62,7 +62,24 @@ export default function MatchTable({ rows }: { rows: MatchRow[] }) {
       </div>
       <ResultCount shown={shown.length} total={rows.length} noun="partidas" onClear={clear} />
 
-      <div className="overflow-x-auto rounded-xl border border-line bg-surface">
+      {/* celular: cartões; a partir de sm: tabela */}
+      <ul className="divide-y divide-line/50 rounded-xl border border-line bg-surface sm:hidden">
+        {shown.map((r) => (
+          <li key={r.id}>
+            <Link href={`/partidas/${r.id}`} className="block px-4 py-3 hover:bg-surface-2">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 text-sm">
+                <span className={r.winner === "Red" ? "font-semibold text-ink" : "text-ink-2"}>{r.red.name}</span>
+                <span className="tabular rounded-md bg-surface-2 px-2 py-0.5 font-semibold text-ink">{r.score.Red} <span className="text-muted">–</span> {r.score.Blue}</span>
+                <span className={`text-right ${r.winner === "Blue" ? "font-semibold text-ink" : "text-ink-2"}`}>{r.blue.name}</span>
+              </div>
+              <p className="mt-1 text-xs text-muted">{date(r.date)} · {competitionLabel(r.competition, r.stage)} · {r.map}</p>
+            </Link>
+          </li>
+        ))}
+        {!shown.length && <li className="px-4 py-8 text-center text-sm text-ink-2">Nenhuma partida com esses filtros.</li>}
+      </ul>
+
+      <div className="hidden overflow-x-auto rounded-xl border border-line bg-surface sm:block">
         <table className="w-full min-w-[760px]">
           <thead>
             <tr>

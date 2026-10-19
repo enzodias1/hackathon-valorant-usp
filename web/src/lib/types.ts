@@ -348,3 +348,23 @@ export interface Player {
   partners: { puuid: string; name: string; rounds_together: number; they_traded_you: number; your_deaths_with_them_alive: number; you_traded_them: number; their_assists_on_your_kills: number }[];
   stages: { etapa: string; team: string; rounds: number; wpa_per_round: number; kd: number }[];
 }
+
+// ---------------------------------------------------------------- modelo (página "Como funciona")
+export interface ModelScores {
+  log_loss: number;
+  brier: number;
+  auc: number;
+  ece?: number;
+}
+
+export interface ModelInfo {
+  data: { matches: number; rounds: number; states: number; kills: number };
+  validation: string;
+  features: string[];
+  models: Record<"baseline_alive_lookup" | "logistic" | "gbm", ModelScores>;
+  chosen: string;
+  calibration: { p: number; y: number; n: number }[];
+  trade_by_distance: { distance: string; trade_rate: number; n: number }[];
+  buy_matchups: { atk_buy: string; def_buy: string; model: number; real: number; n: number }[];
+  definitions: { trade_window_s: number; isolated_distance_m: number; throw_wp: number; comeback_wp: number; min_rounds_role: number; significance: string };
+}

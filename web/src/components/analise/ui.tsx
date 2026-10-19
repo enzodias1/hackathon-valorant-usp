@@ -5,7 +5,7 @@ import { pct, pp } from "@/lib/format";
 
 export function Section({ title, subtitle, children, id, aside }: { title: string; subtitle?: string; children: React.ReactNode; id?: string; aside?: React.ReactNode }) {
   return (
-    <section id={id} className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+    <section id={id} className="min-w-0 scroll-mt-20 rounded-xl border border-line bg-surface p-5 sm:p-6">
       <header className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-ink">{title}</h2>
@@ -118,7 +118,7 @@ export function WpaBar({ value, max, digits = 1 }: { value: number; max: number;
   const w = Math.min(50, (Math.abs(value) / Math.max(max, 1e-9)) * 50);
   return (
     <div className="flex items-center gap-2">
-      <div className="relative h-2.5 w-24 shrink-0">
+      <div className="relative h-2.5 w-12 shrink-0 sm:w-24">
         <div className="absolute inset-y-0 left-1/2 w-px bg-axis" />
         <div className={`absolute inset-y-0 rounded-sm ${value >= 0 ? "bg-good" : "bg-bad"}`}
              style={value >= 0 ? { left: "50%", width: `${w}%` } : { right: "50%", width: `${w}%` }} />
@@ -201,10 +201,10 @@ export function PlayerLink({ puuid, name }: { puuid: string; name: string }) {
   return <Link href={`/jogadores/${puuid}`} className="text-ink underline decoration-line underline-offset-4 hover:decoration-ink-2">{name}</Link>;
 }
 
-export function Th({ children, right }: { children?: React.ReactNode; right?: boolean }) {
-  return <th className={`border-b border-line px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted ${right ? "text-right" : "text-left"}`}>{children}</th>;
+export function Th({ children, right, className = "" }: { children?: React.ReactNode; right?: boolean; className?: string }) {
+  return <th className={`border-b border-line px-2 py-2 text-xs font-medium uppercase tracking-wide text-muted sm:px-3 ${right ? "text-right" : "text-left"} ${className}`}>{children}</th>;
 }
 
 export function Td({ children, right, className = "" }: { children?: React.ReactNode; right?: boolean; className?: string }) {
-  return <td className={`border-b border-line/50 px-3 py-2 text-sm ${right ? "tabular text-right" : ""} ${className}`}>{children}</td>;
+  return <td className={`border-b border-line/50 px-2 py-2 text-sm sm:px-3 ${right ? "tabular text-right" : ""} ${className}`}>{children}</td>;
 }

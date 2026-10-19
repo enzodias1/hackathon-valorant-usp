@@ -3,7 +3,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { cache } from "react";
-import type { DataIndex, Economy, Match, Player, Team, TeamZones } from "./types";
+import type { DataIndex, Economy, Match, ModelInfo, Player, Team, TeamZones } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "public", "data");
 
@@ -16,4 +16,5 @@ export const getMatch = cache((id: string) => readJson<Match>("matches", `${id}.
 export const getTeam = cache((slug: string) => readJson<Team>("teams", `${slug}.json`));
 export const getEconomy = cache(() => readJson<Economy>("economy.json"));
 export const getZones = cache((slug: string) => readJson<TeamZones>("zones", `${slug}.json`));
+export const getModel = cache(() => readJson<ModelInfo>("model.json"));
 export const getPlayer = cache((puuid: string) => readJson<Player>("players", `${decodeURIComponent(puuid)}.json`));

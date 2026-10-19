@@ -136,12 +136,12 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
         <Section title="Agentes">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead><tr><Th>Agente</Th><Th right>Mapas</Th><Th right>K/D</Th><Th right>ACS</Th><Th>Impacto / round</Th></tr></thead>
+              <thead><tr><Th>Agente</Th><Th right>Mapas</Th><Th right>K/D</Th><Th right className="hidden sm:table-cell">ACS</Th><Th>Impacto / round</Th></tr></thead>
               <tbody>
                 {p.agents.map((a) => (
                   <tr key={a.agent}>
                     <Td><span className="flex items-center gap-2">{a.icon && <img src={a.icon} alt="" className="h-6 w-6 rounded" />}{a.agent}</span></Td>
-                    <Td right>{a.maps}</Td><Td right>{num(a.kd, 2)}</Td><Td right>{num(a.acs)}</Td>
+                    <Td right>{a.maps}</Td><Td right>{num(a.kd, 2)}</Td><Td right className="hidden sm:table-cell">{num(a.acs)}</Td>
                     <Td><WpaBar value={a.wpa_per_round} max={maxAgent} /></Td>
                   </tr>
                 ))}
@@ -152,11 +152,11 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
         <Section title="Mapas">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead><tr><Th>Mapa</Th><Th right>Mapas</Th><Th right>Vitórias</Th><Th right>K/D</Th><Th>Impacto / round</Th></tr></thead>
+              <thead><tr><Th>Mapa</Th><Th right className="hidden sm:table-cell">Mapas</Th><Th right>Vitórias</Th><Th right>K/D</Th><Th>Impacto / round</Th></tr></thead>
               <tbody>
                 {p.maps.map((m) => (
                   <tr key={m.map}>
-                    <Td>{m.map}</Td><Td right>{m.maps}</Td><Td right>{pct(m.map_win_rate)}</Td><Td right>{num(m.kd, 2)}</Td>
+                    <Td>{m.map}</Td><Td right className="hidden sm:table-cell">{m.maps}</Td><Td right>{pct(m.map_win_rate)}</Td><Td right>{num(m.kd, 2)}</Td>
                     <Td><WpaBar value={m.wpa_per_round} max={maxMap} /></Td>
                   </tr>
                 ))}
@@ -169,11 +169,11 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
       <Section title="Parceiros" subtitle="Quem cobre você (vinga suas mortes em até 5 s) e quem você cobre.">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px]">
-            <thead><tr><Th>Parceiro</Th><Th right>Rounds juntos</Th><Th right>Vingou você</Th><Th right>Você vingou</Th><Th right>Assistências nas suas kills</Th></tr></thead>
+            <thead><tr><Th className="sticky left-0 z-10 bg-surface">Parceiro</Th><Th right>Rounds juntos</Th><Th right>Vingou você</Th><Th right>Você vingou</Th><Th right>Assistências nas suas kills</Th></tr></thead>
             <tbody>
               {p.partners.map((x) => (
                 <tr key={x.puuid}>
-                  <Td><PlayerLink puuid={x.puuid} name={nick(x.name)} /></Td>
+                  <Td className="sticky left-0 z-10 bg-surface"><PlayerLink puuid={x.puuid} name={nick(x.name)} /></Td>
                   <Td right>{x.rounds_together}</Td>
                   <Td right>{x.they_traded_you}× <span className="text-muted">({pct(x.your_deaths_with_them_alive ? x.they_traded_you / x.your_deaths_with_them_alive : null)})</span></Td>
                   <Td right>{x.you_traded_them}×</Td>

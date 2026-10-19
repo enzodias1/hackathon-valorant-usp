@@ -29,15 +29,15 @@ export default function TeamTable({ teams }: { teams: TeamSummary[] }) {
       <ResultCount shown={shown.length} total={teams.length} noun="times" onClear={clear} />
 
       <div className="overflow-x-auto rounded-xl border border-line bg-surface">
-        <table className="w-full min-w-[720px]">
+        <table className="w-full sm:min-w-[720px]">
           <thead>
             <tr>
               <Th>Time</Th>
-              <Th right>Mapas</Th>
+              <Th right className="hidden sm:table-cell">Mapas</Th>
               <Th right>V · D</Th>
-              <Th right>Mapas vencidos</Th>
+              <Th right className="hidden sm:table-cell">Mapas vencidos</Th>
               <Th right>Rounds vencidos</Th>
-              <Th>Competições</Th>
+              <Th className="hidden sm:table-cell">Competições</Th>
             </tr>
           </thead>
           <tbody>
@@ -48,11 +48,11 @@ export default function TeamTable({ teams }: { teams: TeamSummary[] }) {
                     {t.name}
                   </Link>
                 </Td>
-                <Td right>{t.maps}</Td>
+                <Td right className="hidden sm:table-cell">{t.maps}</Td>
                 <Td right className="whitespace-nowrap text-ink-2">{t.map_wins} · {t.maps - t.map_wins}</Td>
-                <Td right>{pct(t.maps ? t.map_wins / t.maps : null)}</Td>
-                <Td right>{pct(t.round_win)} <span className="text-muted">· {t.rounds}</span></Td>
-                <Td>
+                <Td right className="hidden sm:table-cell">{pct(t.maps ? t.map_wins / t.maps : null)}</Td>
+                <Td right className="whitespace-nowrap">{pct(t.round_win)} <span className="text-muted">· {t.rounds}</span></Td>
+                <Td className="hidden sm:table-cell">
                   <div className="flex flex-wrap gap-1">{t.competitions.map((c) => <Badge key={c}>{c}</Badge>)}</div>
                 </Td>
               </tr>
