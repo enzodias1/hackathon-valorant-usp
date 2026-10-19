@@ -184,6 +184,10 @@ como "Blocked" (limite do plano gratuito com repositório privado). É esperado;
 | Camila | [Apresentação (slides)](#camila--apresentação-slides) | ⏳ Depois da planilha | Link da apresentação → Enzo |
 
 ## Jodão — Roteiro do vídeo pitch
+> **Atualização (20/10):** já existe um **roteiro-base pronto** em [`para_equipe/roteiro_pitch.md`](para_equipe/roteiro_pitch.md), com falas,
+> telas, tempos e números conferidos. Sua tarefa agora é **adaptar**: encaixar as frases das entrevistas nos trechos **[ENTREVISTA]**,
+> ajustar as falas ao seu jeito de falar, ler em voz alta cronometrando (até 5:00) e sugerir cortes ou trocas de exemplo.
+
 **O que fazer:** escrever o roteiro do vídeo de **no máximo 5 minutos**, com o que se fala e o que aparece na tela em cada trecho.
 Sugestão de estrutura (ajuste com o que ouviu nas entrevistas):
 
