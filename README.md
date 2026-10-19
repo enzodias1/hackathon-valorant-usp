@@ -36,6 +36,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 .venv/Scripts/python pipeline/team.py                         # sinergia, papéis por comportamento, perfil dos times
 .venv/Scripts/python pipeline/evolution.py                    # força dos times (Bradley-Terry) e evolução no campeonato
 .venv/Scripts/python pipeline/economy.py                      # conselheiro de economia: forçar ou economizar?
+.venv/Scripts/python pipeline/zones.py                        # onde cada time morre (regiões do mapa + grade de calor)
 .venv/Scripts/python pipeline/export.py                       # JSON do site em web/public/data (formato em web/DADOS.md)
 .venv/Scripts/python pipeline/teams_sheet.py                  # planilha de nomes dos times (para_equipe/)
 ```

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getIndex, getTeam } from "@/lib/data";
+import { getIndex, getTeam, getZones } from "@/lib/data";
 import { competitionLabel, date, nick, num, pct } from "@/lib/format";
 import type { Comparison, Team, TeamMetric } from "@/lib/types";
 import SynergyGraph from "@/components/analise/SynergyGraph";
+import ZonesPanel from "@/components/analise/ZonesPanel";
 import { Badge, CompareLegend, CompareRow, InsightPanel, PlayerLink, Section, StageRow, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
 
 // só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
@@ -28,7 +29,8 @@ const GROUPS: { title: string; keys: string[] }[] = [
 ];
 
 export default async function TeamPage({ params }: { params: Promise<{ slug: string }> }) {
-  const team: Team = await getTeam((await params).slug);
+  const slug = (await params).slug;
+  const [team, zones]: [Team, Awaited<ReturnType<typeof getZones>>] = await Promise.all([getTeam(slug), getZones(slug)]);
   const metric = Object.fromEntries(team.metrics.map((m) => [m.key, m])) as Record<string, TeamMetric>;
   const wae = team.wins_above_expected;
   const maxWpa = Math.max(...team.roster.map((p) => Math.abs(p.wpa_per_round)));
@@ -63,6 +65,10 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
 
       <Section title="Sinergia: quem cobre quem" subtitle="Trade = vingar a morte de um aliado em até 5 segundos. Duplas que se cobrem transformam mortes em duelos trocados.">
         <SynergyGraph synergy={team.synergy} />
+      </Section>
+
+      <Section title="Onde vocês morrem" subtitle="As regiões do mapa com mais mortes do time, por lado, comparadas com a liga, e quantas dessas mortes ficaram sem trade.">
+        <ZonesPanel zones={zones} />
       </Section>
 
       <Section title="Evolução no campeonato"
