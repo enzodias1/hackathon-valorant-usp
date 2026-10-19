@@ -3,13 +3,19 @@
 **Prazo final: sexta 23/10, 23h59.** Este arquivo é o quadro oficial da equipe: cada tarefa diz **o que fazer, por que importa e como entregar**.
 Ele é atualizado a cada entrega. Na dúvida, chame o Enzo.
 
+🌐 **Protótipo no ar: https://analista-univava.vercel.app**, atualizado sozinho a cada merge na `main`.
+
+> ⚠️ **(19/10) O Next.js foi atualizado por segurança (15.5.4 → 15.5.28).** Depois de `git merge main` na sua branch,
+> rode **`npm install`** dentro de `web/`, senão o site roda com a versão antiga.
+
 ## Quadro
 
 | Membro | Tarefa | Status | Entrega |
 |---|---|---|---|
 | Camila | [Nomes dos 68 times](#camila--nomes-dos-68-times) | 🟡 Em andamento | Planilha preenchida → Enzo |
 | Nukan | [Minimapa "replay" do round](#nukan--minimapa-replay-do-round) | 🟡 Em andamento | Pull Request `minimapa` |
-| Azi | [Estrutura do site + deploy](#azi--estrutura-do-site--deploy) | 🟡 Em andamento (**escopo ajustado, ver cartão**) | Pull Request `estrutura` + link da Vercel |
+| Azi | [Estrutura do site + deploy](#azi--estrutura-do-site--deploy) | ✅ Concluída (PR #1, no ar) | — |
+| Azi | [Página "Como funciona" + revisão no celular](#azi--página-como-funciona--revisão-no-celular) | 🟡 A fazer | Pull Request `como-funciona` |
 | Jodão | [Entrevistas com jogadores/coaches](#jodão--entrevistas-com-jogadorescoaches) | 🟡 Em andamento | Resumo → Enzo |
 
 Legenda: ⏳ aguardando · 🟡 a fazer / em andamento · 🔵 entregue, em revisão · ✅ concluída
@@ -97,6 +103,34 @@ Use React + SVG por cima de uma `<img>`, sem bibliotecas novas, e Tailwind para 
 **Por quê:** é a base onde as telas de análise vão entrar. O link público vai na entrega e permite que a banca use o protótipo.
 
 **Como entregar:** Pull Request da branch `estrutura` + link da Vercel (ver [Como entregar](#como-entregar)).
+
+---
+
+## Azi — Página "Como funciona" + revisão no celular
+**O que fazer:**
+1. **Página `/como-funciona`** (e o link "Como funciona" no cabeçalho), explicando o produto para jogador e para a banca técnica.
+   Os números estão em `web/public/data/model.json` (formato e glossário em [`web/DADOS.md`](web/DADOS.md#modeljson-para-a-página-como-funciona)),
+   e as definições, em "Decisões de métrica" no [`README.md`](README.md). Sugestão de seções:
+   - **A ideia em 3 passos:** (1) a cada kill/plant/desarme o modelo estima a chance de vitória do round; (2) a variação dessa chance é o
+     **impacto** da jogada; (3) somando os impactos e comparando com a liga, saem o diagnóstico, a sinergia e os papéis.
+   - **O modelo é confiável?** Gráfico de **calibração** (previsto × real, com a diagonal de referência) + tabela dos 3 modelos
+     (baseline, logística, gradient boosting) explicando em linguagem simples por que escolhemos o gradient boosting.
+     Frase-chave: *"quando o modelo diz 75%, o time vence 74% das vezes"*.
+   - **Previsão por tipo de compra:** tabela `buy_matchups` (modelo × realidade): mostra que o modelo "entende" economia.
+   - **Por que jogar perto importa:** gráfico de barras `trade_by_distance` (a curva que cai de 41% para 6%).
+   - **Glossário:** impacto (pp), trade, morte isolada, papel em jogo, round jogado fora / virada, significância ("só mostramos
+     ponto forte/fraco quando a diferença não é ruído").
+   - **Limites honestos:** só olhamos o que está nos dados (sem utilitárias detalhadas, sem comunicação); amostras pequenas são sinalizadas.
+   Use Recharts (já instalado) e os tokens de cor; para os gráficos, siga o padrão das telas de análise (`src/components/analise/`).
+2. **Revisão no celular:** abra **todas** as páginas no seu celular pelo link da Vercel (início, listas, um time, um jogador, uma partida)
+   e corrija o que quebrar: textos cortados, tabelas sem rolagem, gráficos espremidos. Pode mexer nos arquivos das telas de análise para
+   isso (só layout/CSS; se precisar mudar lógica, avise o Enzo). Mande prints do antes/depois no PR.
+
+**Por quê:** a banca tem gente técnica da Riot. Mostrar *como* o modelo foi validado transforma "confia em mim" em evidência, o que pesa em
+"Qualidade da análise", e a página também serve de base para o trecho de método do vídeo. O celular é como jogador e coach vão abrir
+o link na prática, e o Enzo não consegue testar isso daqui.
+
+**Como entregar:** Pull Request da branch `como-funciona` (ver [Como entregar](#como-entregar)). Antes, rode `git pull origin main` e `npm install`.
 
 ---
 

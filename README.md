@@ -4,6 +4,8 @@
 Banca: Riot Games + AcadArena (organizadora do UNIVAVÁ). Critérios (1–5 cada): Inovação, Impacto, Qualidade da análise/uso dos dados,
 Viabilidade, Usabilidade, Protótipo/apresentação. Análise **coletiva** é "especialmente bem-vinda" pelo edital.
 
+🌐 **Protótipo no ar: https://analista-univava.vercel.app** (publicado automaticamente a cada push na `main`)
+
 📋 **Tarefas da equipe e como entregar: [TAREFAS.md](TAREFAS.md)**
 
 ## O produto

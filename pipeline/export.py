@@ -432,9 +432,39 @@ def export_players(t, names):
     return index, league
 
 
+def export_model(t):
+    """model.json: how the win-probability model was validated + the evidence behind the metric choices (page 'Como funciona')."""
+    rep = json.loads((P / "wp_report.json").read_text(encoding="utf-8"))
+    dc, rd, st = t["death_context"], t["rounds"], t["wp_states"]
+    bins = [0, 500, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 7000, 1e9]
+    labels = ["0–5 m", "5–10 m", "10–15 m", "15–20 m", "20–25 m", "25–30 m", "30–40 m", "40–50 m", "50–70 m", "70 m+"]
+    d = dc[dc.nearest_mate_dist.notna()]
+    curve = d.groupby(pd.cut(d.nearest_mate_dist, bins, labels=labels), observed=True).traded.agg(["mean", "size"])
+    s0 = st[st.kind == "start"].set_index(["match_id", "round_num"])[["p_atk", "y"]]
+    bm = rd[~rd.anomalous].set_index(["match_id", "round_num"])[["atk_buy", "def_buy"]].join(s0)
+    buys = bm.groupby(["atk_buy", "def_buy"]).agg(model=("p_atk", "mean"), real=("y", "mean"), n=("y", "size")).reset_index()
+    doc = {
+        "data": {"matches": int(t["matches"].shape[0]), "rounds": rep["n_rounds"], "states": rep["n_states"], "kills": int(t["kills"].shape[0])},
+        "validation": "GroupKFold (5 dobras) por partida: cada partida é avaliada por um modelo que nunca a viu.",
+        "features": ["jogadores vivos de cada lado", "valor do equipamento dos vivos de cada lado", "spike plantada", "tempo de round", "tempo desde o plant"],
+        "models": {k: {m: rep[k][m] for m in ("log_loss", "brier", "auc") if m in rep[k]} | ({"ece": rep[k]["ece"]} if "ece" in rep[k] else {})
+                   for k in ("baseline_alive_lookup", "logistic", "gbm")},
+        "chosen": rep["chosen"],
+        "calibration": rep[rep["chosen"]]["calibration"],          # [{p: previsto, y: real, n}]
+        "trade_by_distance": [{"distance": str(k), "trade_rate": float(r["mean"]), "n": int(r["size"])} for k, r in curve.iterrows()],
+        "buy_matchups": buys[buys.n >= 80].to_dict(orient="records"),  # previsão no início do round vs. realidade
+        "definitions": {
+            "trade_window_s": 5, "isolated_distance_m": 30, "throw_wp": 0.8, "comeback_wp": 0.2, "min_rounds_role": 60,
+            "significance": "|z| ≥ 1,645 e amostra ≥ 15 (≈ 90% de confiança)",
+        },
+    }
+    write(OUT / "model.json", doc)
+
+
 def main():
     names = team_names()
     t = load()
+    export_model(t)
     matches = export_matches(t, names)
     teams, league_t = export_teams(t, names)
     players, league_p = export_players(t, names)

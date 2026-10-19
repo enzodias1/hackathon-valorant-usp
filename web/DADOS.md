@@ -82,6 +82,23 @@ No código, carregue com `fetch("/data/index.json")` e `fetch(\`/data/matches/${
 }
 ```
 
+## `model.json` (para a página "Como funciona")
+```jsonc
+{
+  "data": { "matches", "rounds", "states", "kills" },
+  "validation": "texto: como o modelo foi validado",
+  "features": [ "o que o modelo olha" ],
+  "models": { "baseline_alive_lookup": { "log_loss", "brier", "auc" }, "logistic": { ..., "ece" }, "gbm": { ..., "ece" } },
+  "chosen": "gbm",
+  "calibration": [ { "p": 0.75, "y": 0.74, "n": 8759 } ],         // previsto vs. real em 10 faixas → gráfico de calibração
+  "trade_by_distance": [ { "distance": "0–5 m", "trade_rate": 0.41, "n": 7181 } ],   // a curva "41% vs 6%"
+  "buy_matchups": [ { "atk_buy": "Eco", "def_buy": "Semi-buy", "model": 0.11, "real": 0.12, "n": 261 } ],  // previsão por tipo de compra
+  "definitions": { "trade_window_s", "isolated_distance_m", "throw_wp", "comeback_wp", "min_rounds_role", "significance" }
+}
+```
+Glossário para leigos: **log loss / Brier** = erro das probabilidades (menor é melhor); **AUC** = capacidade de separar
+quem vence de quem perde (1 = perfeito, 0,5 = moeda); **ECE / calibração** = quando o modelo diz 70%, acontece ~70% das vezes?
+
 ## `league.json`
 Referências da liga inteira (taxas médias dos times, vitória por tipo de compra, ataque por mapa, médias de jogador).
 
