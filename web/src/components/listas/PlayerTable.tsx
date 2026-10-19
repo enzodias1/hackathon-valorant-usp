@@ -38,14 +38,14 @@ export default function PlayerTable({ players }: { players: PlayerRow[] }) {
       <ResultCount shown={shown.length} total={players.length} noun="jogadores" onClear={clear} />
 
       <div className="overflow-x-auto rounded-xl border border-line bg-surface">
-        <table className="w-full min-w-[760px]">
+        <table className="w-full sm:min-w-[760px]">
           <thead>
             <tr>
               <Th>Jogador</Th>
-              <Th>Time</Th>
-              <Th>Função (agentes)</Th>
-              <Th>Papel real</Th>
-              <Th right>Rounds</Th>
+              <Th className="hidden sm:table-cell">Time</Th>
+              <Th className="hidden sm:table-cell">Função (agentes)</Th>
+              <Th className="hidden sm:table-cell">Papel real</Th>
+              <Th right className="hidden sm:table-cell">Rounds</Th>
               <Th right>K/D</Th>
               <Th>Impacto por round</Th>
             </tr>
@@ -57,11 +57,12 @@ export default function PlayerTable({ players }: { players: PlayerRow[] }) {
                   <Link href={`/jogadores/${p.puuid}`} onClick={(e) => e.stopPropagation()} className="font-medium text-ink hover:underline hover:underline-offset-4">
                     {nick(p.name)}
                   </Link>
+                  <div className="text-xs text-muted sm:hidden">{p.team_name}{p.behavior_role && ` · ${p.behavior_role}`}</div>
                 </Td>
-                <Td className="text-ink-2">{p.team_name}</Td>
-                <Td className="text-ink-2">{p.agent_role ?? "—"}</Td>
-                <Td className="text-ink-2">{p.behavior_role ?? "—"}</Td>
-                <Td right>{p.rounds}</Td>
+                <Td className="hidden sm:table-cell text-ink-2">{p.team_name}</Td>
+                <Td className="hidden sm:table-cell text-ink-2">{p.agent_role ?? "—"}</Td>
+                <Td className="hidden sm:table-cell text-ink-2">{p.behavior_role ?? "—"}</Td>
+                <Td right className="hidden sm:table-cell">{p.rounds}</Td>
                 <Td right>{num(p.kd, 2)}</Td>
                 <Td>
                   {p.eligible ? <WpaBar value={p.wpa_per_round} max={maxWpa} /> : (

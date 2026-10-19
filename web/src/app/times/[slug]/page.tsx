@@ -85,17 +85,17 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
 
       <Section title="Elenco e papéis" subtitle="Papel em jogo = descoberto pelo comportamento (entradas, distância do time, trades, clutches), não pelo agente. Impacto = quanto o jogador muda a chance de vitória do round, em média.">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px]">
-            <thead><tr><Th>Jogador</Th><Th>Agentes</Th><Th>Função do agente → papel em jogo</Th><Th right>Rounds</Th><Th right>K/D</Th><Th right>ACS</Th><Th>Impacto / round</Th><Th right>Mortes trocadas</Th></tr></thead>
+          <table className="w-full sm:min-w-[760px]">
+            <thead><tr><Th className="sticky left-0 z-10 bg-surface">Jogador</Th><Th className="hidden sm:table-cell">Agentes</Th><Th>Função do agente → papel em jogo</Th><Th right>Rounds</Th><Th right>K/D</Th><Th right className="hidden sm:table-cell">ACS</Th><Th>Impacto / round</Th><Th right>Mortes trocadas</Th></tr></thead>
             <tbody>
               {team.roster.map((p) => (
                 <tr key={p.puuid} className={p.core ? "" : "opacity-60"}>
-                  <Td><PlayerLink puuid={p.puuid} name={nick(p.name)} /></Td>
-                  <Td className="text-ink-2">{p.agents.join(", ")}</Td>
-                  <Td>{p.agent_role ?? "—"} {p.behavior_role && <>→ <Badge>{p.behavior_role}</Badge></>}</Td>
+                  <Td className="sticky left-0 z-10 bg-surface"><PlayerLink puuid={p.puuid} name={nick(p.name)} /></Td>
+                  <Td className="hidden sm:table-cell text-ink-2">{p.agents.join(", ")}</Td>
+                  <Td className="whitespace-nowrap">{p.agent_role ?? "—"} {p.behavior_role && <>→ <Badge>{p.behavior_role}</Badge></>}</Td>
                   <Td right>{p.rounds}</Td>
                   <Td right>{num(p.kd, 2)}</Td>
-                  <Td right>{num(p.acs)}</Td>
+                  <Td right className="hidden sm:table-cell">{num(p.acs)}</Td>
                   <Td><WpaBar value={p.wpa_per_round} max={maxWpa} /></Td>
                   <Td right>{pct(p.traded_death_rate)}</Td>
                 </tr>
@@ -115,7 +115,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
                 {team.maps.map((m) => (
                   <tr key={m.map}>
                     <Td>{m.map}</Td>
-                    <Td right>{m.map_wins}V {m.maps - m.map_wins}D</Td>
+                    <Td right className="whitespace-nowrap">{m.map_wins}V {m.maps - m.map_wins}D</Td>
                     <Td right>{pct(m.round_win)}</Td>
                     <Td right><span className="text-atk">●</span> {pct(m.atk_win)} <span className="text-muted">({pct(m.league_atk_win)})</span></Td>
                     <Td right><span className="text-def">●</span> {pct(m.def_win)}</Td>
@@ -182,16 +182,16 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
 
       <Section title="Partidas">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px]">
-            <thead><tr><Th>Data</Th><Th>Competição</Th><Th>Mapa</Th><Th>Adversário</Th><Th right>Placar</Th></tr></thead>
+          <table className="w-full sm:min-w-[560px]">
+            <thead><tr><Th>Data</Th><Th className="hidden sm:table-cell">Competição</Th><Th>Mapa</Th><Th>Adversário</Th><Th right>Placar</Th></tr></thead>
             <tbody>
               {team.matches.map((m) => (
                 <tr key={m.id}>
                   <Td className="tabular text-ink-2">{date(m.date)}</Td>
-                  <Td className="text-ink-2">{competitionLabel(m.competition, m.stage)}</Td>
+                  <Td className="hidden sm:table-cell text-ink-2">{competitionLabel(m.competition, m.stage)}</Td>
                   <Td>{m.map}</Td>
                   <Td><Link href={`/times/${m.opponent}`} className="hover:underline">{m.opponent_name}</Link></Td>
-                  <Td right>
+                  <Td right className="whitespace-nowrap">
                     <Link href={`/partidas/${m.id}`} className="hover:underline">
                       <span className={m.won ? "text-good" : "text-bad"}>{m.won ? "V" : "D"}</span> {m.score_for}–{m.score_against}
                     </Link>
