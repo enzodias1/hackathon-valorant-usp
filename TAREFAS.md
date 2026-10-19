@@ -15,7 +15,8 @@ Ele é atualizado a cada entrega. Na dúvida, chame o Enzo.
 | Camila | [Nomes dos 68 times](#camila--nomes-dos-68-times) | 🟡 Em andamento | Planilha preenchida → Enzo |
 | Nukan | [Minimapa "replay" do round](#nukan--minimapa-replay-do-round) | 🟡 Em andamento | Pull Request `minimapa` |
 | Azi | [Estrutura do site + deploy](#azi--estrutura-do-site--deploy) | ✅ Concluída (PR #1, no ar) | — |
-| Azi | [Página "Como funciona" + revisão no celular](#azi--página-como-funciona--revisão-no-celular) | 🟡 A fazer | Pull Request `como-funciona` |
+| Azi | [Página "Como funciona" + revisão no celular](#azi--página-como-funciona--revisão-no-celular) | ✅ Concluída (PR #2, no ar) | — |
+| Azi | [Polimento para compartilhar e apresentar](#azi--polimento-para-compartilhar-e-apresentar) | 🟡 A fazer | Pull Request `polimento` |
 | Jodão | [Entrevistas com jogadores/coaches](#jodão--entrevistas-com-jogadorescoaches) | 🟡 Em andamento | Resumo → Enzo |
 
 Legenda: ⏳ aguardando · 🟡 a fazer / em andamento · 🔵 entregue, em revisão · ✅ concluída
@@ -142,6 +143,27 @@ o link na prática, e o Enzo não consegue testar isso daqui.
 > Ao incluir "Como funciona", rode `git merge main` antes, para não dar conflito. Vale explicar também, na sua página, dois métodos
 > novos: o **controle de falsos positivos** (Benjamini-Hochberg: só mostramos ponto forte/fraco quando não é ruído) e o
 > **conselheiro de economia** (resumo e números no `README.md`, em "Decisões de métrica").
+
+---
+
+## Azi — Polimento para compartilhar e apresentar
+**O que fazer:**
+1. **Prévia do link (Open Graph):** quando alguém colar o link do site no Discord ou no WhatsApp, deve aparecer um cartão com
+   título, descrição e imagem. Use `metadata` do Next.js no `layout.tsx` (`openGraph`, `twitter`, `metadataBase` =
+   `https://analista-univava.vercel.app`) e crie a imagem com `src/app/opengraph-image.tsx` (`ImageResponse` do `next/og`):
+   fundo escuro do tema, nome do produto e a frase "O analista que os times universitários não têm".
+   Páginas de time, jogador e partida podem ter títulos próprios na prévia (elas já têm `generateMetadata`).
+2. **Página 404 em português** (`src/app/not-found.tsx`): hoje aparece "This page could not be found" em inglês.
+   Texto curto + links para Início, Times e Partidas.
+3. **Página inicial:** incluir as novidades nos cartões de atalho (**Economia**: "Forçar ou economizar?", **Comparar**: "Meu time ×
+   adversário", **Como funciona**). Hoje ela só mostra Partidas, Times e Jogadores.
+4. **Ícone do site (favicon):** trocar o ícone padrão do Next.js por um simples, coerente com o "A" do cabeçalho.
+
+**Por quê:** o link vai ser compartilhado com a banca e com jogadores. Um cartão de prévia bonito e uma página inicial que mostra
+tudo o que o produto faz contam em "Usabilidade" e em "Qualidade do protótipo". Uma 404 em inglês destoa do resto.
+
+**Como entregar:** Pull Request da branch `polimento` (rode `git pull origin main` antes). Lembrete: a prévia da Vercel nos PRs aparece
+como "Blocked" (limite do plano gratuito com repositório privado). É esperado; o Enzo testa localmente antes do merge.
 
 ---
 

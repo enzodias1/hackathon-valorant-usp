@@ -57,7 +57,7 @@ export default async function HowItWorksPage() {
         <StatTile label="Partidas (mapas)" value={num(model.data.matches)} />
         <StatTile label="Rounds" value={num(model.data.rounds)} />
         <StatTile label="Kills" value={num(model.data.kills)} />
-        <StatTile label="Momentos avaliados" value={num(model.data.states)} sub="cada kill, plant ou desarme" />
+        <StatTile label="Situações avaliadas" value={num(model.data.states)} sub="antes e depois de cada kill, plant ou desarme" />
       </div>
 
       <Section id="ideia" title="A ideia em 3 passos">
@@ -146,7 +146,8 @@ export default async function HowItWorksPage() {
         <TradeDistanceChart data={model.trade_by_distance} />
         <p className="mt-2 text-sm text-ink-2">
           Por isso chamamos de <b className="text-ink">morte isolada</b> quando o aliado vivo mais próximo está a mais de {d.isolated_distance_m} m:
-          quase nunca alguém consegue trocar. É uma das métricas que mais diferencia os times.
+          quase nunca alguém consegue trocar. E a taxa de <b className="text-ink">mortes trocadas</b> é, depois da própria taxa de vitória, a métrica
+          que mais separa os times da liga: é onde o jogo coletivo aparece nos números.
         </p>
       </Section>
 
@@ -204,6 +205,10 @@ export default async function HowItWorksPage() {
           <li>Amostras pequenas (poucos mapas ou menos de {d.min_rounds_role} rounds) são sinalizadas, e nelas a maioria das comparações fica como “não conclusiva”.</li>
           <li>Os números valem para o cenário universitário destes campeonatos ({num(model.data.matches)} mapas); o cenário profissional pode se comportar de outro jeito.</li>
           <li>As análises de economia e evolução são observacionais: mostram associações controladas, não experimentos.</li>
+          <li>
+            Rounds “jogados fora” (chegar a {pct(d.throw_wp)} e perder) acontecem em proporção parecida em quase todos os times: a diferença entre eles
+            é do tamanho do que o acaso produziria. Por isso esses rounds aparecem como material para revisar no VOD, não como defeito do time.
+          </li>
           <li>É uma ferramenta pós-partida: nada aqui é usado durante o jogo.</li>
         </ul>
       </Section>
