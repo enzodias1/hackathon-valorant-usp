@@ -1,48 +1,57 @@
-"""Exports precomputed JSON for the web app into web/public/data/.
+"""Exports precomputed JSON for the web app into web/public/data/ (format documented in web/DADOS.md).
 
-  index.json                    list of matches (+ teams) for navigation
-  matches/<match_id>.json       one match: players, rounds, events with win probability, positions for the minimap
+  index.json                 matches, teams and players lists for navigation/search
+  league.json                league-wide references
+  matches/<match_id>.json    one match: players, rounds, events with win probability, positions for the minimap
+  teams/<slug>.json          one team: metrics vs league + insights, maps, economy, roster, synergy graph, decisive rounds
+  players/<puuid>.json       one player: impact, role, percentiles, agents, maps, matches, best/worst moments, partners, insights
 
-Win probabilities are exported from the RED team's perspective (wp_red = P(Red wins the round)) so the
-front-end can draw a single momentum line per match without knowing who attacked each round.
+Win probabilities in match files are from the RED team's perspective (wp_red = P(Red wins the round)).
 """
 import json
 import math
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
+
+from insights import (PLAYER_TEXT, ROLE_EXPECTED, TEAM_METRICS, TEAM_TEXT, Z_SIGNIFICANT, binom, make_insights,
+                      mean_test, pct, pp, team_counts)
 
 ROOT = Path(__file__).resolve().parents[1]
 P = ROOT / "data" / "processed"
 OUT = ROOT / "web" / "public" / "data"
 LOOKUP = json.loads((ROOT / "data" / "meta" / "lookup.json").read_text(encoding="utf-8"))
 SHEET = ROOT / "para_equipe" / "nomes_dos_times.xlsx"
+AXES = ["Entrada", "Suporte", "Lurk", "Âncora", "Impacto"]
+PERCENTILE_COLS = ["kd", "kpr", "adr", "acs", "kast", "hs_pct", "wpa_per_round", "opening_rate", "clutch_rate"]
 
 
 def team_names():
-    """slug -> {name, tag}: filled spreadsheet wins over the automatic suggestion."""
+    """slug -> {name, tag, institution}: the filled spreadsheet wins over the automatic suggestion."""
     df = pd.read_excel(SHEET)
     cols = list(df.columns)
-    slug, sug, fix, tag = cols[0], cols[1], cols[2], cols[3]
+    slug, sug, fix, tag, inst = cols[0], cols[1], cols[2], cols[3], cols[4]
     out = {}
     for r in df.itertuples(index=False):
         vals = dict(zip(cols, r))
-        name = vals[fix] if isinstance(vals[fix], str) and vals[fix].strip() else vals[sug]
-        short = vals[tag] if isinstance(vals[tag], str) and vals[tag].strip() else name
-        out[vals[slug]] = {"name": name.strip(), "tag": short.strip()}
+        filled = lambda c: isinstance(vals[c], str) and vals[c].strip()
+        name = vals[fix].strip() if filled(fix) else vals[sug]
+        out[vals[slug]] = {"name": name, "tag": vals[tag].strip() if filled(tag) else name,
+                           "institution": vals[inst].strip() if filled(inst) else None}
     return out
 
 
 def clean(o):
-    """NaN -> None, numpy scalars -> python, round floats."""
+    """NaN -> None, numpy -> python, round floats."""
     if isinstance(o, dict):
         return {k: clean(v) for k, v in o.items()}
-    if isinstance(o, list):
+    if isinstance(o, (list, tuple, np.ndarray)):
         return [clean(v) for v in o]
     if hasattr(o, "item"):
         o = o.item()
     if isinstance(o, float):
-        return None if math.isnan(o) else round(o, 4)
+        return None if math.isnan(o) or math.isinf(o) else round(o, 4)
     return o
 
 
@@ -51,13 +60,24 @@ def write(path, obj):
     path.write_text(json.dumps(clean(obj), ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
-def main():
-    names = team_names()
-    t = {n: pd.read_parquet(P / f"{n}.parquet") for n in ("matches", "player_match", "rounds", "kills", "wp_events", "wp_states", "wp_credits", "player_round")}
-    m, pm, rd, kl, ev, st, cr, pr = (t[k] for k in ("matches", "player_match", "rounds", "kills", "wp_events", "wp_states", "wp_credits", "player_round"))
+def load():
+    names = ["matches", "player_match", "rounds", "kills", "wp_events", "wp_states", "wp_credits", "player_round",
+             "player_profile", "pairs", "team_rounds", "death_context"]
+    t = {n: pd.read_parquet(P / f"{n}.parquet") for n in names}
+    team_of = t["player_match"].set_index(["match_id", "puuid"])["team"]
+    t["death_context"]["team"] = team_of.reindex(pd.MultiIndex.from_frame(t["death_context"][["match_id", "victim"]])).to_numpy()
+    t["wp_credits"]["team"] = team_of.reindex(pd.MultiIndex.from_frame(t["wp_credits"][["match_id", "puuid"]])).to_numpy()
+    t["player_round"]["team"] = team_of.reindex(pd.MultiIndex.from_frame(t["player_round"][["match_id", "puuid"]])).to_numpy()
+    t["team_rounds"] = t["team_rounds"][t["team_rounds"].team.notna()]
+    t["player_name"] = t["player_match"].sort_values("match_id").groupby("puuid").name.last().to_dict()
+    t["agents_by_name"] = {a["name"]: a for a in LOOKUP["agents"].values()}
+    t["wpa_pm"] = t["wp_credits"].groupby(["match_id", "puuid"]).wpa.sum() * 100
+    return t
 
-    agents_by_name = {a["name"]: a for a in LOOKUP["agents"].values()}
-    wpa_pm = cr.groupby(["match_id", "puuid"]).wpa.sum() * 100
+
+# ----------------------------------------------------------------------------------------------- matches
+def export_matches(t, names):
+    m, pm, rd, kl, ev, st, pr = (t[k] for k in ("matches", "player_match", "rounds", "kills", "wp_events", "wp_states", "player_round"))
     adr = pr.groupby(["match_id", "puuid"]).damage.mean()
     p0 = st[st.kind == "start"].set_index(["match_id", "round_num"]).p_atk
     ev_by = {k: g for k, g in ev.groupby(["match_id", "round_num"])}
@@ -71,11 +91,11 @@ def main():
         mp = LOOKUP["maps"].get(mt.map_code, {})
         players = []
         for p in pm_by[mid].itertuples(index=False):
-            a = agents_by_name.get(p.agent, {})
+            a = t["agents_by_name"].get(p.agent, {})
             players.append({
                 "puuid": p.puuid, "name": p.name, "color": p.team_color, "agent": p.agent, "agent_icon": a.get("icon"), "role": p.role,
                 "kills": p.kills, "deaths": p.deaths, "assists": p.assists, "acs": p.score / max(p.rounds, 1),
-                "adr": adr.get((mid, p.puuid)), "wpa": wpa_pm.get((mid, p.puuid), 0.0),
+                "adr": adr.get((mid, p.puuid)), "wpa": t["wpa_pm"].get((mid, p.puuid), 0.0),
             })
         rounds = []
         for r in rd_by[mid].sort_values("round_num").itertuples(index=False):
@@ -85,7 +105,8 @@ def main():
             events = []
             kg = kl_by.get(key)
             for e in ev_by.get(key, pd.DataFrame()).itertuples(index=False):
-                item = {"t": e.t_round_ms, "type": e.event, "actor": e.actor, "wp_red_before": to_red(e.p_atk_before), "wp_red_after": to_red(e.p_atk_after), "wpa": e.wpa * 100}
+                item = {"t": e.t_round_ms, "type": e.event, "actor": e.actor, "wp_red_before": to_red(e.p_atk_before),
+                        "wp_red_after": to_red(e.p_atk_after), "wpa": e.wpa * 100, "after_round_end": bool(e.post_end)}
                 if e.event == "kill":
                     k = kg.loc[int(e.kill_idx)]
                     item.update({"victim": e.victim, "weapon": k.weapon, "first_blood": bool(k.first_blood),
@@ -116,10 +137,312 @@ def main():
         write(OUT / "matches" / f"{mid}.json", doc)
         index.append({"id": mid, "date": doc["date"], "competition": mt.competition, "stage": mt.stage, "map": mt.map,
                       "red": mt.team_red, "blue": mt.team_blue, "score": doc["score"], "winner": doc["winner"]})
+    return index
 
-    write(OUT / "index.json", {"teams": names, "matches": index})
-    size = sum(f.stat().st_size for f in (OUT / "matches").glob("*.json"))
-    print(f"exported {len(index)} matches ({size / 1e6:.1f} MB) -> {OUT}")
+
+# ----------------------------------------------------------------------------------------------- teams
+def export_teams(t, names):
+    tr, dc, pf, pairs, m = t["team_rounds"], t["death_context"], t["player_profile"], t["pairs"], t["matches"]
+    league_counts = team_counts(tr, dc)
+    league_rate = {k: (s / n if n else np.nan) for k, (s, n) in league_counts.items()}
+    league_buy = tr.groupby("buy").won.mean()
+    league_map_atk = tr[tr.side == "Ataque"].groupby("map").won.mean()
+    league_pair_trade = pairs.b_traded_a.sum() / pairs.a_deaths_b_alive.sum()
+    pm = t["player_match"]
+    acs = pm.groupby(["puuid", "team"]).agg(score=("score", "sum"), rounds=("rounds", "sum"))
+    pf = pf.join((acs.score / acs.rounds).rename("acs"), on=["puuid", "team"])
+    t["player_profile"] = pf
+
+    summary = []
+    for slug, g in tr.groupby("team"):
+        d = dc[dc.team == slug]
+        counts = team_counts(g, d)
+        comps = {k: binom(s, n, league_rate[k], TEAM_METRICS[k][1]) for k, (s, n) in counts.items()}
+        metrics = [{"key": k, "label": TEAM_METRICS[k][0], "higher_is_better": TEAM_METRICS[k][1], **c} for k, c in comps.items()]
+        ins = make_insights(comps, TEAM_TEXT, higher_is_better={k: v[1] for k, v in TEAM_METRICS.items()})
+
+        # rounds won above what the economy (model, round start) predicted
+        W, E, var = g.won.sum(), g.p0.sum(), (g.p0 * (1 - g.p0)).sum()
+        z = (W - E) / math.sqrt(var) if var > 0 else 0.0
+        wae = {"wins": int(W), "expected": float(E), "diff": float(W - E), "per100": float((W - E) / len(g) * 100), "z": z,
+               "significant": bool(abs(z) >= Z_SIGNIFICANT and len(g) >= 15)}
+        if wae["significant"]:
+            item = {"key": "wins_above_expected", "z": round(z, 2), "n": len(g)}
+            if z > 0:
+                ins["strengths"].insert(0, {**item, "text": f"Vencem {W - E:.0f} rounds a mais do que a economia previa ({wae['per100']:+.1f} a cada 100 rounds): decisões e duelos rendem acima do equipamento."})
+            else:
+                ins["weaknesses"].insert(0, {**item, "text": f"Vencem {E - W:.0f} rounds a menos do que a economia previa ({wae['per100']:+.1f} a cada 100 rounds).",
+                                             "tip": "Compare a tabela de economia: em qual tipo de compra o time rende abaixo do esperado?"})
+        ins["strengths"], ins["weaknesses"] = ins["strengths"][:4], ins["weaknesses"][:4]
+
+        buys = []
+        for b, gb in g.groupby("buy"):
+            Wb, Eb, vb = gb.won.sum(), gb.p0.sum(), (gb.p0 * (1 - gb.p0)).sum()
+            zb = (Wb - Eb) / math.sqrt(vb) if vb > 0 else 0.0
+            buys.append({"buy": b, "rounds": len(gb), "win": gb.won.mean(), "expected": gb.p0.mean(), "league_win": league_buy.get(b),
+                         "z": zb, "significant": bool(abs(zb) >= Z_SIGNIFICANT and len(gb) >= 15)})
+        order = ["Pistol", "Eco", "Semi-eco", "Semi-buy", "Full buy"]
+        buys.sort(key=lambda x: order.index(x["buy"]) if x["buy"] in order else 99)
+
+        maps = []
+        for mp_name, gm in g.groupby("map"):
+            mids = gm.match_id.unique()
+            mm = m[m.match_id.isin(mids)]
+            maps.append({"map": mp_name, "maps": len(mids), "map_wins": int((mm.winner == slug).sum()), "rounds": len(gm),
+                         "round_win": gm.won.mean(), "atk_win": gm[gm.side == "Ataque"].won.mean(), "def_win": gm[gm.side == "Defesa"].won.mean(),
+                         "league_atk_win": league_map_atk.get(mp_name)})
+        maps.sort(key=lambda x: -x["maps"])
+
+        team_rounds_n = len(g)
+        roster_df = pf[pf.team == slug].sort_values("rounds", ascending=False)
+        roster = []
+        for p in roster_df.itertuples(index=False):
+            roster.append({
+                "puuid": p.puuid, "name": p.name, "rounds": p.rounds, "maps": p.maps, "agents": list(p.top_agents),
+                "agent_role": p.main_agent_role, "behavior_role": p.behavior_role if p.role_eligible else None,
+                "axes": {a: getattr(p, f"axis_{a}") for a in AXES} if p.role_eligible else None,
+                "kd": p.kd, "acs": p.acs, "adr": p.adr, "kast": p.kast, "wpa_per_round": p.wpa_per_round,
+                "fk": p.fk, "fd": p.fd, "traded_death_rate": p.traded_death_rate, "isolated_death_rate": p.isolated_death_rate,
+                "core": bool(p.rounds >= 0.2 * team_rounds_n),
+            })
+
+        core = {r["puuid"] for r in roster if r["core"]}
+        pt = pairs[(pairs.team == slug) & pairs.a.isin(core) & pairs.b.isin(core)].set_index(["a", "b"])
+        edges, seen = [], set()
+        for (a, b) in pt.index:
+            if (b, a) in seen or (a, b) in seen:
+                continue
+            seen.add((a, b))
+            ab, ba = pt.loc[(a, b)], pt.loc[(b, a)] if (b, a) in pt.index else None
+            get = lambda row, c: float(row[c]) if row is not None and pd.notna(row[c]) else 0.0
+            deaths = get(ab, "a_deaths_b_alive") + get(ba, "a_deaths_b_alive")
+            trades = get(ab, "b_traded_a") + get(ba, "b_traded_a")
+            if get(ab, "rounds_together") < 20:
+                continue
+            edges.append({
+                "a": a, "b": b, "rounds_together": get(ab, "rounds_together"),
+                "b_traded_a": get(ab, "b_traded_a"), "a_traded_b": get(ba, "b_traded_a"),
+                "a_deaths_b_alive": get(ab, "a_deaths_b_alive"), "b_deaths_a_alive": get(ba, "a_deaths_b_alive"),
+                "b_assists_on_a": get(ab, "b_assists_on_a"), "a_assists_on_b": get(ba, "b_assists_on_a"),
+                "trade_rate": trades / deaths if deaths else None,
+                "trade_z": binom(trades, deaths, league_pair_trade)["z"] if deaths else None,
+                "assists": get(ab, "b_assists_on_a") + get(ba, "b_assists_on_a"),
+            })
+        synergy = {"nodes": [{"puuid": r["puuid"], "name": r["name"], "agent_role": r["agent_role"], "behavior_role": r["behavior_role"], "rounds": r["rounds"]}
+                             for r in roster if r["core"]],
+                   "edges": edges, "league_pair_trade_rate": league_pair_trade}
+
+        def decisive(df, col, asc):
+            out = []
+            for r in df.sort_values(col, ascending=asc).head(10).itertuples(index=False):
+                out.append({"match_id": r.match_id, "round": r.round_num + 1, "map": r.map, "opponent": r.opponent,
+                            "opponent_name": names.get(r.opponent, {}).get("name", r.opponent), "side": r.side, "wp": getattr(r, col)})
+            return out
+
+        mlist = []
+        mm = m[(m.team_red == slug) | (m.team_blue == slug)].sort_values("date")
+        for x in mm.itertuples(index=False):
+            red = x.team_red == slug
+            opp = x.team_blue if red else x.team_red
+            mlist.append({"id": x.match_id, "date": x.date.isoformat(), "competition": x.competition, "stage": x.stage, "map": x.map,
+                          "opponent": opp, "opponent_name": names.get(opp, {}).get("name", opp),
+                          "score_for": x.rounds_red if red else x.rounds_blue, "score_against": x.rounds_blue if red else x.rounds_red,
+                          "won": x.winner == slug})
+
+        info = names.get(slug, {"name": slug, "tag": slug, "institution": None})
+        doc = {
+            "slug": slug, **info,
+            "record": {"maps": len(mlist), "map_wins": sum(x["won"] for x in mlist), "rounds": team_rounds_n, "round_win": g.won.mean()},
+            "metrics": metrics, "wins_above_expected": wae, "insights": ins,
+            "maps": maps, "buys": buys, "roster": roster, "synergy": synergy,
+            "decisive": {"throws": decisive(g[g.throw], "wp_max", False), "comebacks": decisive(g[g.comeback], "wp_min", True)},
+            "matches": mlist,
+        }
+        write(OUT / "teams" / f"{slug}.json", doc)
+        summary.append({"slug": slug, "name": info["name"], "tag": info["tag"], "maps": len(mlist), "map_wins": doc["record"]["map_wins"],
+                        "rounds": team_rounds_n, "round_win": doc["record"]["round_win"],
+                        "competitions": sorted({x["competition"] for x in mlist})})
+    league = {"team_rates": league_rate, "buy_win": league_buy.to_dict(), "map_atk_win": league_map_atk.to_dict(),
+              "pair_trade_rate": league_pair_trade}
+    return summary, league
+
+
+# ----------------------------------------------------------------------------------------------- players
+def export_players(t, names):
+    pf, pm, cr, pr, ev, kl, dc, m, pairs = (t[k] for k in ("player_profile", "player_match", "wp_credits", "player_round", "wp_events", "kills", "death_context", "matches", "pairs"))
+    elig = pf[pf.role_eligible]
+    pct_tables = {c: np.sort(elig[c].dropna().to_numpy()) for c in PERCENTILE_COLS}
+
+    def percentile(c, v):
+        arr = pct_tables[c]
+        return None if v is None or pd.isna(v) or not len(arr) else float(np.searchsorted(arr, v, side="right") / len(arr) * 100)
+
+    kill_vals = cr[cr.kind == "kill"].wpa * 100
+    death_vals = cr[cr.kind == "death"].wpa * 100
+    league = {"kill_value": float(kill_vals.mean()), "death_cost": float(death_vals.mean()),
+              "traded_death_rate": float(dc.traded.mean()), "isolated_death_rate": float(np.nanmean(dc.isolated)),
+              "first_duel": 0.5, "clutch_win": float(pf.clutch_won.sum() / pf.clutch_att.sum())}
+
+    # per-round WPA per player (zeros included) for the side comparison
+    rw = cr.groupby(["match_id", "round_num", "puuid"]).wpa.sum().mul(100).rename("wpa")
+    prw = pr[["match_id", "round_num", "puuid", "team", "side"]].join(rw, on=["match_id", "round_num", "puuid"]).fillna({"wpa": 0.0})
+
+    # moments: events where the player acted (kills/plants/defuses) or died
+    ev = ev.merge(kl[["match_id", "round_num", "kill_idx", "weapon", "victim_side"]], on=["match_id", "round_num", "kill_idx"], how="left")
+    ev["mine_before_actor"] = np.where(ev.actor_side == "Ataque", ev.p_atk_before, 1 - ev.p_atk_before)
+    ev["mine_after_actor"] = np.where(ev.actor_side == "Ataque", ev.p_atk_after, 1 - ev.p_atk_after)
+    ev["mine_before_victim"] = np.where(ev.victim_side == "Ataque", ev.p_atk_before, 1 - ev.p_atk_before)
+    ev["mine_after_victim"] = np.where(ev.victim_side == "Ataque", ev.p_atk_after, 1 - ev.p_atk_after)
+    ev["death_cost"] = np.where(ev.teamkill, -ev.delta_atk.abs(), -ev.wpa) * 100
+    acts_by = {k: g for k, g in ev[~ev.teamkill & ev.actor.notna()].groupby("actor")}
+    deaths_by = {k: g for k, g in ev[ev.event == "kill"].groupby("victim")}
+    mmeta = m.set_index("match_id")
+    pm_m = pm.merge(m[["match_id", "date", "map", "competition", "stage", "rounds_red", "rounds_blue", "team_red"]], on="match_id")
+    pr_by = {k: g for k, g in prw.groupby("puuid")}
+    pm_by = {k: g for k, g in pm_m.groupby("puuid")}
+    cr_by = {k: g for k, g in cr.groupby("puuid")}
+    dc_by = {k: g for k, g in dc.groupby("victim")}
+
+    def moment(e, who):
+        mt = mmeta.loc[e.match_id]
+        before, after = (e.mine_before_actor, e.mine_after_actor) if who == "actor" else (e.mine_before_victim, e.mine_after_victim)
+        return {"match_id": e.match_id, "round": e.round_num + 1, "t": e.t_round_ms, "event": e.event, "map": mt["map"],
+                "weapon": e.weapon if isinstance(e.weapon, str) else None,
+                "other": t["player_name"].get(e.victim if who == "actor" else e.actor),
+                "wpa": e.wpa * 100 if who == "actor" else e.death_cost, "wp_before": before, "wp_after": after}
+
+    index = []
+    for puuid, stints in pf.groupby("puuid"):
+        stints = stints.sort_values("rounds", ascending=False)
+        p = stints.iloc[0]
+        slug = p.team
+        rounds = int(stints.rounds.sum())
+        g_pm = pm_by[puuid]
+        g_cr = cr_by.get(puuid, pd.DataFrame(columns=cr.columns))
+        g_dc = dc_by.get(puuid, pd.DataFrame(columns=dc.columns))
+        g_pr = pr_by[puuid]
+
+        comps = {
+            "kill_value": mean_test(g_cr[g_cr.kind == "kill"].wpa * 100, league["kill_value"], True, min_n=30),
+            "death_cost": mean_test(g_cr[g_cr.kind == "death"].wpa * 100, league["death_cost"], True, min_n=30),
+            "traded_death_rate": binom(g_dc.traded.sum(), len(g_dc), league["traded_death_rate"], True),
+            "isolated_death_rate": binom(np.nansum(g_dc.isolated), g_dc.isolated.notna().sum(), league["isolated_death_rate"], False),
+            "first_duel": binom(stints.fk.sum(), stints.fk.sum() + stints.fd.sum(), 0.5, True),
+            "clutch_win": binom(stints.clutch_won.sum(), stints.clutch_att.sum(), league["clutch_win"], True),
+        }
+        fmt = {k: (pp if k in ("kill_value", "death_cost") else pct) for k in comps}
+        hib = {k: k != "isolated_death_rate" for k in comps}
+        ins = {"strengths": [], "weaknesses": [], "attention": []}
+        for k, c in comps.items():
+            one = make_insights({k: c}, PLAYER_TEXT, fmt=fmt[k], higher_is_better=hib)
+            for part in ins:
+                ins[part] += one[part]
+        for part in ins:
+            ins[part].sort(key=lambda x: -abs(x["z"]))
+        ins["attention"] = ins["attention"][:2]
+        notes = []
+        # side split (Welch z on per-round WPA)
+        a, d = g_pr[g_pr.side == "Ataque"].wpa, g_pr[g_pr.side == "Defesa"].wpa
+        if len(a) >= 30 and len(d) >= 30:
+            se = math.sqrt(a.var(ddof=1) / len(a) + d.var(ddof=1) / len(d))
+            zs = (a.mean() - d.mean()) / se if se > 0 else 0
+            if abs(zs) >= Z_SIGNIFICANT:
+                better, worse = ("ataque", "defesa") if zs > 0 else ("defesa", "ataque")
+                notes.append({"key": "side", "z": round(float(zs), 2),
+                              "text": f"Você rende mais na {better}: {max(a.mean(), d.mean()):+.1f} pp por round contra {min(a.mean(), d.mean()):+.1f} pp na {worse}."})
+        if p.role_eligible:
+            p_kd, p_wpa = percentile("kd", p.kd), percentile("wpa_per_round", p.wpa_per_round)
+            if p_kd is not None and p_wpa is not None and abs(p_wpa - p_kd) >= 25:
+                txt = (f"Seu impacto vale mais que seu K/D: você está no percentil {p_wpa:.0f} em impacto e {p_kd:.0f} em K/D. Suas jogadas acontecem nos momentos que decidem rounds."
+                       if p_wpa > p_kd else
+                       f"Seu K/D é melhor que seu impacto: percentil {p_kd:.0f} em K/D, mas {p_wpa:.0f} em impacto. Parte das kills acontece com o round já decidido, ou as mortes custam caro.")
+                notes.append({"key": "impact_vs_kd", "z": None, "text": txt})
+            if p.main_agent_role in ROLE_EXPECTED and p.behavior_role not in ROLE_EXPECTED[p.main_agent_role]:
+                notes.append({"key": "role_mismatch", "z": None,
+                              "text": f"Você joga principalmente de {p.main_agent_role}, mas seu comportamento em jogo é de {p.behavior_role}. Pode ser um estilo próprio ou um papel que o time precisa ajustar."})
+        ins["notes"] = notes
+
+        agents = []
+        for ag, ga in g_pm.groupby("agent"):
+            r_ = ga.rounds.sum()
+            wpa_a = sum(t["wpa_pm"].get((mid, puuid), 0) for mid in ga.match_id)
+            agents.append({"agent": ag, "icon": t["agents_by_name"].get(ag, {}).get("icon"), "role": ga.role.iloc[0], "maps": len(ga), "rounds": int(r_),
+                           "kd": ga.kills.sum() / max(ga.deaths.sum(), 1), "acs": ga.score.sum() / max(r_, 1),
+                           "wpa_per_round": wpa_a / max(r_, 1), "map_win_rate": ga.won.mean()})
+        agents.sort(key=lambda x: -x["rounds"])
+        maps = []
+        for mp_name, gmp in g_pm.groupby("map"):
+            r_ = gmp.rounds.sum()
+            wpa_m = sum(t["wpa_pm"].get((mid, puuid), 0) for mid in gmp.match_id)
+            maps.append({"map": mp_name, "maps": len(gmp), "rounds": int(r_), "kd": gmp.kills.sum() / max(gmp.deaths.sum(), 1),
+                         "wpa_per_round": wpa_m / max(r_, 1), "map_win_rate": gmp.won.mean()})
+        maps.sort(key=lambda x: -x["rounds"])
+        matches = []
+        for x in g_pm.sort_values("date").itertuples(index=False):
+            red = x.team_color == "Red"
+            matches.append({"id": x.match_id, "date": x.date.isoformat(), "map": x.map, "team": x.team, "opponent": x.opponent,
+                            "opponent_name": names.get(x.opponent, {}).get("name", x.opponent), "won": bool(x.won),
+                            "score_for": x.rounds_red if red else x.rounds_blue, "score_against": x.rounds_blue if red else x.rounds_red,
+                            "agent": x.agent, "kills": x.kills, "deaths": x.deaths, "assists": x.assists, "acs": x.score / max(x.rounds, 1),
+                            "wpa": t["wpa_pm"].get((x.match_id, puuid), 0.0)})
+
+        acts = acts_by.get(puuid)
+        best = [moment(e, "actor") for e in acts.sort_values("wpa", ascending=False).head(5).itertuples(index=False)] if acts is not None else []
+        dth = deaths_by.get(puuid)
+        worst = [moment(e, "victim") for e in dth.sort_values("death_cost").head(5).itertuples(index=False)] if dth is not None else []
+
+        mates = pairs[(pairs.team == slug) & ((pairs.a == puuid) | (pairs.b == puuid))]
+        covers_me = mates[mates.a == puuid].set_index("b")       # b traded me (a)
+        i_cover = mates[mates.b == puuid].set_index("a")         # I (b) traded a
+        partners = []
+        for other in sorted(set(covers_me.index) | set(i_cover.index)):
+            c1 = covers_me.loc[other] if other in covers_me.index else None
+            c2 = i_cover.loc[other] if other in i_cover.index else None
+            rt = float((c1 if c1 is not None else c2)["rounds_together"])
+            if rt < 20:
+                continue
+            partners.append({"puuid": other, "name": t["player_name"].get(other), "rounds_together": rt,
+                             "they_traded_you": float(c1["b_traded_a"]) if c1 is not None else 0.0,
+                             "your_deaths_with_them_alive": float(c1["a_deaths_b_alive"]) if c1 is not None else 0.0,
+                             "you_traded_them": float(c2["b_traded_a"]) if c2 is not None else 0.0,
+                             "their_assists_on_your_kills": float(c1["b_assists_on_a"]) if c1 is not None else 0.0})
+        partners.sort(key=lambda x: -(x["they_traded_you"] + x["you_traded_them"]))
+
+        doc = {
+            "puuid": puuid, "name": p["name"], "team": slug, "team_name": names.get(slug, {}).get("name", slug),
+            "teams": [{"slug": s.team, "name": names.get(s.team, {}).get("name", s.team), "rounds": int(s.rounds)} for s in stints.itertuples(index=False)],
+            "sample": {"rounds": rounds, "maps": int(stints.maps.sum()), "eligible": bool(p.role_eligible)},
+            "summary": {k: float(p[k]) if pd.notna(p[k]) else None for k in ("kd", "kpr", "dpr", "apr", "adr", "acs", "kast", "hs_pct")}
+                       | {k: int(stints[k].sum()) for k in ("kills", "deaths", "assists", "fk", "fd", "clutch_att", "clutch_won", "plants", "defuses")},
+            "impact": {"wpa_total": float(stints.wpa_total.sum()), "wpa_per_round": float(stints.wpa_total.sum() / rounds),
+                       "wpa_pr_atk": p.wpa_pr_atk, "wpa_pr_def": p.wpa_pr_def,
+                       "breakdown": {k: float(stints[f"wpa_{k}"].sum()) for k in ("kill", "assist", "death", "plant", "defuse") if f"wpa_{k}" in stints},
+                       "per_kill": comps["kill_value"]["value"], "per_death": comps["death_cost"]["value"],
+                       "league_per_kill": league["kill_value"], "league_per_death": league["death_cost"]},
+            "percentiles": {c: percentile(c, p[c]) for c in PERCENTILE_COLS} if p.role_eligible else None,
+            "role": {"agent_role": p.main_agent_role, "behavior_role": p.behavior_role if p.role_eligible else None,
+                     "axes": {a: p[f"axis_{a}"] for a in AXES} if p.role_eligible else None},
+            "comparisons": comps, "insights": ins,
+            "agents": agents, "maps": maps, "matches": matches, "best_plays": best, "costliest_deaths": worst, "partners": partners,
+        }
+        write(OUT / "players" / f"{puuid}.json", doc)
+        index.append({"puuid": puuid, "name": p["name"], "team": slug, "rounds": rounds, "agent_role": p.main_agent_role,
+                      "behavior_role": p.behavior_role if p.role_eligible else None, "kd": p.kd,
+                      "wpa_per_round": doc["impact"]["wpa_per_round"], "eligible": bool(p.role_eligible)})
+    return index, league
+
+
+def main():
+    names = team_names()
+    t = load()
+    matches = export_matches(t, names)
+    teams, league_t = export_teams(t, names)
+    players, league_p = export_players(t, names)
+    write(OUT / "index.json", {"teams": names, "team_list": teams, "players": players, "matches": matches})
+    write(OUT / "league.json", {**league_t, "player": league_p})
+    for d in ("matches", "teams", "players"):
+        files = list((OUT / d).glob("*.json"))
+        print(f"{d:8s} {len(files):4d} files  {sum(f.stat().st_size for f in files) / 1e6:5.1f} MB")
 
 
 if __name__ == "__main__":

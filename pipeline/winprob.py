@@ -73,10 +73,14 @@ def build_timelines():
         order = {"plant": 0, "kill": 1, "defuse": 2}
         timeline.sort(key=lambda e: (e[1], order[e[0]], e[2].kill_idx if e[2] is not None else 0))
 
+        # the round is decided at the defuse or at the detonation (spike timer 45 s); events after that change nothing
+        end_t = r.defuse_time_ms if r.defused else (r.plant_time_ms + 45000 if r.planted and r.result_code == "Detonate" else None)
+
         base = {"match_id": r.match_id, "round_num": r.round_num, "y": y, "anomalous": r.anomalous}
-        states.append({**base, "seq": 0, "kind": "start", **snap(0)})
+        states.append({**base, "seq": 0, "kind": "start", "post_end": False, **snap(0)})
         seq = 1
         for kind, t, k in timeline:
+            post_end = end_t is not None and t > end_t
             before = snap(t)
             if kind == "kill":
                 if k.victim_was_revived:
@@ -86,11 +90,11 @@ def build_timelines():
             elif kind == "plant":
                 planted, plant_t = True, t
             after = snap(t) if kind != "defuse" else None
-            states.append({**base, "seq": seq, "kind": f"pre_{kind}", **before})
+            states.append({**base, "seq": seq, "kind": f"pre_{kind}", "post_end": post_end, **before})
             if after is not None:
-                states.append({**base, "seq": seq + 1, "kind": f"post_{kind}", **after})
+                states.append({**base, "seq": seq + 1, "kind": f"post_{kind}", "post_end": post_end, **after})
             events.append({
-                **base, "pre_seq": seq, "post_seq": seq + 1 if after is not None else None, "event": kind, "t_round_ms": t,
+                **base, "pre_seq": seq, "post_seq": seq + 1 if after is not None else None, "event": kind, "t_round_ms": t, "post_end": post_end,
                 "actor": (k.killer if kind == "kill" else r.planter if kind == "plant" else r.defuser),
                 "victim": k.victim if kind == "kill" else None,
                 "kill_idx": k.kill_idx if kind == "kill" else None,
@@ -102,8 +106,18 @@ def build_timelines():
     return pd.DataFrame(states), pd.DataFrame(events)
 
 
+def terminal_rules(df):
+    """Terminal states are (almost) decided: all defenders dead -> attackers win; all attackers dead without the
+    spike -> defenders win. Empirically 99.7% hold (the rest are unrecorded Sage/Clove revives), but a few
+    out-of-distribution states get odd predictions, so we floor/cap them. Applied after evaluation metrics."""
+    df.loc[df.def_alive == 0, "p_atk"] = df.loc[df.def_alive == 0, "p_atk"].clip(lower=0.99)
+    m = (df.atk_alive == 0) & (df.planted == 0)
+    df.loc[m, "p_atk"] = df.loc[m, "p_atk"].clip(upper=0.01)
+
+
 def evaluate_and_predict(states):
-    train = states[~states.anomalous].reset_index(drop=True)
+    # train only on live states: anomalous rounds and states after the round was decided are excluded
+    train = states[~states.anomalous & ~states.post_end].reset_index(drop=True)
     X, y, groups = train[FEATS].to_numpy(float), train["y"].to_numpy(), train["match_id"].to_numpy()
     models = {
         "logistic": lambda: make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000)),
@@ -136,12 +150,16 @@ def evaluate_and_predict(states):
     report["chosen"] = best
     report["n_states"], report["n_rounds"], report["n_matches"] = int(len(train)), int(train.groupby(["match_id", "round_num"]).ngroups), int(train.match_id.nunique())
     train["p_atk"] = oof[best]
+    terminal_rules(train)
 
-    # anomalous rounds still get predictions (from a model fit on everything else) so the UI can show them, flagged
-    anom = states[states.anomalous].copy()
-    if len(anom):
-        anom["p_atk"] = models[best]().fit(X, y).predict_proba(anom[FEATS].to_numpy(float))[:, 1]
-    return pd.concat([train, anom], ignore_index=True), report
+    # anomalous rounds still get predictions (from a model fit on everything else) so the UI can show them, flagged;
+    # after the round is decided the probability is simply the outcome (so post-round kills carry zero WPA)
+    rest = states[states.anomalous | states.post_end].copy()
+    if len(rest):
+        rest["p_atk"] = models[best]().fit(X, y).predict_proba(rest[FEATS].to_numpy(float))[:, 1]
+        terminal_rules(rest)
+        rest.loc[rest.post_end, "p_atk"] = rest.loc[rest.post_end, "y"].astype(float)
+    return pd.concat([train, rest], ignore_index=True), report
 
 
 def credit_events(states, events):
