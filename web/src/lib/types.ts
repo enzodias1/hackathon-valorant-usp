@@ -1,0 +1,272 @@
+// Tipos dos JSONs em public/data (gerados por pipeline/export.py). Documentação: web/DADOS.md
+
+export type Color = "Red" | "Blue";
+export type Side = "Ataque" | "Defesa";
+export type AgentRole = "Duelista" | "Iniciador" | "Controlador" | "Sentinela";
+export type BehaviorRole = "Entrada" | "Suporte" | "Lurk" | "Âncora";
+export type Axes = Record<BehaviorRole | "Impacto", number>;
+
+export interface TeamName {
+  name: string;
+  tag: string;
+  institution?: string | null;
+}
+
+export interface MatchSummary {
+  id: string;
+  date: string;
+  competition: string;
+  stage: string | null;
+  map: string;
+  red: string;
+  blue: string;
+  score: Record<Color, number>;
+  winner: Color;
+}
+
+export interface TeamSummary {
+  slug: string;
+  name: string;
+  tag: string;
+  maps: number;
+  map_wins: number;
+  rounds: number;
+  round_win: number;
+  competitions: string[];
+}
+
+export interface PlayerSummary {
+  puuid: string;
+  name: string;
+  team: string;
+  rounds: number;
+  agent_role: AgentRole | null;
+  behavior_role: BehaviorRole | null;
+  kd: number;
+  wpa_per_round: number;
+  eligible: boolean;
+}
+
+export interface DataIndex {
+  teams: Record<string, TeamName>;
+  team_list: TeamSummary[];
+  players: PlayerSummary[];
+  matches: MatchSummary[];
+}
+
+// ---------------------------------------------------------------- partida
+export interface MatchPlayer {
+  puuid: string;
+  name: string;
+  color: Color;
+  agent: string;
+  agent_icon: string | null;
+  role: AgentRole;
+  kills: number;
+  deaths: number;
+  assists: number;
+  acs: number;
+  adr: number | null;
+  wpa: number;
+}
+
+export interface RoundEvent {
+  t: number;
+  type: "kill" | "plant" | "defuse";
+  actor: string | null;
+  wp_red_before: number;
+  wp_red_after: number;
+  wpa: number;
+  after_round_end: boolean;
+  victim?: string;
+  weapon?: string | null;
+  first_blood?: boolean;
+  traded?: boolean;
+  is_trade?: boolean;
+  teamkill?: boolean;
+  victim_xy?: [number, number];
+  killer_xy?: [number, number] | null;
+  assistants?: string[];
+}
+
+export interface Round {
+  n: number;
+  half: string;
+  attacker: Color;
+  winner: Color;
+  result: "Elimination" | "Defuse" | "Detonate" | "Timer";
+  score_before: Record<Color, number>;
+  buy: Record<Color, string>;
+  loadout: Record<Color, number>;
+  wp_red_start: number;
+  plant: { t: number; site: string | null; by: string | null; xy: [number, number] } | null;
+  defuse: { t: number; by: string | null } | null;
+  anomalous: boolean;
+  events: RoundEvent[];
+}
+
+export interface MapTransform {
+  xMultiplier: number;
+  yMultiplier: number;
+  xScalarToAdd: number;
+  yScalarToAdd: number;
+}
+
+export interface Match {
+  id: string;
+  competition: string;
+  stage: string | null;
+  series_id: string;
+  game_in_series: string | null;
+  date: string;
+  length_min: number;
+  game_version: string;
+  map: { code: string; name: string; minimap: string | null; splash: string | null; transform: MapTransform };
+  teams: Record<Color, TeamName & { slug: string }>;
+  score: Record<Color, number>;
+  winner: Color;
+  players: MatchPlayer[];
+  rounds: Round[];
+}
+
+// ---------------------------------------------------------------- comparações e insights
+export interface Comparison {
+  value: number | null;
+  league: number | null;
+  n: number;
+  k?: number;
+  z: number | null;
+  significant: boolean;
+  good: boolean | null;
+}
+
+export interface Insight {
+  key: string;
+  text: string;
+  tip?: string;
+  z: number | null;
+  n?: number;
+}
+
+export interface Insights {
+  strengths: Insight[];
+  weaknesses: Insight[];
+  attention: Insight[];
+  notes?: Insight[];
+}
+
+// ---------------------------------------------------------------- time
+export interface TeamMetric extends Comparison {
+  key: string;
+  label: string;
+  higher_is_better: boolean;
+}
+
+export interface RosterPlayer {
+  puuid: string;
+  name: string;
+  rounds: number;
+  maps: number;
+  agents: string[];
+  agent_role: AgentRole | null;
+  behavior_role: BehaviorRole | null;
+  axes: Axes | null;
+  kd: number;
+  acs: number;
+  adr: number;
+  kast: number;
+  wpa_per_round: number;
+  fk: number;
+  fd: number;
+  traded_death_rate: number | null;
+  isolated_death_rate: number | null;
+  core: boolean;
+}
+
+export interface SynergyEdge {
+  a: string;
+  b: string;
+  rounds_together: number;
+  b_traded_a: number;
+  a_traded_b: number;
+  a_deaths_b_alive: number;
+  b_deaths_a_alive: number;
+  b_assists_on_a: number;
+  a_assists_on_b: number;
+  assists: number;
+  trade_rate: number | null;
+  trade_z: number | null;
+}
+
+export interface DecisiveRound {
+  match_id: string;
+  round: number;
+  map: string;
+  opponent: string;
+  opponent_name: string;
+  side: Side;
+  wp: number;
+}
+
+export interface Team {
+  slug: string;
+  name: string;
+  tag: string;
+  institution: string | null;
+  record: { maps: number; map_wins: number; rounds: number; round_win: number };
+  metrics: TeamMetric[];
+  wins_above_expected: { wins: number; expected: number; diff: number; per100: number; z: number; significant: boolean };
+  insights: Insights;
+  maps: { map: string; maps: number; map_wins: number; rounds: number; round_win: number; atk_win: number | null; def_win: number | null; league_atk_win: number | null }[];
+  buys: { buy: string; rounds: number; win: number; expected: number; league_win: number | null; z: number; significant: boolean }[];
+  roster: RosterPlayer[];
+  synergy: {
+    nodes: { puuid: string; name: string; agent_role: AgentRole | null; behavior_role: BehaviorRole | null; rounds: number }[];
+    edges: SynergyEdge[];
+    league_pair_trade_rate: number;
+  };
+  decisive: { throws: DecisiveRound[]; comebacks: DecisiveRound[] };
+  matches: { id: string; date: string; competition: string; stage: string | null; map: string; opponent: string; opponent_name: string; score_for: number; score_against: number; won: boolean }[];
+}
+
+// ---------------------------------------------------------------- jogador
+export interface Moment {
+  match_id: string;
+  round: number;
+  t: number;
+  event: "kill" | "plant" | "defuse";
+  map: string;
+  weapon: string | null;
+  other: string | null;
+  wpa: number;
+  wp_before: number;
+  wp_after: number;
+}
+
+export interface Player {
+  puuid: string;
+  name: string;
+  team: string;
+  team_name: string;
+  teams: { slug: string; name: string; rounds: number }[];
+  sample: { rounds: number; maps: number; eligible: boolean };
+  summary: {
+    kd: number; kpr: number; dpr: number; apr: number; adr: number; acs: number; kast: number; hs_pct: number;
+    kills: number; deaths: number; assists: number; fk: number; fd: number; clutch_att: number; clutch_won: number; plants: number; defuses: number;
+  };
+  impact: {
+    wpa_total: number; wpa_per_round: number; wpa_pr_atk: number | null; wpa_pr_def: number | null;
+    breakdown: Partial<Record<"kill" | "assist" | "death" | "plant" | "defuse", number>>;
+    per_kill: number | null; per_death: number | null; league_per_kill: number; league_per_death: number;
+  };
+  percentiles: Record<"kd" | "kpr" | "adr" | "acs" | "kast" | "hs_pct" | "wpa_per_round" | "opening_rate" | "clutch_rate", number | null> | null;
+  role: { agent_role: AgentRole | null; behavior_role: BehaviorRole | null; axes: Axes | null };
+  comparisons: Record<string, Comparison>;
+  insights: Insights;
+  agents: { agent: string; icon: string | null; role: AgentRole; maps: number; rounds: number; kd: number; acs: number; wpa_per_round: number; map_win_rate: number }[];
+  maps: { map: string; maps: number; rounds: number; kd: number; wpa_per_round: number; map_win_rate: number }[];
+  matches: { id: string; date: string; map: string; team: string; opponent: string; opponent_name: string; won: boolean; score_for: number; score_against: number; agent: string; kills: number; deaths: number; assists: number; acs: number; wpa: number }[];
+  best_plays: Moment[];
+  costliest_deaths: Moment[];
+  partners: { puuid: string; name: string; rounds_together: number; they_traded_you: number; your_deaths_with_them_alive: number; you_traded_them: number; their_assists_on_your_kills: number }[];
+}

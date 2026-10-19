@@ -7,9 +7,9 @@ Ele é atualizado a cada entrega. Na dúvida, chame o Enzo.
 
 | Membro | Tarefa | Status | Entrega |
 |---|---|---|---|
-| Camila | [Nomes dos 68 times](#camila--nomes-dos-68-times) | 🟡 A fazer | Planilha preenchida → Enzo |
-| Nukan | [Minimapa "replay" do round](#nukan--minimapa-replay-do-round) | ⏳ Aguardando acesso ao repositório | Pull Request `minimapa` |
-| Azi | [Estrutura do site + deploy](#azi--estrutura-do-site--deploy) | ⏳ Aguardando acesso ao repositório | Pull Request `estrutura` + link da Vercel |
+| Camila | [Nomes dos 68 times](#camila--nomes-dos-68-times) | 🟡 Em andamento | Planilha preenchida → Enzo |
+| Nukan | [Minimapa "replay" do round](#nukan--minimapa-replay-do-round) | 🟡 Em andamento | Pull Request `minimapa` |
+| Azi | [Estrutura do site + deploy](#azi--estrutura-do-site--deploy) | 🟡 Em andamento (**escopo ajustado, ver cartão**) | Pull Request `estrutura` + link da Vercel |
 | Jodão | [Entrevistas com jogadores/coaches](#jodão--entrevistas-com-jogadorescoaches) | 🟡 Em andamento | Resumo → Enzo |
 
 Legenda: ⏳ aguardando · 🟡 a fazer / em andamento · 🔵 entregue, em revisão · ✅ concluída
@@ -57,6 +57,15 @@ As colunas "nicks mais frequentes" e "competições" ajudam a identificar cada t
 - **tooltip** ao passar o mouse: "Nick (Agente) matou Nick (Agente) com Arma, aos 0:21".
 
 Crie também uma página de teste em `web/src/app/dev/minimap/page.tsx` que carrega uma partida qualquer de `web/public/data/matches/`.
+
+> **Atualização (19/10):** já existem na `main` os tipos e a carga de dados. Rode `git merge main` na sua branch e use:
+> - assinatura do componente: `export default function Minimap({ match, round }: { match: Match; round: Round })`, com `"use client"` no topo
+>   (tipos `Match` e `Round` de `@/lib/types`);
+> - na página de teste (Server Component): `const match = await getMatch("<id>")` de `@/lib/data`, e passe `match` e `match.rounds[0]` por props;
+> - cores dos times: `var(--team-red)` / `var(--team-blue)`; tempo formatado com `clock()` de `@/lib/format`;
+> - eventos com `after_round_end: true` aconteceram depois do desarme/explosão: desenhe esmaecidos.
+>
+> O Enzo vai encaixar o componente na tela de partida. Se a assinatura for diferente, avise.
 O formato dos dados e a **fórmula de coordenadas (já validada)** estão em [`web/DADOS.md`](web/DADOS.md).
 Use React + SVG por cima de uma `<img>`, sem bibliotecas novas, e Tailwind para o estilo.
 
@@ -67,13 +76,23 @@ Use React + SVG por cima de uma `<img>`, sem bibliotecas novas, e Tailwind para 
 ---
 
 ## Azi — Estrutura do site + deploy
+> ⚠️ **Escopo ajustado (19/10):** o Enzo já subiu na `main` os **tipos** (`web/src/lib/types.ts`), a **carga de dados**
+> (`web/src/lib/data.ts`), a **formatação** (`web/src/lib/format.ts`) e as **cores do tema** (`web/src/app/globals.css`), porque as telas
+> de análise dependem disso. Ele também vai construir as telas de detalhe (`/partidas/[id]`, `/times/[slug]`, `/jogadores/[puuid]`).
+> **Antes de continuar, rode `git pull origin main` (ou `git merge main` na sua branch)** e use esses arquivos em vez de criar outros.
+> Se você já tinha feito tipos ou tema, pode descartar a sua versão.
+
 **O que fazer:**
-1. **Layout e navegação** (`web/src/app/`): cabeçalho com o nome do produto (provisório: "Analista UNIVAVÁ") e as rotas
-   `/` (início), `/partidas` (lista), `/partidas/[id]`, `/times`, `/times/[slug]`, `/jogadores/[puuid]`. Podem começar como telas provisórias.
-2. **Tipos TypeScript** dos JSONs em `web/src/lib/types.ts` e funções de carga em `web/src/lib/data.ts`, seguindo [`web/DADOS.md`](web/DADOS.md).
-3. **Lista de partidas** (`/partidas`): tabela com data, competição, mapa, times e placar, com filtros por competição, time e mapa.
-4. **Tema escuro** com as cores dos lados Red/Blue e de Ataque/Defesa definidas uma única vez (variáveis CSS).
+1. **Layout e navegação** (`web/src/app/layout.tsx` + um componente de cabeçalho): nome do produto (provisório: "Analista UNIVAVÁ"),
+   links para Início, Partidas, Times e Jogadores, `lang="pt-BR"` e título da página. Use as classes do tema (`bg-surface`, `text-ink`,
+   `text-muted`, `border-line`… lista no topo do `globals.css`); evite cores soltas.
+2. **Lista de partidas** (`/partidas`): tabela com data, competição, mapa, times e placar, com filtros por competição, time e mapa.
+   Cada linha leva para `/partidas/<id>`. Dados: `getIndex()` de `@/lib/data` (lado do servidor) — os nomes dos times estão em `index.teams[slug].name`.
+3. **Lista de times** (`/times`) e **de jogadores** (`/jogadores`, com busca por nick): tabelas simples que levam para `/times/<slug>` e `/jogadores/<puuid>`.
+4. **Página inicial** (`/`): explica o produto em 2–3 frases e mostra atalhos (ex.: os 5 times com mais mapas).
 5. **Deploy na Vercel** ligado ao repositório, para termos um link público do protótipo (o Enzo autoriza na conta dele).
+
+**Não crie** as páginas `/partidas/[id]`, `/times/[slug]` e `/jogadores/[puuid]`, que estão com o Enzo, para não dar conflito.
 
 **Por quê:** é a base onde as telas de análise vão entrar. O link público vai na entrega e permite que a banca use o protótipo.
 
