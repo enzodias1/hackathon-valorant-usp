@@ -13,7 +13,9 @@ Ele é atualizado a cada entrega. Na dúvida, chame o Enzo.
 | Membro | Tarefa | Status | Entrega |
 |---|---|---|---|
 | Camila | [Nomes dos 68 times](#camila--nomes-dos-68-times) | 🟡 Em andamento | Planilha preenchida → Enzo |
-| Nukan | [Minimapa "replay" do round](#nukan--minimapa-replay-do-round) | 🟡 Em andamento | Pull Request `minimapa` |
+| Nukan | [Minimapa "replay" do round](#nukan--minimapa-replay-do-round) | ✅ Concluída (PR #3, no ar: partida + mapa de calor) | — |
+| Nukan | [Validação das análises com olhar de jogador](#nukan--validação-das-análises-com-olhar-de-jogador) | 🟡 A fazer | Lista de observações → Enzo |
+| Nukan | [Gravações de tela para o vídeo](#nukan--gravações-de-tela-para-o-vídeo) | ⏳ Depois do roteiro do Jodão | Arquivos de vídeo → Jodão |
 | Azi | [Estrutura do site + deploy](#azi--estrutura-do-site--deploy) | ✅ Concluída (PR #1, no ar) | — |
 | Azi | [Página "Como funciona" + revisão no celular](#azi--página-como-funciona--revisão-no-celular) | ✅ Concluída (PR #2, no ar) | — |
 | Azi | [Polimento para compartilhar e apresentar](#azi--polimento-para-compartilhar-e-apresentar) | 🟡 A fazer | Pull Request `polimento` |
@@ -143,6 +145,31 @@ o link na prática, e o Enzo não consegue testar isso daqui.
 > Ao incluir "Como funciona", rode `git merge main` antes, para não dar conflito. Vale explicar também, na sua página, dois métodos
 > novos: o **controle de falsos positivos** (Benjamini-Hochberg: só mostramos ponto forte/fraco quando não é ruído) e o
 > **conselheiro de economia** (resumo e números no `README.md`, em "Decisões de métrica").
+
+---
+
+## Nukan — Validação das análises com olhar de jogador
+**O que fazer:** abrir no site (link da Vercel) **3 times que você conhece ou acha interessantes**, **3 jogadores** e **2 partidas**, e anotar
+tudo que **não faz sentido para quem joga VALORANT**: um insight estranho, um papel ("Entrada", "Lurk"…) que não combina com o jogador,
+uma região do mapa de calor esquisita, uma recomendação de economia que parece errada, um texto confuso. Também vale anotar o que
+achou **mais útil**: isso orienta o que mostrar no vídeo.
+
+**Por quê:** os números passam por 32 checagens automáticas, mas nenhuma checagem substitui alguém que entende o jogo. A banca tem
+gente da Riot: se algo soar errado para um jogador, eles vão perceber.
+
+**Como entregar:** uma lista curta (pode ser no WhatsApp) para o Enzo, com o link da página e o que pareceu estranho. Tempo: ~1h.
+
+---
+
+## Nukan — Gravações de tela para o vídeo
+**O que fazer:** quando o Jodão fechar o roteiro ([`para_equipe/roteiro_pitch.md`](para_equipe/roteiro_pitch.md)), gravar **um clipe por trecho
+da demonstração** (partida + round 12 com o replay do minimapa tocando, página do time, jogador, economia, comparar, como funciona),
+seguindo o que o roteiro pede na coluna "Tela". Use o link da Vercel, em 1080p, com zoom do navegador em 110–125%, movimentos de mouse
+lentos e sem notificações na tela. Grave cada clipe com alguns segundos de folga no começo e no fim, para facilitar a edição.
+
+**Por quê:** o vídeo é a entrega principal. Clipes limpos e separados deixam a edição muito mais rápida para quem montar o vídeo.
+
+**Como entregar:** os arquivos de vídeo para o Jodão (pasta compartilhada no Drive), nomeados pela ordem do roteiro (`01_partida.mp4`…).
 
 ---
 
