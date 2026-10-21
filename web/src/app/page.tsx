@@ -6,18 +6,39 @@ import { Section, StatTile, Td, Th } from "@/components/analise/ui";
 const FEATURES = [
   {
     href: "/partidas",
+    kicker: "Revisar o jogo",
     title: "Partidas",
     text: "A chance de vitória do round a cada kill, os rounds que viraram e as jogadas que decidiram o mapa.",
   },
   {
     href: "/times",
+    kicker: "Diagnóstico",
     title: "Times",
-    text: "Diagnóstico comparado com a liga, quem cobre quem (trades) e onde o time joga rounds fora.",
+    text: "Força na liga, comparação com a média, quem cobre quem (trades) e onde o time joga rounds fora.",
   },
   {
     href: "/jogadores",
+    kicker: "Desempenho",
     title: "Jogadores",
     text: "Impacto real além do K/D e o papel que cada um de fato exerce, descoberto pelo comportamento.",
+  },
+  {
+    href: "/economia",
+    kicker: "Decidir a compra",
+    title: "Forçar ou economizar?",
+    text: "Sem dinheiro para full buy, qual decisão rende mais rounds? A resposta tirada de situações reais da liga.",
+  },
+  {
+    href: "/comparar",
+    kicker: "Preparar o próximo jogo",
+    title: "Meu time × adversário",
+    text: "Quem é favorito, em quais mapas cada um rende mais e como o adversário costuma jogar.",
+  },
+  {
+    href: "/como-funciona",
+    kicker: "Método",
+    title: "Como funciona",
+    text: "Como o modelo foi construído e validado: quando ele diz 75%, o time vence 74% das vezes.",
   },
 ];
 
@@ -51,9 +72,10 @@ export default async function Home() {
         <StatTile label="Jogadores" value={num(index.players.length)} />
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f) => (
           <Link key={f.href} href={f.href} className="group rounded-xl border border-line bg-surface p-5 transition-colors hover:bg-surface-2">
+            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">{f.kicker}</p>
             <h2 className="font-semibold text-ink">{f.title} <span className="text-muted transition-transform group-hover:translate-x-0.5">→</span></h2>
             <p className="mt-1 text-sm text-ink-2">{f.text}</p>
           </Link>

@@ -2,12 +2,12 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getEconomy, getModel } from "@/lib/data";
 import { num, pct, pp } from "@/lib/format";
-import { PRODUCT_NAME } from "@/lib/site";
+import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import type { ModelInfo } from "@/lib/types";
 import { CalibrationChart, TradeDistanceChart } from "@/components/analise/MethodCharts";
 import { Section, StatTile, Td, Th } from "@/components/analise/ui";
 
-export const metadata: Metadata = { title: `Como funciona · ${PRODUCT_NAME}` };
+export const metadata: Metadata = pageMeta(`Como funciona · ${PRODUCT_NAME}`, "Como o modelo de chance de vitória foi construído e validado: quando ele diz 75%, o time vence 74% das vezes.");
 
 const MODELS: { key: keyof ModelInfo["models"]; name: string; text: string }[] = [
   { key: "baseline_alive_lookup", name: "Referência", text: "Só conta quantos jogadores estão vivos de cada lado e consulta a média histórica. Serve de régua." },

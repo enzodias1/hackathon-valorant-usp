@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { getIndex } from "@/lib/data";
-import { PRODUCT_NAME } from "@/lib/site";
+import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import PlayerTable, { type PlayerRow } from "@/components/listas/PlayerTable";
 
-export const metadata: Metadata = { title: `Jogadores · ${PRODUCT_NAME}` };
+export const metadata: Metadata = pageMeta(`Jogadores · ${PRODUCT_NAME}`, "Impacto real por round e o papel em jogo de cada jogador, além do K/D.");
 
 export default async function PlayersPage() {
   const index = await getIndex();

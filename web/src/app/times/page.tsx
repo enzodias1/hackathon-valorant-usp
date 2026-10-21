@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { getIndex } from "@/lib/data";
-import { PRODUCT_NAME } from "@/lib/site";
+import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import TeamTable from "@/components/listas/TeamTable";
 
-export const metadata: Metadata = { title: `Times · ${PRODUCT_NAME}` };
+export const metadata: Metadata = pageMeta(`Times · ${PRODUCT_NAME}`, "Os times universitários ranqueados por força, com diagnóstico, sinergia e evolução no campeonato.");
 
 export default async function TeamsPage() {
   const index = await getIndex();

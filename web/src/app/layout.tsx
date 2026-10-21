@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Header from "@/components/site/Header";
-import { PRODUCT_NAME } from "@/lib/site";
+import { PRODUCT_NAME, SITE_URL, TAGLINE, pageMeta } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,9 +14,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const base = pageMeta(PRODUCT_NAME);
 export const metadata: Metadata = {
-  title: PRODUCT_NAME,
-  description: "O analista que times universitários não têm: impacto real de cada jogada, momentos decisivos e sinergia dos times do UNIVAVÁ.",
+  ...base,
+  metadataBase: new URL(SITE_URL),
+  applicationName: PRODUCT_NAME,
+  openGraph: { ...base.openGraph, title: `${PRODUCT_NAME}: ${TAGLINE.toLowerCase()}`, url: "/" },
+  twitter: { ...base.twitter, title: `${PRODUCT_NAME}: ${TAGLINE.toLowerCase()}` },
 };
 
 export default function RootLayout({

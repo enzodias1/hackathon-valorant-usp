@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site";
 import { getIndex, getMatch } from "@/lib/data";
 import { clock, competitionLabel, date, nick, num, pct, pp } from "@/lib/format";
 import type { Color, Match } from "@/lib/types";
@@ -15,7 +16,8 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const m = await getMatch((await params).id);
-  return { title: `${m.teams.Red.name} ${m.score.Red}–${m.score.Blue} ${m.teams.Blue.name} · ${m.map.name}` };
+  return pageMeta(`${m.teams.Red.name} ${m.score.Red}–${m.score.Blue} ${m.teams.Blue.name} · ${m.map.name}`,
+    `${competitionLabel(m.competition, m.stage)} · ${date(m.date)}. Chance de vitória round a round e as jogadas que decidiram o mapa.`);
 }
 
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {

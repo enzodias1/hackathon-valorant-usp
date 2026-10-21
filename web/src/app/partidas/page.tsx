@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { getIndex } from "@/lib/data";
-import { PRODUCT_NAME } from "@/lib/site";
+import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import MatchTable, { type MatchRow } from "@/components/listas/MatchTable";
 
-export const metadata: Metadata = { title: `Partidas · ${PRODUCT_NAME}` };
+export const metadata: Metadata = pageMeta(`Partidas · ${PRODUCT_NAME}`, "Todos os mapas do UNIVAVÁ e da Rush Series, com filtros por competição, time e mapa.");
 
 export default async function MatchesPage() {
   const index = await getIndex();

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site";
 import { getIndex, getPlayer } from "@/lib/data";
 import { clock, nick, num, pct, pp } from "@/lib/format";
 import type { Moment, Player } from "@/lib/types";
@@ -15,7 +16,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ puuid: string }> }): Promise<Metadata> {
   const p = await getPlayer((await params).puuid);
-  return { title: `${nick(p.name)} · Analista UNIVAVÁ` };
+  const stats = p.sample.eligible ? `impacto ${pp(p.impact.wpa_per_round)} por round · K/D ${num(p.summary.kd, 2)}` : `K/D ${num(p.summary.kd, 2)} em ${p.sample.rounds} rounds`;
+  return pageMeta(`${nick(p.name)} · Analista UNIVAVÁ`,
+    `${p.team_name} · ${stats}. Impacto real de cada jogada, o papel que joga de fato e os parceiros que cobrem suas mortes.`);
 }
 
 const BREAKDOWN_LABEL: Record<string, string> = { kill: "Kills", assist: "Assistências", plant: "Plants", defuse: "Desarmes", death: "Mortes" };
