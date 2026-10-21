@@ -17,7 +17,7 @@ Ele é atualizado a cada entrega. Na dúvida, chame o Enzo.
 | — | [Gravações de tela para o vídeo](#gravações-de-tela-para-o-vídeo-adiada) | ⏸️ Adiada: o front ainda vai mudar | Arquivos de vídeo → Jodão |
 | Azi | [Estrutura do site + deploy](#azi--estrutura-do-site--deploy) | ✅ Concluída (PR #1, no ar) | — |
 | Azi | [Página "Como funciona" + revisão no celular](#azi--página-como-funciona--revisão-no-celular) | ✅ Concluída (PR #2, no ar) | — |
-| Azi | [Polimento para compartilhar e apresentar](#azi--polimento-para-compartilhar-e-apresentar) | 🟡 A fazer | Pull Request `polimento` |
+| Azi | [Polimento para compartilhar e apresentar](#azi--polimento-para-compartilhar-e-apresentar) | ✅ Concluída (PR #4, no ar) | — |
 | Jodão | [Entrevistas com jogadores/coaches](#jodão--entrevistas-com-jogadorescoaches) | 🟡 Em andamento | Resumo → Enzo |
 
 Legenda: ⏳ aguardando · 🟡 a fazer / em andamento · 🔵 entregue, em revisão · ✅ concluída
