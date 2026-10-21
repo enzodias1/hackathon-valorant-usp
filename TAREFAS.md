@@ -18,15 +18,13 @@ para ver. Ele é o centro da demonstração do vídeo.
 | Membro | Tarefa | Status | Entrega |
 |---|---|---|---|
 | Camila | [Nomes dos 68 times](#camila--nomes-dos-68-times) | 🟡 Em andamento | Planilha preenchida → Enzo |
-| Jodão | [Entrevistas com jogadores/coaches](#jodão--entrevistas-com-jogadorescoaches) | 🟡 Em andamento | Resumo → Enzo |
 | Nukan | [Página "Destaques do campeonato"](#nukan--página-destaques-do-campeonato) | 🟡 A fazer | PR da branch `destaques` |
-| Azi | [Prévia do link das partidas](#azi--prévia-do-link-das-partidas) | 🟡 A fazer | PR da branch `previa-partidas` |
-| Jodão | [Roteiro do vídeo pitch](#jodão--roteiro-do-vídeo-pitch) | ⏳ Depois das entrevistas | Documento com o roteiro → Enzo |
+| Jodão | [Roteiro do vídeo pitch](#jodão--roteiro-do-vídeo-pitch) | 🟡 A fazer (entrevistas prontas) | Documento com o roteiro → Enzo |
 | Camila | [Validação das análises com olhar de jogador](#camila--validação-das-análises-com-olhar-de-jogador) | ⏳ Depois da planilha | Lista de observações → Enzo |
 | Camila | [Apresentação (slides)](#camila--apresentação-slides) | ⏳ Depois da validação | Link da apresentação → Enzo |
 | — | [Gravações de tela para o vídeo](#gravações-de-tela-para-o-vídeo) | ⏳ Quando o front estiver fechado | Arquivos de vídeo → Jodão |
 
-✅ **Concluídas: 4** (Azi ×3, Nukan ×1). As descrições ficam recolhidas no [fim do arquivo](#-tarefas-concluídas).
+✅ **Concluídas: 6** (Azi ×4, Nukan ×1, Jodão ×1). As descrições ficam recolhidas no [fim do arquivo](#-tarefas-concluídas).
 
 Legenda: ⏳ aguardando · 🟡 a fazer / em andamento · 🔵 entregue, em revisão · ✅ concluída
 
@@ -91,33 +89,10 @@ Antes de começar, `git pull origin main` e `npm install` dentro de `web/`. Quan
 
 ---
 
-## Azi — Prévia do link das partidas
-**O que fazer:** hoje, quem cola o link de uma partida (ou de um momento do replay) no Discord/WhatsApp vê o cartão genérico do site.
-Crie `web/src/app/partidas/[id]/opengraph-image.tsx`, no mesmo esquema do `src/app/opengraph-image.tsx` que você fez:
-- faixa roxa, os dois times com o placar (verde-limão no vencedor), mapa, competição e data;
-- os dados vêm de `getMatch(id)` (`@/lib/data`);
-- se der, o splash do mapa (`public/art/maps/<código>.webp`) esmaecido ao fundo; se o `ImageResponse` não aceitar WebP, deixe só o roxo.
-
-Confira que a imagem é gerada no build para todas as partidas (o site é estático) e que o título da prévia continua o da partida.
-
-**Por quê:** o botão "Copiar link do momento" do replay existe para compartilhar jogadas no grupo do time. Um cartão com placar e mapa
-convida a clicar, e é a primeira coisa que a banca vê se colarmos o link de uma partida.
-
-**Como entregar:** PR da branch `previa-partidas` (ver [Como entregar](#como-entregar)), com um print da prévia (dá para ver abrindo
-`/partidas/<id>/opengraph-image` no navegador). Antes de começar, `git pull origin main` e `npm install` dentro de `web/`.
-
----
-
-## Jodão — Entrevistas com jogadores/coaches
-**O que fazer:** conversar com 3 a 5 jogadores ou coaches de times universitários e perguntar: *"depois de uma partida, o que você queria saber e não consegue?"*. Anotar também como eles analisam as partidas hoje (VOD, planilha, nada…).
-
-**Por quê:** valida que o produto resolve um problema real e vira argumento no pitch ("conversamos com X jogadores"). Pesa nos critérios de Impacto e Usabilidade.
-
-**Como entregar:** um resumo para o Enzo com (a) quem foi entrevistado (time/função), (b) as perguntas que eles querem responder, (c) frases marcantes, que servem para o vídeo.
-
----
-
 ## Jodão — Roteiro do vídeo pitch
+> **Entrevistas prontas:** use o resumo em [`para_equipe/entrevistas_ufg.md`](para_equipe/entrevistas_ufg.md) nos trechos **[ENTREVISTA]**
+> (ex.: 2 de 8 pediram um replay 2D com agentes, mortes e abates, e o produto já tem). Os entrevistados são do UFG Eagles, que está na base.
+>
 > **Atualização (21/10):** a demonstração agora gira em torno do **replay do round 12** (UFMT Turuna × Macklogic Red): a chance de vitória ao
 > vivo cai de 99% enquanto a Jett (kim) faz o triplo, e a spike é desarmada 0,05 s antes da morte do Cypher (sick). Os números do roteiro
 > foram conferidos no replay. O Enzo vai atualizar o roteiro-base com esse trecho; adapte a partir dele.
@@ -174,6 +149,39 @@ lentos e sem notificações na tela. Grave cada clipe com alguns segundos de fol
 ---
 
 ## ✅ Tarefas concluídas
+
+<details>
+<summary>✅ <b>Azi — Prévia do link das partidas</b> (PR #5, no ar: cartão com placar, vencedor, mapa e competição)</summary>
+
+**O que fazer:** hoje, quem cola o link de uma partida (ou de um momento do replay) no Discord/WhatsApp vê o cartão genérico do site.
+Crie `web/src/app/partidas/[id]/opengraph-image.tsx`, no mesmo esquema do `src/app/opengraph-image.tsx` que você fez:
+- faixa roxa, os dois times com o placar (verde-limão no vencedor), mapa, competição e data;
+- os dados vêm de `getMatch(id)` (`@/lib/data`);
+- se der, o splash do mapa (`public/art/maps/<código>.webp`) esmaecido ao fundo; se o `ImageResponse` não aceitar WebP, deixe só o roxo.
+
+Confira que a imagem é gerada no build para todas as partidas (o site é estático) e que o título da prévia continua o da partida.
+
+**Por quê:** o botão "Copiar link do momento" do replay existe para compartilhar jogadas no grupo do time. Um cartão com placar e mapa
+convida a clicar, e é a primeira coisa que a banca vê se colarmos o link de uma partida.
+
+**Como entregar:** PR da branch `previa-partidas` (ver [Como entregar](#como-entregar)), com um print da prévia (dá para ver abrindo
+`/partidas/<id>/opengraph-image` no navegador). Antes de começar, `git pull origin main` e `npm install` dentro de `web/`.
+
+</details>
+
+<details>
+<summary>✅ <b>Jodão — Entrevistas com jogadores/coaches</b> (8 jogadores da UFG Eagles; resumo em <code>para_equipe/entrevistas_ufg.md</code>)</summary>
+
+**O que fazer:** conversar com 3 a 5 jogadores ou coaches de times universitários e perguntar: *"depois de uma partida, o que você queria saber e não consegue?"*. Anotar também como eles analisam as partidas hoje (VOD, planilha, nada…).
+
+**Por quê:** valida que o produto resolve um problema real e vira argumento no pitch ("conversamos com X jogadores"). Pesa nos critérios de Impacto e Usabilidade.
+
+**Como entregar:** um resumo para o Enzo com (a) quem foi entrevistado (time/função), (b) as perguntas que eles querem responder, (c) frases marcantes, que servem para o vídeo.
+
+**Resultado:** [`para_equipe/entrevistas_ufg.md`](para_equipe/entrevistas_ufg.md): desempenho individual e evolução (3 de 8), replay e
+análise tática do mapa (2), habilidades e recursos (2), lobby e comportamento (1), com o que o produto já atende de cada pedido.
+
+</details>
 
 <details>
 <summary>✅ <b>Nukan — Minimapa "replay" do round</b> (PR #3, no ar: base do replay da partida e do mapa de calor)</summary>
