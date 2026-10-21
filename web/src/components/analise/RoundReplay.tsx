@@ -1,14 +1,13 @@
 "use client";
 // Replay 2D do round. Evolução do minimapa do Nukan: reaproveita MinimapBase e toMinimap.
-// A Riot registra a posição e a direção da mira de todos os vivos em cada kill, plant e desarme. O replay mostra esses
-// instantes e, entre eles, estima o movimento pelos corredores do mapa (lib/navgrid; avisado na tela). Deslocamentos
-// rápidos demais para correr viram "salto" (habilidade de movimento ou teleporte). Junto vêm a chance de vitória ao vivo,
-// a sequência do round com o impacto de cada jogada e, em cada morte, a distância do aliado mais próximo.
+// O modelo de movimento (posições registradas, rotas pelo chão evitando a visão dos inimigos, saltos, anotações da equipe)
+// fica em lib/replay; aqui é o desenho: mapa, chance de vitória ao vivo, sequência do round e elencos.
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import type { Color, MapTransform, Match, MatchPlayer, ReplayNote, Round, RoundEvent } from "@/lib/types";
+import type { Color, Match, MatchPlayer, Round, RoundEvent } from "@/lib/types";
 import { clock, nick, pct, pp } from "@/lib/format";
 import { roundEndMs, SPIKE_TIMER_MS, toMinimap, type UV } from "@/lib/minimap";
-import { decodeNavGrid, findPath, type NavGrid, type NavGridRaw } from "@/lib/navgrid";
+import { decodeNavGrid, type NavGrid, type NavGridRaw } from "@/lib/navgrid";
+import { buildTracks, isDead, nearestAlly, poseAt, wpAt, type Pose, type Track } from "@/lib/replay";
 import MinimapBase from "@/components/MinimapBase";
 
 const TEAM_VAR: Record<Color, string> = { Red: "var(--team-red)", Blue: "var(--team-blue)" };
@@ -20,166 +19,6 @@ const SWING_MS = 2500; // e o "+X pp" da última jogada ao lado da chance de vit
 const CONE_HALF = (28 * Math.PI) / 180;
 const CONE_LEN = 0.075;
 const R = 0.019; // raio do ícone do jogador, em fração do mapa
-
-type Sample = { t: number; x: number; y: number; view: number | null };
-/**
- * Trecho entre dois registros. walk: segura a posição e anda pelos corredores no ritmo de corrida a tempo de chegar no
- * próximo registro (no meio do round o time segura ângulo e só rotaciona/executa perto da hora); saindo do spawn é o
- * contrário: sai na queda da barreira e espera no destino. jump: rápido demais para correr (habilidade de movimento,
- * teleporte) ou anotado pela equipe: fica no ponto de partida e reaparece no destino no meio do intervalo, com o trajeto
- * tracejado na tela.
- */
-type Leg = {
-  t0: number; t1: number; kind: "walk" | "jump";
-  pts: UV[]; cum: number[]; len: number; // caminho (uv) e comprimento acumulado
-  start: number; depart: number; arrive: number; // walk: distância já percorrida ao sair (spawn), quando sai e quando chega
-  view0: number | null; view1: number | null; // mira registrada (radianos, eixos do jogo)
-  note?: ReplayNote; // anotação da equipe sobre este trecho
-};
-type Track = { p: MatchPlayer; samples: Sample[]; legs: Leg[]; deathT: number | null; deathXY: [number, number] | null };
-type Pose = { at: UV; dir: number | null }; // dir: ângulo na tela, em radianos
-
-const RUN_MPS = 5.5; // ritmo estimado de deslocamento (correndo com rifle)
-const JUMP_MPS = 7.5; // acima disso não dá correndo (VALORANT: ~6,75 m/s com a faca): habilidade ou teleporte
-
-/** Direção do jogo (radianos, atan2(dy, dx)) -> ângulo na tela. Os eixos do minimapa são trocados (ver lib/minimap). */
-const screenDir = (view: number, tf: MapTransform) => Math.atan2(Math.cos(view) * tf.yMultiplier, Math.sin(view) * tf.xMultiplier);
-
-function makeLeg(t0: number, t1: number, pts: UV[], view0: number | null, view1: number | null, mPerUv: number, fromSpawn: boolean): Leg {
-  const cum = [0];
-  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i].u - pts[i - 1].u, pts[i].v - pts[i - 1].v));
-  const len = cum[cum.length - 1];
-  const runMs = ((len * mPerUv) / RUN_MPS) * 1000;
-  const move = Math.min(runMs, t1 - t0); // se não dá tempo no ritmo de corrida, anda mais rápido (até o limite do salto)
-  const leg: Leg = fromSpawn
-    ? { t0, t1, kind: "walk", pts, cum, len, start: 0, depart: t0, arrive: t0 + move, view0, view1 }
-    : { t0, t1, kind: "walk", pts, cum, len, start: 0, depart: t1 - move, arrive: t1, view0, view1 };
-  if (fromSpawn && runMs > t1 - t0) leg.start = len * (1 - (t1 - t0) / runMs); // na queda da barreira já estava adiantado no spawn
-  else if (!fromSpawn && (len * mPerUv) / Math.max((t1 - t0) / 1000, 0.001) > JUMP_MPS) leg.kind = "jump";
-  return leg;
-}
-
-/** Posições de cada jogador no round (os vivos em cada evento + a vítima onde morreu) e os trechos entre elas. */
-function buildTracks(match: Match, round: Round, nav: NavGrid | null): Track[] {
-  const tf = match.map.transform;
-  const mPerUv = 1 / Math.abs(tf.xMultiplier) / 100;
-  const idx = new Map(match.players.map((p, i) => [p.puuid, i]));
-  const tracks: Track[] = match.players.map((p) => ({ p, samples: [], legs: [], deathT: null, deathXY: null }));
-  for (const e of round.events) {
-    for (const [i, x, y, view] of e.pos ?? []) tracks[i]?.samples.push({ t: e.t, x, y, view });
-    const v = e.type === "kill" && e.victim ? idx.get(e.victim) : undefined;
-    if (v !== undefined && e.victim_xy) {
-      tracks[v].samples.push({ t: e.t, x: e.victim_xy[0], y: e.victim_xy[1], view: null });
-      tracks[v].deathT = e.t; // a última morte vale (revive da Sage: volta a ter posições depois)
-      tracks[v].deathXY = e.victim_xy;
-    }
-  }
-  for (const tr of tracks) {
-    const s = tr.samples.sort((a, b) => a.t - b.t);
-    if (!s.length) continue;
-    const at = (x: Sample) => toMinimap([x.x, x.y], tf);
-    const path = (a: UV, b: UV) => (nav ? findPath(nav, a, b) : [a, b]);
-    // antes do primeiro registro: sai do spawn do seu lado na queda da barreira
-    const spawn = nav?.spawn[round.attacker === tr.p.color ? "atk" : "def"];
-    if (spawn && s[0].t > 0) {
-      const pts = path(spawn, at(s[0]));
-      if (pts) tr.legs.push(makeLeg(0, s[0].t, pts, null, s[0].view, mPerUv, true));
-    }
-    for (let k = 0; k + 1 < s.length; k++) {
-      const a = s[k], b = s[k + 1];
-      if (b.t <= a.t) continue;
-      const pts = path(at(a), at(b));
-      const leg = makeLeg(a.t, b.t, pts ?? [at(a), at(b)], a.view, b.view, mPerUv, false);
-      if (!pts) leg.kind = "jump"; // um dos pontos fora do chão (ex.: arena da ultimate da Iso)
-      tr.legs.push(leg);
-    }
-  }
-  // anotações da equipe: o trecho vira salto, com o rótulo da anotação
-  for (const nt of round.notes ?? []) {
-    for (const leg of tracks[nt.player]?.legs ?? []) {
-      if (leg.t0 >= nt.from - 600 && leg.t1 <= nt.to + 600) {
-        leg.kind = "jump";
-        leg.note = nt;
-      }
-    }
-  }
-  return tracks;
-}
-
-const isDead = (tr: Track, t: number) => tr.deathT !== null && t >= tr.deathT && !tr.samples.some((s) => s.t > tr.deathT!);
-
-/** Ponto do caminho a uma distância d do início, e a direção do trecho (ângulo na tela). */
-function along(leg: Leg, d: number): Pose {
-  let i = 1;
-  while (i < leg.pts.length - 1 && leg.cum[i] < d) i++;
-  const a = leg.pts[i - 1], b = leg.pts[i];
-  const seg = leg.cum[i] - leg.cum[i - 1];
-  const f = seg > 0 ? Math.min(1, Math.max(0, (d - leg.cum[i - 1]) / seg)) : 1;
-  return { at: { u: a.u + (b.u - a.u) * f, v: a.v + (b.v - a.v) * f }, dir: Math.atan2(b.v - a.v, b.u - a.u) };
-}
-
-function lastView(s: Sample[], k: number) {
-  for (let j = k; j >= 0; j--) if (s[j].view !== null) return s[j].view;
-  return null;
-}
-
-function poseAt(tr: Track, t: number, smooth: boolean, tf: MapTransform): Pose | null {
-  const s = tr.samples;
-  if (!s.length) return null;
-  const snap = (k: number): Pose => {
-    const v = lastView(s, k);
-    return { at: toMinimap([s[k].x, s[k].y], tf), dir: v === null ? null : screenDir(v, tf) };
-  };
-  if (!smooth) {
-    let k = 0;
-    while (k + 1 < s.length && s[k + 1].t <= t) k++;
-    return snap(k);
-  }
-  const leg = tr.legs.find((l) => t >= l.t0 && t < l.t1);
-  if (!leg) {
-    if (t < s[0].t) return snap(0);
-    let k = 0;
-    while (k + 1 < s.length && s[k + 1].t <= t) k++;
-    return snap(k);
-  }
-  const v0 = leg.view0 === null ? null : screenDir(leg.view0, tf);
-  const v1 = leg.view1 === null ? null : screenDir(leg.view1, tf);
-  if (leg.kind === "jump") {
-    const second = t >= (leg.t0 + leg.t1) / 2;
-    return { at: second ? leg.pts[leg.pts.length - 1] : leg.pts[0], dir: second ? v1 ?? v0 : v0 };
-  }
-  if (t < leg.depart) return { at: leg.pts[0], dir: v0 ?? along(leg, 0).dir }; // ainda segurando a posição
-  if (t >= leg.arrive) return { at: leg.pts[leg.pts.length - 1], dir: v1 ?? along(leg, leg.len).dir }; // chegou: espera mirando
-  const f = (t - leg.depart) / Math.max(leg.arrive - leg.depart, 1);
-  return along(leg, leg.start + (leg.len - leg.start) * f); // andando: olha para onde vai
-}
-
-/** Chance de vitória do time vermelho no instante t: salto em cada evento e, entre eles, só o relógio (rampa). */
-function wpAt(round: Round, t: number, end: number) {
-  let t0 = 0;
-  let w0 = round.wp_red_start;
-  for (const e of round.events) {
-    if (e.after_round_end) continue;
-    if (e.t > t) return w0 + (e.wp_red_before - w0) * ((t - t0) / Math.max(e.t - t0, 1));
-    t0 = e.t;
-    w0 = e.wp_red_after;
-  }
-  const fin = round.winner === "Red" ? 1 : 0;
-  if (t >= end) return fin;
-  return w0 + (fin - w0) * ((t - t0) / Math.max(end - t0, 1));
-}
-
-/** Aliado vivo mais próximo de quem morreu, no instante da morte (em metros; 100 unidades do jogo ≈ 1 m). */
-function nearestAlly(e: RoundEvent, match: Match, victim: MatchPlayer) {
-  let best: { at: UV; m: number; p: MatchPlayer } | null = null;
-  for (const [i, x, y] of e.pos ?? []) {
-    const p = match.players[i];
-    if (!p || p.color !== victim.color || p.puuid === victim.puuid || !e.victim_xy) continue;
-    const m = Math.hypot(x - e.victim_xy[0], y - e.victim_xy[1]) / 100;
-    if (!best || m < best.m) best = { at: toMinimap([x, y], match.map.transform), m, p };
-  }
-  return best;
-}
 
 export default function RoundReplay({ match, round, initialT, nav }: { match: Match; round: Round; initialT?: number; nav?: NavGridRaw | null }) {
   const grid = useMemo(() => (nav ? decodeNavGrid(nav) : null), [nav]);

@@ -53,14 +53,40 @@ function nearestFloor(g: NavGrid, i: number, maxR = 6) {
   return -1;
 }
 
-/** Linha de visada entre dois pontos só por cima do chão (amostras a cada 0,4 célula). */
-function clear(g: NavGrid, a: UV, b: UV) {
+/** Linha de visada entre dois pontos só por cima do chão (amostras a cada 0,4 célula) e, com custo, sem passar por célula mais cara que `maxCost`. */
+function clear(g: NavGrid, a: UV, b: UV, cost?: Float32Array | null, maxCost = Infinity) {
   const steps = Math.ceil((Math.hypot(b.u - a.u, b.v - a.v) * g.n) / 0.4);
   for (let s = 1; s < steps; s++) {
     const f = s / steps;
-    if (!g.walk[cellOf(g, { u: a.u + (b.u - a.u) * f, v: a.v + (b.v - a.v) * f })]) return false;
+    const i = cellOf(g, { u: a.u + (b.u - a.u) * f, v: a.v + (b.v - a.v) * f });
+    if (!g.walk[i] || (cost && cost[i] > maxCost)) return false;
   }
   return true;
+}
+
+/**
+ * Células do chão que alguém nas posições `eyes` enxerga até `range` células: raios a cada 1° que param na primeira parede.
+ * Serve para a rota estimada evitar passar na frente dos inimigos.
+ */
+export function visibleCells(g: NavGrid, eyes: UV[], range: number): Uint8Array {
+  const { n, walk } = g;
+  const seen = new Uint8Array(n * n);
+  for (const e of eyes) {
+    const c0 = nearestFloor(g, cellOf(g, e));
+    if (c0 < 0) continue;
+    const x0 = (c0 % n) + 0.5, y0 = Math.floor(c0 / n) + 0.5;
+    seen[c0] = 1;
+    for (let a = 0; a < 360; a++) {
+      const dx = Math.cos((a * Math.PI) / 180) * 0.5, dy = Math.sin((a * Math.PI) / 180) * 0.5;
+      for (let k = 1, x = x0 + dx, y = y0 + dy; k <= range * 2; k++, x += dx, y += dy) {
+        if (x < 0 || y < 0 || x >= n || y >= n) break;
+        const i = Math.floor(y) * n + Math.floor(x);
+        if (!walk[i]) break;
+        seen[i] = 1;
+      }
+    }
+  }
+  return seen;
 }
 
 class Heap {
@@ -100,12 +126,13 @@ class Heap {
 /**
  * Caminho pelo chão de `a` até `b` (A* em 8 direções, sem cortar quina), suavizado: só ficam os pontos de virada.
  * Começa e termina nas posições exatas. `null` se um dos pontos estiver longe do chão ou não houver caminho.
+ * `cost` (opcional, ≥ 1 por célula) encarece áreas, como as vistas pelos inimigos; sem ele, é o caminho mais curto.
  */
-export function findPath(g: NavGrid, a: UV, b: UV): UV[] | null {
+export function findPath(g: NavGrid, a: UV, b: UV, cost?: Float32Array | null): UV[] | null {
   const s = nearestFloor(g, cellOf(g, a));
   const t = nearestFloor(g, cellOf(g, b));
   if (s < 0 || t < 0) return null;
-  if (s === t || clear(g, a, b)) return [a, b];
+  if (s === t || clear(g, a, b, cost, 1)) return [a, b];
   const { n, walk } = g;
   const ws = g.ws;
   const gen = ++ws.gen;
@@ -132,7 +159,8 @@ export function findPath(g: NavGrid, a: UV, b: UV): UV[] | null {
         const ni = rr * n + cc;
         if (!walk[ni]) continue;
         if (dr && dc && (!walk[r * n + cc] || !walk[rr * n + c])) continue; // sem cortar quina de parede
-        const ng = ws.g[cur] + (dr && dc ? Math.SQRT2 : 1);
+        const step = dr && dc ? Math.SQRT2 : 1;
+        const ng = ws.g[cur] + (cost ? (step * (cost[cur] + cost[ni])) / 2 : step);
         if (ws.seen[ni] === gen && ng >= ws.g[ni]) continue;
         ws.seen[ni] = gen; ws.g[ni] = ng; ws.came[ni] = cur;
         heap.push(ng + h(ni), ni);
@@ -144,12 +172,18 @@ export function findPath(g: NavGrid, a: UV, b: UV): UV[] | null {
   for (let i = t; i !== -1; i = ws.came[i]) cells.push(i);
   cells.reverse();
   // suaviza: a partir de cada ponto, pula direto para o mais distante que ainda se enxerga pelo chão
+  // (com custo, o atalho não pode passar por célula mais cara que as do trecho que ele substitui)
   const pts: UV[] = [a];
   let k = 0;
   const pt = (i: number) => (i === 0 ? a : i === cells.length - 1 ? b : centerOf(g, cells[i]));
+  const worst = (k0: number, k1: number) => {
+    let w = 1;
+    if (cost) for (let q = k0; q <= k1; q++) w = Math.max(w, cost[cells[q]]);
+    return w;
+  };
   while (k < cells.length - 1) {
     let j = cells.length - 1;
-    while (j > k + 1 && !clear(g, pt(k), pt(j))) j--;
+    while (j > k + 1 && !clear(g, pt(k), pt(j), cost, worst(k, j))) j--;
     pts.push(pt(j));
     k = j;
   }
