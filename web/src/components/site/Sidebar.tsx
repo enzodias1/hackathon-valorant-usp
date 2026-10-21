@@ -10,8 +10,10 @@ const NAV = [
   { href: "/times", label: "Times" },
   { href: "/jogadores", label: "Jogadores" },
   { href: "/comparar", label: "Comparar" },
-  { href: "/como-funciona", label: "Como funciona" },
+  { href: "/como-funciona", label: "Como usar" },
 ];
+// para a banca técnica: discreto, abaixo dos itens principais
+const NAV_SECONDARY = [{ href: "/metodologia", label: "Metodologia" }];
 
 function Logo() {
   return (
@@ -26,18 +28,31 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const path = usePathname();
   const active = (href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(`${href}/`));
   return (
-    <ul className="flex flex-col gap-0.5">
-      {NAV.map((n) => (
-        <li key={n.href}>
-          <Link href={n.href} onClick={onNavigate} aria-current={active(n.href) ? "page" : undefined}
-                className={`label-caps relative flex items-center rounded-md px-3 py-2.5 transition-colors ${
-                  active(n.href) ? "bg-surface-2 text-ink" : "text-ink-2 hover:bg-surface hover:text-ink"}`}>
-            {active(n.href) && <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-lime" aria-hidden />}
-            {n.label}
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul className="flex flex-col gap-0.5">
+        {NAV.map((n) => (
+          <li key={n.href}>
+            <Link href={n.href} onClick={onNavigate} aria-current={active(n.href) ? "page" : undefined}
+                  className={`label-caps relative flex items-center rounded-md px-3 py-2.5 transition-colors ${
+                    active(n.href) ? "bg-surface-2 text-ink" : "text-ink-2 hover:bg-surface hover:text-ink"}`}>
+              {active(n.href) && <span className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-lime" aria-hidden />}
+              {n.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <ul className="mt-4 border-t border-line pt-4">
+        {NAV_SECONDARY.map((n) => (
+          <li key={n.href}>
+            <Link href={n.href} onClick={onNavigate} aria-current={active(n.href) ? "page" : undefined}
+                  className={`label-caps flex items-center gap-2 rounded-md px-3 py-2 text-[10px] transition-colors ${
+                    active(n.href) ? "text-lime" : "text-muted hover:text-ink"}`}>
+              {n.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 

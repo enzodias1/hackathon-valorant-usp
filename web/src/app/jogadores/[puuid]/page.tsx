@@ -67,12 +67,12 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
           <StatTile label="Rounds" value={p.sample.rounds} sub={`${p.sample.maps} mapas`} />
         </div>
 
-        <Section title="Diagnóstico" collapsible defaultOpen
+        <Section id="diagnostico" title="Diagnóstico" collapsible defaultOpen
                  info="Comparação com a média da liga. Pontos fortes e fracos só aparecem quando a diferença é estatisticamente confiável, já com controle de falsos positivos.">
           <InsightPanel insights={p.insights} />
         </Section>
 
-        <Section title="Perfil de jogo" collapsible teaser={p.role.behavior_role ? `Papel em jogo: ${p.role.behavior_role}${p.role.agent_role ? ` (joga de ${p.role.agent_role})` : ""}` : "Disponível a partir de 60 rounds"}
+        <Section id="perfil" title="Perfil de jogo" collapsible teaser={p.role.behavior_role ? `Papel em jogo: ${p.role.behavior_role}${p.role.agent_role ? ` (joga de ${p.role.agent_role})` : ""}` : "Disponível a partir de 60 rounds"}
                  info="À esquerda, o percentil na liga (0–100) em cada eixo de comportamento: o maior eixo de papel define o papel em jogo. À direita, o impacto comparado às estatísticas tradicionais (100 = melhor da liga).">
           <div className="grid gap-6 lg:grid-cols-2">
             {p.role.axes ? <RoleRadar axes={p.role.axes} /> : <p className="text-sm text-ink-2">Disponível a partir de 60 rounds.</p>}
@@ -91,7 +91,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
           </div>
         </Section>
 
-        <Section title="De onde vem o impacto" collapsible teaser={`Saldo: ${pp(imp.wpa_per_round)} por round · cada kill vale ${pp(imp.per_kill)} (liga ${pp(imp.league_per_kill)})`}
+        <Section id="impacto" title="De onde vem o impacto" collapsible teaser={`Saldo: ${pp(imp.wpa_per_round)} por round · cada kill vale ${pp(imp.per_kill)} (liga ${pp(imp.league_per_kill)})`}
                  info="Variação média na chance de vitória por round, por tipo de ação (pontos percentuais). Mortes sempre custam; a pergunta é quanto. À direita, cada métrica comparada com a liga.">
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-2">
@@ -114,14 +114,14 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
           </div>
         </Section>
 
-        <Section title="Impacto partida a partida" collapsible
+        <Section id="partidas" title="Impacto partida a partida" collapsible
                  teaser={`Impacto positivo em ${posMatches} de ${p.matches.length} partidas · ataque ${pp(imp.wpa_pr_atk)} · defesa ${pp(imp.wpa_pr_def)} por round`}
                  info="Cada barra é uma partida, em ordem cronológica: a soma do impacto do jogador naquele mapa. Passe o mouse (ou toque) numa barra para ver adversário, mapa e agente.">
           <MatchImpactChart matches={p.matches} />
         </Section>
 
         {p.stages.length > 1 && (
-          <Section title="Evolução no campeonato" collapsible teaser={`${p.stages.length} etapas · ${p.stages.map((x) => `${x.etapa.split(" · ").at(-1)} ${pp(x.wpa_per_round)}`).slice(-2).join(" · ")}`}
+          <Section id="evolucao" title="Evolução no campeonato" collapsible teaser={`${p.stages.length} etapas · ${p.stages.map((x) => `${x.etapa.split(" · ").at(-1)} ${pp(x.wpa_per_round)}`).slice(-2).join(" · ")}`}
                    info="Impacto médio por round em cada etapa. Etapas com poucos rounds variam muito; compare com cautela.">
             <div className="divide-y divide-line/50">
               {p.stages.map((x) => (
@@ -138,7 +138,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
           </Section>
         )}
 
-        <Section title="Jogadas para revisar" collapsible
+        <Section id="jogadas" title="Jogadas para revisar" collapsible
                  teaser={best ? `Maior jogada: ${pct(best.wp_before)} → ${pct(best.wp_after)} de chance no ${best.map}, round ${best.round}` : "Sem registros"}
                  info="As jogadas que mais mudaram a chance de vitória do time, e as mortes que mais custaram. Cada linha abre o round na tela da partida.">
           <div className="grid gap-6 lg:grid-cols-2">
@@ -153,7 +153,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
           </div>
         </Section>
 
-        <Section title="Agentes e mapas" collapsible
+        <Section id="agentes" title="Agentes e mapas" collapsible
                  teaser={[bestAgent && `Mais impacto de ${bestAgent.agent} (${pp(bestAgent.wpa_per_round)}/round)`, bestMap && `melhor mapa: ${bestMap.map}`].filter(Boolean).join(" · ") || `${p.agents.length} agentes`}
                  info="Desempenho por agente e por mapa. O impacto por round compara situações diferentes; agentes e mapas com poucos rounds variam muito.">
           <div className="grid gap-6 lg:grid-cols-2">
@@ -187,7 +187,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
           </div>
         </Section>
 
-        <Section title="Parceiros" collapsible
+        <Section id="parceiros" title="Parceiros" collapsible
                  teaser={topPartner ? `Mais trades com ${nick(topPartner.name)}: ${topPartner.they_traded_you + topPartner.you_traded_them} nos dois sentidos` : "Sem parceiros com rounds suficientes"}
                  info="Trades em até 5 s entre o jogador e cada parceiro, nos dois sentidos. Entre parênteses: a parcela das mortes do jogador (com o parceiro vivo) que o parceiro vingou.">
           <div className="overflow-x-auto">

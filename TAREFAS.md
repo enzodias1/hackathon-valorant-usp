@@ -117,7 +117,7 @@ Use React + SVG por cima de uma `<img>`, sem bibliotecas novas, e Tailwind para 
 ## Azi — Página "Como funciona" + revisão no celular
 **O que fazer:**
 1. **Página `/como-funciona`** (e o link "Como funciona" no cabeçalho), explicando o produto para jogador e para a banca técnica.
-   Os números estão em `web/public/data/model.json` (formato e glossário em [`web/DADOS.md`](web/DADOS.md#modeljson-para-a-página-como-funciona)),
+   Os números estão em `web/public/data/model.json` (formato e glossário em [`web/DADOS.md`](web/DADOS.md#modeljson-para-a-página-metodologia)),
    e as definições, em "Decisões de métrica" no [`README.md`](README.md). Sugestão de seções:
    - **A ideia em 3 passos:** (1) a cada kill/plant/desarme o modelo estima a chance de vitória do round; (2) a variação dessa chance é o
      **impacto** da jogada; (3) somando os impactos e comparando com a liga, saem o diagnóstico, a sinergia e os papéis.
@@ -165,7 +165,7 @@ gente da Riot: se algo soar errado para um jogador, eles vão perceber.
 > estiverem fechadas; o responsável será definido nessa hora.
 
 **O que fazer:** quando o Jodão fechar o roteiro ([`para_equipe/roteiro_pitch.md`](para_equipe/roteiro_pitch.md)), gravar **um clipe por trecho
-da demonstração** (partida + round 12 com o replay do minimapa tocando, página do time, jogador, economia, comparar, como funciona),
+da demonstração** (partida + round 12 com o replay do minimapa tocando, página do time, jogador, comparar, como usar, metodologia),
 seguindo o que o roteiro pede na coluna "Tela". Use o link da Vercel, em 1080p, com zoom do navegador em 110–125%, movimentos de mouse
 lentos e sem notificações na tela. Grave cada clipe com alguns segundos de folga no começo e no fim, para facilitar a edição.
 

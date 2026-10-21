@@ -526,7 +526,7 @@ def export_players(t, names):
 
 
 def export_model(t):
-    """model.json: how the win-probability model was validated + the evidence behind the metric choices (page 'Como funciona')."""
+    """model.json: how the win-probability model was validated + the evidence behind the metric choices (page 'Metodologia')."""
     rep = json.loads((P / "wp_report.json").read_text(encoding="utf-8"))
     dc, rd, st = t["death_context"], t["rounds"], t["wp_states"]
     bins = [0, 500, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 7000, 1e9]

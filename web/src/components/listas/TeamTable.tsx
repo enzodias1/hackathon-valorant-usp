@@ -78,7 +78,7 @@ export default function TeamTable({ teams }: { teams: TeamSummary[] }) {
       </div>
       <p className="text-xs text-muted">
         Força: ranking pela chance de vencer um round contra um time médio, descontando a economia (modelo de Bradley-Terry). O percentual ao lado é essa
-        chance. Em cinza, times com menos de {MIN_ROUNDS_RELIABLE} rounds, cuja posição ainda é imprecisa. <Link href="/como-funciona#comparacoes" className="text-accent hover:underline">Como funciona</Link>
+        chance. Em cinza, times com menos de {MIN_ROUNDS_RELIABLE} rounds, cuja posição ainda é imprecisa. <Link href="/metodologia#comparacoes" className="text-accent hover:underline">Metodologia</Link>
       </p>
     </div>
   );

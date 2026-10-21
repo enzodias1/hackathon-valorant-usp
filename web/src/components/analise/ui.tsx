@@ -50,12 +50,22 @@ export function Section({ title, subtitle, info, teaser, collapsible, defaultOpe
 }
 
 /** Faixa roxa de cabeçalho das páginas de detalhe (time, jogador, partida), com arte opcional à direita. */
-export function PageBand({ back, kicker, title, children, actions, art }: {
+export function PageBand({ back, kicker, title, children, actions, art, compact }: {
   back?: { href: string; label: string }; kicker?: React.ReactNode; title: React.ReactNode; children?: React.ReactNode;
-  actions?: React.ReactNode; art?: { portrait?: string; background?: string };
+  actions?: React.ReactNode; art?: { portrait?: string; background?: string; splash?: string };
+  /** título menor, para títulos de duas linhas (placar da partida) */
+  compact?: boolean;
 }) {
   return (
     <section className="relative isolate overflow-hidden bg-brand">
+      {/* splash do mapa tingido de roxo (luminosidade da imagem + cor da faixa) e esmaecido do lado do texto */}
+      {art?.splash && (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={art.splash} alt="" aria-hidden className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover opacity-40 mix-blend-luminosity" />
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-20 bg-gradient-to-r from-brand from-25% via-brand/70 to-brand/10" />
+        </>
+      )}
       {/* arte oficial dos agentes (política "Legal Jibber Jabber" da Riot) */}
       {art?.background && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -69,7 +79,8 @@ export function PageBand({ back, kicker, title, children, actions, art }: {
       <div className="mx-auto max-w-6xl px-4 pb-8 pt-7 sm:px-8">
         {back && <Link href={back.href} className="label-caps text-[11px] text-white/70 hover:text-white">← {back.label}</Link>}
         {kicker && <div className="label-caps mt-4 text-[11px] text-lime">{kicker}</div>}
-        <h1 className="mt-1 max-w-3xl text-[clamp(2.4rem,5.5vw,4.2rem)] leading-[1.02] text-white">{title}</h1>
+        {/* entrelinha 1,1: na Anton os acentos das maiúsculas (Ã, Ê) passam da altura da linha e encostariam na linha de cima */}
+        <h1 className={`mt-1 max-w-3xl leading-[1.1] text-white ${compact ? "text-[clamp(1.9rem,4vw,3rem)]" : "text-[clamp(2.4rem,5.5vw,4.2rem)]"}`}>{title}</h1>
         {children && <div className="mt-3 max-w-2xl text-white/85">{children}</div>}
         {actions && <div className="mt-5 flex flex-wrap items-center gap-3">{actions}</div>}
       </div>
@@ -83,6 +94,21 @@ export function BandButton({ href, children, primary }: { href: string; children
     <Link href={href} className="label-caps bg-lime px-5 py-3 text-[11px] text-bg transition-opacity [clip-path:polygon(0_0,calc(100%-10px)_0,100%_10px,100%_100%,0_100%)] hover:opacity-90">{children}</Link>
   ) : (
     <Link href={href} className="label-caps border-2 border-white/90 px-5 py-2.5 text-[11px] text-white transition-colors hover:bg-white hover:text-brand">{children}</Link>
+  );
+}
+
+/** Título numerado no estilo da página inicial ("// 01" + título grande), com link opcional à direita. */
+export function SectionHead({ n, title, link }: { n: string; title: string; link?: { href: string; label: string } }) {
+  return (
+    <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p className="label-caps text-[10px] text-lime">{`// ${n}`}</p>
+        <h2 className="mt-1 text-[clamp(2rem,4vw,3rem)] leading-[1.1] text-ink">{title}</h2>
+      </div>
+      {link && (
+        <Link href={link.href} className="label-caps text-[11px] text-ink underline decoration-lime underline-offset-4 hover:text-lime">{link.label} →</Link>
+      )}
+    </div>
   );
 }
 

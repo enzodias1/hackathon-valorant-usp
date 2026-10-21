@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getIndex } from "@/lib/data";
 import { competitionLabel, date, num, pct } from "@/lib/format";
 import type { TeamSummary } from "@/lib/types";
+import { SectionHead } from "@/components/analise/ui";
 
 const RANKING_SIZE = 6;
 const RECENT_SIZE = 6;
@@ -86,8 +87,12 @@ function Hero({ stats }: { stats: [number, string][] }) {
 
       <div className="mx-auto max-w-6xl px-4 pb-14 pt-14 sm:px-8 sm:pt-20">
         <div className="max-w-2xl">
-          <h1 className="max-w-[12ch] text-[clamp(2.8rem,6.6vw,5.9rem)] leading-[1.02] text-white">O analista que os times universitários não têm</h1>
-          <p className="label-caps mt-2 inline-block bg-lime px-4 py-2 text-sm text-bg [clip-path:polygon(0_0,100%_0,calc(100%-12px)_100%,0_100%)] sm:text-base">
+          {/* "não têm" em linha própria com folga em cima: o til e o circunflexo da Anton passam da altura da linha e
+              encostavam em "universitários"; a folga só nessa linha mantém o título compacto */}
+          <h1 className="max-w-[12ch] text-[clamp(2.8rem,6.6vw,5.9rem)] leading-[1.02] text-white">
+            O analista que os times universitários <span className="mt-[0.2em] block">não têm</span>
+          </h1>
+          <p className="label-caps mt-5 inline-block bg-lime px-4 py-2 text-sm text-bg [clip-path:polygon(0_0,100%_0,calc(100%-12px)_100%,0_100%)] sm:text-base">
             Análise pós-partida
           </p>
           <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-white/85">
@@ -102,7 +107,7 @@ function Hero({ stats }: { stats: [number, string][] }) {
               Ver partidas
             </Link>
             <Link href="/como-funciona" className="label-caps px-2 py-3 text-[11px] text-white/80 underline decoration-lime underline-offset-4 hover:text-white">
-              Como funciona →
+              Como usar →
             </Link>
           </div>
         </div>
@@ -132,20 +137,6 @@ function Brackets() {
       <span className={`${c} bottom-0 left-0 border-b-2 border-l-2`} />
       <span className={`${c} bottom-0 right-0 border-b-2 border-r-2`} />
     </span>
-  );
-}
-
-function SectionHead({ n, title, link }: { n: string; title: string; link?: { href: string; label: string } }) {
-  return (
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p className="label-caps text-[10px] text-lime">{`// ${n}`}</p>
-        <h2 className="mt-1 text-[clamp(2rem,4vw,3rem)] leading-none text-ink">{title}</h2>
-      </div>
-      {link && (
-        <Link href={link.href} className="label-caps text-[11px] text-ink underline decoration-lime underline-offset-4 hover:text-lime">{link.label} →</Link>
-      )}
-    </div>
   );
 }
 

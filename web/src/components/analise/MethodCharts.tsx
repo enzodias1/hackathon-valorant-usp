@@ -1,5 +1,5 @@
 "use client";
-// Gráficos da página "Como funciona": calibração do modelo e chance de trade por distância.
+// Gráficos da página "Metodologia": calibração do modelo e chance de trade por distância.
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { ModelInfo } from "@/lib/types";
 import { num, pct } from "@/lib/format";

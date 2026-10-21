@@ -1,23 +1,22 @@
 import type { Metadata } from "next";
-import { pageMeta } from "@/lib/site";
+import { PRODUCT_NAME, pageMeta } from "@/lib/site";
+import { PageBand } from "@/components/analise/ui";
 import { getIndex } from "@/lib/data";
 import Comparator from "@/components/analise/Comparator";
 
-export const metadata: Metadata = pageMeta("Comparar times · Analista UNIVAVÁ", "Time × adversário: quem é favorito, em quais mapas cada um rende mais e como o adversário joga e decide a economia.");
+export const metadata: Metadata = pageMeta(`Comparar times · ${PRODUCT_NAME}`, "Time × adversário: quem é favorito, em quais mapas cada um rende mais e como o adversário joga.");
 
 export default async function ComparePage() {
   const index = await getIndex();
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
-      <header className="max-w-3xl space-y-2">
-        <p className="text-sm font-medium uppercase tracking-wide text-accent">Preparação para o próximo jogo</p>
-        <h1 className="text-3xl font-bold text-ink">Time × adversário</h1>
-        <p className="text-ink-2">
-          Quem é favorito, em quais mapas cada um rende mais, como o adversário costuma jogar e decidir a economia, e quem são os jogadores
-          que mais decidem rounds. Tudo a partir das partidas já disputadas: é preparação antes do jogo, não ajuda durante a partida.
-        </p>
-      </header>
-      <Comparator teams={index.team_list} />
+    <main>
+      <PageBand kicker="Preparação para o próximo jogo" title="Time × adversário">
+        Quem é favorito, em quais mapas cada um rende mais, como o adversário costuma jogar e quem são os jogadores que mais decidem rounds.
+        Tudo a partir das partidas já disputadas: é preparação antes do jogo, não ajuda durante a partida.
+      </PageBand>
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
+        <Comparator teams={index.team_list} />
+      </div>
     </main>
   );
 }

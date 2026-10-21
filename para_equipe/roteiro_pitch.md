@@ -25,7 +25,7 @@ jogador/coach vale mais que qualquer número. Todos os números abaixo foram con
 > **[ENTREVISTA]** *uma frase de jogador/coach sobre como analisam partidas hoje (ex.: "a gente só olha o placar e o K/D").*
 
 ## 0:55–1:40 · Como usamos os dados
-**Tela:** página "Como funciona": números da base e gráfico de calibração.
+**Tela:** página "Metodologia": números da base e gráfico de calibração.
 
 > "Usamos os dados oficiais de **336 mapas** do UNIVAVÁ e da Rush Series: 68 times, 411 jogadores, mais de 46 mil kills, com a posição
 > de todo mundo em cada uma."
@@ -61,7 +61,7 @@ jogador/coach vale mais que qualquer número. Todos os números abaixo foram con
 > O Macklogic economizou nas 8 vezes que perdeu o pistol: dá para esperar eco no round 2."
 
 ## 3:50–4:25 · Por que confiar
-**Tela:** "Como funciona" → "Comparações justas" e "Limites honestos".
+**Tela:** "Metodologia" → "Comparações justas" e "Limites honestos".
 
 > "Um número sozinho engana, então tomamos três cuidados. Cada comparação desconta o tamanho da amostra e passa por um **controle
 > de falsos positivos**: com ele, cortamos quase metade das afirmações que seriam ruído. A evolução no campeonato desconta a força

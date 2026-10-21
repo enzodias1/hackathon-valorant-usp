@@ -348,7 +348,7 @@ export interface Player {
   stages: { etapa: string; team: string; rounds: number; wpa_per_round: number; kd: number }[];
 }
 
-// ---------------------------------------------------------------- modelo (página "Como funciona")
+// ---------------------------------------------------------------- modelo (página "Metodologia")
 export interface ModelScores {
   log_loss: number;
   brier: number;

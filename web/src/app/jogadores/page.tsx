@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getIndex } from "@/lib/data";
 import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import PlayerTable, { type PlayerRow } from "@/components/listas/PlayerTable";
+import { PageBand } from "@/components/analise/ui";
 
 export const metadata: Metadata = pageMeta(`Jogadores · ${PRODUCT_NAME}`, "Impacto real por round e o papel em jogo de cada jogador, além do K/D.");
 
@@ -13,15 +14,14 @@ export default async function PlayersPage() {
     .map((p) => ({ ...p, team_name: index.teams[p.team]?.name ?? p.team }));
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
-      <header className="space-y-2">
-        <h1 className="text-3xl font-bold text-ink">Jogadores</h1>
-        <p className="max-w-3xl text-ink-2">
-          {players.length} jogadores. <span className="text-ink">Impacto por round</span> é quanto, em média, as jogadas de cada um mudam a chance de o time vencer o round,
-          em pontos percentuais. <span className="text-ink">Papel real</span> é descoberto pelo comportamento em jogo, não pelo agente. Os dois só aparecem a partir de 60 rounds.
-        </p>
-      </header>
-      <PlayerTable players={players} />
+    <main>
+      <PageBand kicker="Impacto e papel em jogo" title="Jogadores">
+        {players.length} jogadores. <b className="text-white">Impacto por round</b> é quanto, em média, as jogadas de cada um mudam a chance de o time vencer o round,
+        em pontos percentuais. <b className="text-white">Papel real</b> é descoberto pelo comportamento em jogo, não pelo agente. Os dois só aparecem a partir de 60 rounds.
+      </PageBand>
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
+        <PlayerTable players={players} />
+      </div>
     </main>
   );
 }

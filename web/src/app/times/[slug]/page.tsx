@@ -71,22 +71,22 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
                     sub={team.strength.reliable ? `vence ${pct(team.strength.p_vs_avg)} dos rounds contra um time médio` : "poucos rounds: estimativa imprecisa"} />
         </div>
 
-        <Section title="Diagnóstico" collapsible defaultOpen
+        <Section id="diagnostico" title="Diagnóstico" collapsible defaultOpen
                  info="Comparação com a média da liga. Só viram ponto forte ou fraco as diferenças estatisticamente confiáveis para o tamanho da amostra, já com controle de falsos positivos.">
           <InsightPanel insights={team.insights} />
         </Section>
 
-        <Section title="Sinergia: quem cobre quem" collapsible teaser={t.synergy}
+        <Section id="sinergia" title="Sinergia: quem cobre quem" collapsible teaser={t.synergy}
                  info="Trade = vingar a morte de um aliado em até 5 segundos. Cada linha do grafo é uma dupla: quanto mais grossa, mais vezes um vingou a morte do outro. Duplas que se cobrem transformam mortes em duelos trocados.">
           <SynergyGraph synergy={team.synergy} />
         </Section>
 
-        <Section title="Onde o time morre" collapsible teaser={t.zones}
+        <Section id="zonas" title="Onde o time morre" collapsible teaser={t.zones}
                  info="Cada morte é atribuída à região nomeada mais próxima do mapa. A tabela compara a parcela de mortes em cada região com a da liga e mostra quantas ficaram sem trade; o mapa de calor mostra onde elas se concentram.">
           <ZonesPanel zones={zones} />
         </Section>
 
-        <Section title="Elenco e papéis" collapsible teaser={t.roster}
+        <Section id="elenco" title="Elenco e papéis" collapsible teaser={t.roster}
                  info="Papel em jogo (Entry, Support, Lurker, Clutch) é descoberto pelo comportamento (primeiros duelos, trades, distância do time, fim de round), não pelo agente. Impacto = quanto o jogador muda, em média, a chance de vitória do round. Esmaecidos: menos de 20% dos rounds do time.">
           <div className="overflow-x-auto">
             <table className="w-full sm:min-w-[760px]">
@@ -109,12 +109,12 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
           </div>
         </Section>
 
-        <Section title="Evolução no campeonato" collapsible teaser={t.evolution}
+        <Section id="evolucao" title="Evolução no campeonato" collapsible teaser={t.evolution}
                  info="Rounds vencidos acima ou abaixo do esperado em cada etapa, a cada 100 rounds. O esperado já desconta a força dos adversários e a economia, então mostra se o time jogou acima do próprio nível. A faixa clara é o intervalo de 90%. Mudanças entre as metades do campeonato só aparecem quando passam no teste estatístico.">
           <Evolution team={team} />
         </Section>
 
-        <Section title="Comparação com a liga" collapsible teaser={t.compare} aside={<CompareLegend />}
+        <Section id="liga" title="Comparação com a liga" collapsible teaser={t.compare} aside={<CompareLegend />}
                  info="Cada linha mostra o time (ponto) e a média da liga (traço). ▲/▼ marcam diferenças confirmadas estatisticamente.">
           <div className="space-y-5">
             {GROUPS.map((g) => (
@@ -128,7 +128,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
           </div>
         </Section>
 
-        <Section title="Mapas" collapsible teaser={t.maps}
+        <Section id="mapas" title="Mapas" collapsible teaser={t.maps}
                  info="Vitórias por mapa e por lado. Entre parênteses: a vitória média do ataque naquele mapa, na liga.">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -148,7 +148,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
           </div>
         </Section>
 
-        <Section title="Economia" collapsible teaser={t.economy}
+        <Section id="economia" title="Economia" collapsible teaser={t.economy}
                  info="Vitórias em cada tipo de compra comparadas com o esperado pelo modelo (que considera a compra dos dois lados), e o que o time fez quando não tinha dinheiro para full buy (dinheiro + armas abaixo de 20 mil). É descritivo: mostra o que aconteceu, sem recomendar uma decisão.">
           <h3 className="label-caps mb-1 text-[10px] text-muted">Vitórias por tipo de compra</h3>
           <div className="divide-y divide-line/50">
@@ -188,7 +188,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
           </div>
         </Section>
 
-        <Section title="Rounds para revisar no VOD" collapsible teaser={t.decisive}
+        <Section id="vod" title="Rounds para revisar no VOD" collapsible teaser={t.decisive}
                  info="Rounds jogados fora: o time chegou a essa chance de vitória e perdeu. Viradas: caiu a essa chance e venceu. Cada linha abre o round na tela da partida.">
           <div className="grid gap-6 lg:grid-cols-2">
             <div>
@@ -202,7 +202,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
           </div>
         </Section>
 
-        <Section title="Partidas" collapsible teaser={t.matches}>
+        <Section id="partidas" title="Partidas" collapsible teaser={t.matches}>
           <div className="overflow-x-auto">
             <table className="w-full sm:min-w-[560px]">
               <thead><tr><Th>Data</Th><Th className="hidden sm:table-cell">Competição</Th><Th>Mapa</Th><Th>Adversário</Th><Th right>Placar</Th></tr></thead>

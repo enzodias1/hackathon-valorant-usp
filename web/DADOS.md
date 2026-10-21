@@ -82,7 +82,7 @@ No código, carregue com `fetch("/data/index.json")` e `fetch(\`/data/matches/${
 }
 ```
 
-## `model.json` (para a página "Como funciona")
+## `model.json` (para a página "Metodologia")
 ```jsonc
 {
   "data": { "matches", "rounds", "states", "kills" },
