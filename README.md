@@ -66,7 +66,9 @@ em que as linhas brancas finas são paredes; 99,97% das posições registradas f
   curta). Desvia em 3,9% dos trechos, +10 m em média.
 - **Anda no momento mais seguro:** se a rota fica mais exposta no registro de chegada (os inimigos estão vindo), o jogador sai logo e
   espera no destino (15% dos trechos); senão, segura a posição e anda a tempo de chegar (o time segura ângulo e rotaciona perto da
-  hora). No começo do round, sai do spawn assim que a barreira cai.
+  hora). No começo do round, sai do spawn assim que a barreira cai. O spawn é aproximado: na fase de compra os jogadores andam
+  dentro da área da barreira, que é grande (do ponto oficial, só 3–7% das posições dos primeiros segundos seriam alcançáveis a tempo);
+  quando não daria tempo, o jogador começa adiantado no caminho.
 No começo do round, sai do spawn do seu lado. Se o caminho exigir mais de 7,5 m/s (correndo não passa de ~6,75 m/s), o trecho é um
 **salto** (habilidade de movimento ou teleporte): o jogador some e reaparece, com o trajeto tracejado (↯). Isso ocorre em 0,9% dos
 trechos e se concentra em Iso (6,6%: arena da ultimate), Neon, Yoru, Waylay, Chamber, Jett e Omen; em agentes sem mobilidade fica em ~0,3%.

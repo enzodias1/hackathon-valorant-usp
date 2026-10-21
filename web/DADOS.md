@@ -170,7 +170,8 @@ vítima (mediana de 0,3°; `checks.py`). Para desenhar o cone no minimapa, lembr
 ```jsonc
 { "n": 160,                      // grade n × n no espaço do minimapa (uv 0–1)
   "walk": "<base64>",            // bits (numpy packbits, bit mais alto primeiro), linha a linha (v) e depois coluna (u); 1 = chão
-  "spawn": { "atk": [u, v], "def": [u, v] } }   // callout "Surgimento"; sem callout (Lotus, Summit): mediana dos primeiros 4 s
+  "spawn": { "atk": [u, v], "def": [u, v] } }   // callout "Surgimento" ("Base" no Lotus e no Summit); ataque do Summit corrigido
+                                                // (o metadado fica fora do mapa; ver SPAWN_FIX em pipeline/navgrid.py)
 ```
 Gerado por `pipeline/navgrid.py` a partir do minimapa oficial (cinza = chão; as linhas brancas finas são paredes); usado pelo replay
 (`web/src/lib/navgrid.ts`, busca A*).
