@@ -207,7 +207,7 @@ export function CompareLegend({ expectedLabel = "média da liga" }: { expectedLa
   );
 }
 
-/** Barra divergente para impacto em pp (verde positivo / vermelho negativo, sempre com sinal no texto). */
+/** Barra divergente para impacto em pontos de chance de vitória (verde positivo / vermelho negativo, sempre com sinal no texto). */
 export function WpaBar({ value, max, digits = 1 }: { value: number; max: number; digits?: number }) {
   const w = Math.min(50, (Math.abs(value) / Math.max(max, 1e-9)) * 50);
   return (

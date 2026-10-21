@@ -3,9 +3,12 @@
 export const pct = (x: number | null | undefined, digits = 0) =>
   x == null || Number.isNaN(x) ? "—" : `${(x * 100).toLocaleString("pt-BR", { maximumFractionDigits: digits, minimumFractionDigits: digits })}%`;
 
-/** pontos percentuais com sinal: +12,3 pp */
-export const pp = (x: number | null | undefined, digits = 1) =>
-  x == null || Number.isNaN(x) ? "—" : `${x > 0 ? "+" : x < 0 ? "−" : ""}${Math.abs(x).toLocaleString("pt-BR", { maximumFractionDigits: digits, minimumFractionDigits: digits })} pp`;
+/** impacto em pontos (percentuais) de chance de vitória, com sinal: "+12,3 pontos", "−1,5 ponto" */
+export const pp = (x: number | null | undefined, digits = 1) => {
+  if (x == null || Number.isNaN(x)) return "—";
+  const v = Number(Math.abs(x).toFixed(digits));
+  return `${x > 0 ? "+" : x < 0 ? "−" : ""}${v.toLocaleString("pt-BR", { maximumFractionDigits: digits, minimumFractionDigits: digits })} ${v < 2 ? "ponto" : "pontos"}`;
+};
 
 export const num = (x: number | null | undefined, digits = 0) =>
   x == null || Number.isNaN(x) ? "—" : x.toLocaleString("pt-BR", { maximumFractionDigits: digits, minimumFractionDigits: digits });

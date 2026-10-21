@@ -1,18 +1,23 @@
 // "O que decidiu o round": até 3 frases geradas a partir dos eventos e da chance de vitória (sem texto escrito à mão).
-// Regras, em ordem: virada (o vencedor chegou a ≤ 20%) ou vitória contra a economia; multi-kill (3+); clutch; desarme no
-// limite; e a jogada de maior impacto, se ainda não foi citada.
+// Regras, em ordem: virada (o vencedor chegou a ≤ 20%) ou vitória contra a economia; multi-kill (3+) do time que venceu;
+// clutch; desarme no limite; e a jogada que mais aumentou a chance do time que venceu, se ainda não foi citada.
 import { nick, pct, pp } from "./format";
 import type { Color, Match, Round, RoundEvent } from "./types";
 
-const MULTI: Record<number, string> = { 3: "um triplo", 4: "uma quadra", 5: "um ace" };
+const MULTI: Record<number, string> = { 3: "um triple kill", 4: "um quadra kill", 5: "um ace" };
 const COMEBACK_WP = 0.2;
 const UNDERDOG_WP = 0.35;
 const SPIKE_MS = 45_000;
 
-/** Duração legível: "55 ms" abaixo de 1 s; "1,4 s" até 10 s; "12 s" acima. */
-const dur = (ms: number) =>
-  ms < 1000 ? `${Math.round(ms)} ms`
-    : `${(ms / 1000).toLocaleString("pt-BR", { maximumFractionDigits: ms < 10_000 ? 1 : 0, minimumFractionDigits: ms < 10_000 ? 1 : 0 })} s`;
+/** Duração por extenso: "331 milésimos de segundo", "1,4 segundo", "12 segundos". */
+function dur(ms: number) {
+  if (ms < 1000) {
+    const n = Math.max(1, Math.round(ms));
+    return `${n} ${n === 1 ? "milésimo" : "milésimos"} de segundo`;
+  }
+  const s = Number((ms / 1000).toFixed(ms < 10_000 ? 1 : 0));
+  return `${s.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ${s < 2 ? "segundo" : "segundos"}`;
+}
 
 export function roundStory(match: Match, round: Round): string[] {
   const P = new Map(match.players.map((p) => [p.puuid, p]));
@@ -60,7 +65,9 @@ export function roundStory(match: Match, round: Round): string[] {
 
   // 2. multi-kill
   const killsBy = new Map<string, RoundEvent[]>();
-  for (const e of live) if (e.type === "kill" && e.actor && !e.teamkill) killsBy.set(e.actor, [...(killsBy.get(e.actor) ?? []), e]);
+  for (const e of live) {
+    if (e.type === "kill" && e.actor && !e.teamkill && P.get(e.actor)?.color === W) killsBy.set(e.actor, [...(killsBy.get(e.actor) ?? []), e]);
+  }
   const [mkActor, mk] = [...killsBy.entries()].sort((a, b) => b[1].length - a[1].length)[0] ?? [null, []];
   if (mkActor && mk.length >= 3) {
     const span = mk[mk.length - 1].t - mk[0].t;
@@ -77,18 +84,18 @@ export function roundStory(match: Match, round: Round): string[] {
   if (defuse && round.plant) {
     const left = round.plant.t + SPIKE_MS - defuse.t;
     const death = round.events.find((e) => e.after_round_end && e.type === "kill" && e.victim === defuse.actor && e.t - defuse.t <= 1500);
-    const bits = [left <= 7_000 ? `com ${dur(left)} sobrando na spike` : "", death ? `${dur(death.t - defuse.t)} antes de morrer` : ""].filter(Boolean);
+    const bits = [left <= 7_000 ? `faltando ${dur(left)} para a explosão` : "", death ? `${dur(death.t - defuse.t)} antes de morrer` : ""].filter(Boolean);
     if (bits.length) {
       out.push(`${who(defuse.actor)} desarmou a spike ${bits.join(" e ")}.`);
       mentioned.add(defuse);
     }
   }
 
-  // 5. a jogada de maior impacto, se ainda não apareceu
-  const top = live.filter((e) => e.actor).sort((a, b) => Math.abs(b.wpa) - Math.abs(a.wpa))[0];
+  // 5. a jogada que mais aumentou a chance do time que venceu, se ainda não apareceu (a do perdedor não decidiu o round)
+  const top = live.filter((e) => e.actor && !e.teamkill && P.get(e.actor)?.color === W && e.wpa > 0).sort((a, b) => b.wpa - a.wpa)[0];
   if (top && !mentioned.has(top)) {
     const what = top.type === "plant" ? "plantou a spike" : top.type === "defuse" ? "desarmou a spike" : `matou ${nick(P.get(top.victim ?? "")?.name)}`;
-    out.push(`Jogada que mais pesou: ${who(top.actor)} ${what} (${pp(top.wpa)}).`);
+    out.push(`Jogada que mais pesou para a vitória: ${who(top.actor)} ${what} (${pp(top.wpa)} de chance).`);
   }
   return out.slice(0, 3);
 }

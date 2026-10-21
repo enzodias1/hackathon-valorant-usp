@@ -77,7 +77,7 @@ TEAM_TEXT = {
 PLAYER_TEXT = {
     "kill_value": {"good": "Kills que pesam: cada uma vale em média {v} de chance de vitória do round (liga: {l}).",
                    "bad": "Kills que pesam pouco: cada uma vale em média {v} de chance de vitória (liga: {l}). Parte delas acontece com o round já decidido.",
-                   "tip": "As kills que abrem ou fecham o round são as que mais valem: o first blood vale em média +17 pp."},
+                   "tip": "As kills que abrem ou fecham o round são as que mais valem: o first blood vale em média +17 pontos de chance de vitória."},
     "death_cost": {"good": "Mortes que custam pouco ao time: {v} por morte (liga: {l}).",
                    "bad": "Mortes que custam caro: {v} de chance de vitória por morte (liga: {l}).",
                    "tip": "Mortes cedo e sem trade são as mais caras; jogar o início do round mais perto do time reduz esse custo."},
@@ -109,7 +109,8 @@ def br(x, fmt="+.1f"):
 
 
 def pp(x):
-    return f"{br(x)} pp"
+    """Impact in (percentage) points of win chance: '+12,3 pontos', '−1,5 ponto' (same as pp() in web/src/lib/format.ts)."""
+    return f"{br(x)} {'ponto' if round(abs(x), 1) < 2 else 'pontos'}"
 
 
 def binom(k, n, p, higher_is_better=True):
