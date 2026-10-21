@@ -10,6 +10,7 @@ const NAV = [
   { href: "/times", label: "Times" },
   { href: "/jogadores", label: "Jogadores" },
   { href: "/comparar", label: "Comparar" },
+  { href: "/destaques", label: "Destaques" },
   { href: "/como-funciona", label: "Como usar" },
 ];
 // para a banca técnica: discreto, abaixo dos itens principais
