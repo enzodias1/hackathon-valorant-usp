@@ -122,6 +122,9 @@ def export_matches(t, names):
     pos = pd.read_parquet(P / "positions.parquet")
     pos["view"] = pos["view"].round(2)
     pos_by = {k: g for k, g in pos.groupby("match_id")}
+    # revives (Sage/Clove ultimates): who shows up alive again at each record, see etl.py
+    rv = pd.read_parquet(P / "revives.parquet")
+    revived_at = {k: g.puuid.tolist() for k, g in rv.groupby(["match_id", "round_num", "event", "event_idx"])}
     gear_by = {k: g.set_index(["round_num", "puuid"]) for k, g in pr.groupby("match_id")}
     weapon_icon = {w["name"]: w["icon"] for w in LOOKUP["weapons"].values() if w.get("icon")}
     p0 = st[st.kind == "start"].set_index(["match_id", "round_num"]).p_atk
@@ -174,6 +177,9 @@ def export_matches(t, names):
                                  "victim_xy": [k.victim_x, k.victim_y], "killer_xy": None if pd.isna(k.killer_x) else [k.killer_x, k.killer_y],
                                  "assistants": [a for a in k.assistants.split(",") if a]})
                 item["pos"] = frames.get((r.round_num, e.event, int(e.kill_idx) if e.event == "kill" else -1), [])
+                back = revived_at.get((mid, r.round_num, e.event, int(e.kill_idx) if e.event == "kill" else -1))
+                if back:
+                    item["revived"] = back
                 events.append(item)
             # what each player carried (aligned with `players`): [weapon, armor, loadout value]
             round_gear = []

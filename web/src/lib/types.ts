@@ -98,6 +98,9 @@ export interface RoundEvent {
   kill_kind?: KillKind;
   /** todos os vivos no instante do evento (a vítima de uma kill vem em victim_xy) */
   pos?: PosEntry[];
+  /** quem voltou a aparecer vivo neste registro depois de morrer (ultimate da Sage, ou da Clove nela mesma); a volta
+   *  aconteceu entre o registro anterior e este */
+  revived?: string[];
 }
 
 export type KillKind = "weapon" | "ability" | "melee" | "spike" | "fall" | "other";

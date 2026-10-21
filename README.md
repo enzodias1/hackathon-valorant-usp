@@ -39,7 +39,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 .venv/Scripts/python pipeline/zones.py                        # onde cada time morre (regiões do mapa + grade de calor)
 .venv/Scripts/python pipeline/navgrid.py                      # chão caminhável de cada mapa + spawns (movimento do replay)
 .venv/Scripts/python pipeline/export.py                       # JSON do site em web/public/data (formato em web/DADOS.md)
-.venv/Scripts/python pipeline/checks.py                       # 38 checagens de consistência (falha se algum número não fechar)
+.venv/Scripts/python pipeline/checks.py                       # 40 checagens de consistência (falha se algum número não fechar)
 .venv/Scripts/python pipeline/teams_sheet.py                  # planilha de nomes dos times (para_equipe/)
 ```
 
@@ -49,6 +49,18 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 - O nome dos times só existe no nome do arquivo. Times da mesma organização (ex.: `azure_bears_black` / `golden`) são elencos diferentes.
 - Posições em unidades do jogo (~1 cm). Em cada kill há a posição de todos os vivos (exceto a vítima, que vem à parte).
 - 2 rounds com erro na própria base (mortes por bug de mapa) são marcados como `anomalous` e ficam fora do modelo.
+- **Ressurreições (21/10):** a ultimate da Sage (num aliado) e a da Clove (nela mesma) trazem um morto de volta. O uso não vem nos
+  dados, mas a Riot lista todos os vivos em cada kill, plant e desarme (completo em 99,9% dos registros; as falhas são agentes dentro
+  de uma ultimate, como o teleporte do Omen). Quem morreu e reaparece nessa lista foi revivido e volta a contar como vivo a partir
+  dali: **95 ressurreições em 91 rounds**, todas de Sage (com uma Sage no time) ou Clove. Um registro a menos de 0,5 s da morte não
+  conta: duas kills no mesmo instante listam a vítima uma da outra (a volta mais rápida da base, da Clove, leva 0,8 s). Antes, só o
+  revivido que morria de novo era corrigido, e no instante da segunda morte; no round 6 de Azure Bears Golden × USP Stars, o modelo
+  dava 100% ao Azure num 1 contra 1, com a Killjoy revivida contada como morta. Também não conta como clutch o 1 contra N em que
+  alguém do time volta depois.
+- **Fim do round por tempo:** o tempo acaba 100 s depois da queda da barreira. Em 58 rounds que terminaram por tempo há 79 eventos
+  depois disso (70 kills e 9 plants completados tarde demais, como um aos 100,04 s no round 20 de Wolf Gaming × Axis Anteaters): eles
+  não mudam o resultado e contam como "depois do fim" (impacto zero), como os eventos depois de um desarme ou explosão. O relógio dos
+  dados tem folga de até ~0,7 s (3 plants aos 100,4–100,6 s valeram), por isso a regra só vale para rounds que acabaram por tempo.
 - Em cada kill, plant e desarme vêm a posição e a direção da mira de todos os vivos (base do replay 2D). O uso de utilitárias não vem
   nos dados, mas as kills por habilidade sim (2,6% das kills: ultimate, Q/E e granada), com o slot da habilidade.
 - Armas de habilidade no catálogo de armas: a Tour de Force (ultimate do Chamber) vem **sem ID** a partir do patch 13.02; identificada
@@ -94,7 +106,7 @@ Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela veloc
 (`data/meta/replay_notes.json`, com o motivo), mostradas no replay como "anotação da equipe", separadas do que vem dos dados.
 
 ## Decisões de métrica (validadas com os dados)
-- **Probabilidade de vitória do round:** gradient boosting com validação cruzada por partida (AUC 0,887; erro de calibração 1,4%).
+- **Probabilidade de vitória do round:** gradient boosting com validação cruzada por partida (AUC 0,888; erro de calibração 1,3%).
   O impacto (WPA) de cada partida é calculado por um modelo que nunca viu aquela partida.
 - **Trade:** morte vingada por um aliado em até 5 s.
 - **Morte isolada:** aliado vivo mais próximo a mais de 3.000 unidades (~30 m). A chance de ser trocado cai de 41% (< 5 m) para 6% (> 30 m).
@@ -115,7 +127,7 @@ Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela veloc
   (o que o time fez e o que aconteceu depois), sem recomendação.
 - **Variação só pelo tempo:** entre um evento e outro, a chance de vitória muda só porque o relógio corre (ex.: defesa segurando até o
   tempo acabar). Essa parte não é creditada a ninguém; o impacto de cada jogada é a mudança no instante do evento.
-- **Métricas sem sinal entre times** (hoje: rounds jogados fora): a dispersão entre os times é a do acaso (dp(z) = 0,97), então elas
+- **Métricas sem sinal entre times** (hoje: rounds jogados fora): a dispersão entre os times é a do acaso (dp(z) = 0,92), então elas
   aparecem nas tabelas, mas nunca viram ponto forte/fraco nem "mudou". `checks.py` recalcula isso a cada execução.
 
 ## Checagens de consistência (`pipeline/checks.py`)
@@ -123,4 +135,6 @@ Propriedades que precisam valer se os números estiverem certos, por exemplo: qu
 após first death = 100%; o impacto de cada kill soma zero entre os times; depois da última kill de um round de eliminação o vencedor está
 com ~100%; ADR, KAST e K/D da liga em faixas plausíveis; coordenadas do minimapa exportadas sem perda de precisão; nenhum link quebrado entre as páginas;
 no replay, quem mata está olhando para a vítima (valida a direção da mira), as posições caem no chão da grade do mapa e toda kill diz o
-que matou; somando todos os jogadores, os duelos vencidos são iguais aos perdidos. Hoje: **38/38 ok**.
+que matou; somando todos os jogadores, os duelos vencidos são iguais aos perdidos; os vivos que o modelo considera em cada evento
+batem com os vivos registrados pela Riot (99,95%, com as ressurreições); em rounds que acabaram por tempo, nada depois dos 100 s conta
+como jogada. Hoje: **40/40 ok**.

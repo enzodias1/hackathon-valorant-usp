@@ -30,6 +30,7 @@ from sklearn.preprocessing import StandardScaler
 ROOT = Path(__file__).resolve().parents[1]
 P = ROOT / "data" / "processed"
 ASSIST_SHARE = 0.25  # share of a kill's WPA split among assistants (killer keeps the rest)
+ROUND_TIMER_MS = 100_000  # round clock starts at the barrier drop
 FEATS = ["atk_alive", "def_alive", "atk_lo", "def_lo", "planted", "t", "t_since_plant"]
 
 
@@ -37,11 +38,13 @@ def build_timelines():
     rd = pd.read_parquet(P / "rounds.parquet")
     kl = pd.read_parquet(P / "kills.parquet").sort_values(["match_id", "round_num", "kill_idx"])
     pr = pd.read_parquet(P / "player_round.parquet")
+    rv = pd.read_parquet(P / "revives.parquet")
 
     lo = pr.set_index(["match_id", "round_num", "puuid"])["loadout"].to_dict()
     side = pr.set_index(["match_id", "round_num", "puuid"])["side"].to_dict()
     kills_by_round = {k: g for k, g in kl.groupby(["match_id", "round_num"])}
     players_by_round = {k: g["puuid"].tolist() for k, g in pr.groupby(["match_id", "round_num"])}
+    revives_by_round = {k: list(zip(g.t_round_ms, g.puuid)) for k, g in rv.groupby(["match_id", "round_num"])}
 
     states, events = [], []
     for r in rd.itertuples(index=False):
@@ -49,6 +52,8 @@ def build_timelines():
         y = int(r.winner_side == "Ataque")
         alive = {pu: True for pu in players_by_round[key]}
         planted, plant_t = False, None
+        # revives (Sage/Clove ultimates): alive again from the record where the player shows up again (see etl.py)
+        revives = sorted(revives_by_round.get(key, []))
 
         def snap(t):
             s = {"atk_alive": 0, "def_alive": 0, "atk_lo": 0, "def_lo": 0}
@@ -73,19 +78,20 @@ def build_timelines():
         order = {"plant": 0, "kill": 1, "defuse": 2}
         timeline.sort(key=lambda e: (e[1], order[e[0]], e[2].kill_idx if e[2] is not None else 0))
 
-        # the round is decided at the defuse or at the detonation (spike timer 45 s); events after that change nothing
-        end_t = r.defuse_time_ms if r.defused else (r.plant_time_ms + 45000 if r.planted and r.result_code == "Detonate" else None)
+        # the round is decided at the defuse, at the detonation (spike timer 45 s) or when the round timer runs out (100 s after
+        # the barrier drops); events after that change nothing (e.g. a plant completed at 100.04 s in a round lost on time)
+        end_t = (r.defuse_time_ms if r.defused else r.plant_time_ms + 45000 if r.planted and r.result_code == "Detonate"
+                 else ROUND_TIMER_MS if r.result_code == "Timer" else None)
 
         base = {"match_id": r.match_id, "round_num": r.round_num, "y": y, "anomalous": r.anomalous}
         states.append({**base, "seq": 0, "kind": "start", "post_end": False, **snap(0)})
         seq = 1
         for kind, t, k in timeline:
             post_end = end_t is not None and t > end_t
+            while revives and revives[0][0] <= t:
+                alive[revives.pop(0)[1]] = True
             before = snap(t)
             if kind == "kill":
-                if k.victim_was_revived:
-                    alive[k.victim] = True
-                    before = snap(t)
                 alive[k.victim] = False
             elif kind == "plant":
                 planted, plant_t = True, t
@@ -108,7 +114,7 @@ def build_timelines():
 
 def terminal_rules(df):
     """Terminal states are (almost) decided: all defenders dead -> attackers win; all attackers dead without the
-    spike -> defenders win. Empirically 99.7% hold (the rest are unrecorded Sage/Clove revives), but a few
+    spike -> defenders win. Empirically 99.9% hold (the rest are revives between two records), but a few
     out-of-distribution states get odd predictions, so we floor/cap them. Applied after evaluation metrics."""
     df.loc[df.def_alive == 0, "p_atk"] = df.loc[df.def_alive == 0, "p_atk"].clip(lower=0.99)
     m = (df.atk_alive == 0) & (df.planted == 0)

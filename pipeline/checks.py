@@ -60,6 +60,24 @@ def main():
 
     # ---------------------------------------------------------------- probabilidade de vitória / impacto
     check("probabilidades entre 0 e 1", st.p_atk.between(0, 1).all())
+    # vivos que o modelo considera em cada evento = vivos registrados pela Riot naquele instante (ressurreições da Sage e da
+    # Clove incluídas). Sobram só kills no mesmo milissegundo (o registro ainda lista a outra vítima) e agentes dentro de
+    # uma ultimate (Omen, Yoru...), que somem do registro por um instante
+    pos = pd.read_parquet(P / "positions.parquet")
+    atk_c = rd.set_index(["match_id", "round_num"]).attacker_color
+    pos["atk"] = pos.color.to_numpy() == atk_c.reindex(pd.MultiIndex.from_frame(pos[["match_id", "round_num"]])).to_numpy()
+    cnt = pos.groupby(["match_id", "round_num", "event", "event_idx"]).atk.agg(n_atk="sum", n="size")
+    cnt["n_def"] = cnt.n - cnt.n_atk
+    ea = ev[~ev.post_end & ~ev.anomalous].assign(event_idx=lambda d: d.kill_idx.fillna(-1).astype(int))
+    ea = ea.join(cnt, on=["match_id", "round_num", "event", "event_idx"], how="inner")
+    ea = ea.join(st.set_index(["match_id", "round_num", "seq"])[["atk_alive", "def_alive"]], on=["match_id", "round_num", "pre_seq"])
+    vs = kl.set_index(["match_id", "round_num", "kill_idx"]).victim_side.reindex(pd.MultiIndex.from_arrays([ea.match_id, ea.round_num, ea.event_idx])).to_numpy()
+    ea["n_atk"] += vs == "Ataque"
+    ea["n_def"] += vs == "Defesa"
+    same = (ea.atk_alive == ea.n_atk) & (ea.def_alive == ea.n_def)
+    fewer = (ea.atk_alive < ea.n_atk) | (ea.def_alive < ea.n_def)
+    check("vivos do modelo = vivos registrados pela Riot em cada evento (com ressurreições)", same.mean() > 0.999 and fewer.mean() < 0.0005,
+          f"{same.mean():.2%} de {len(ea)} eventos; modelo com menos vivos: {int(fewer.sum())}")
     # zero-sum: what the killer's side gains, the victim's side loses (team kills / suicides excluded on purpose:
     # the victim's side loses and nobody gains)
     tk_times = ev[(ev.event == "kill") & ev.teamkill].set_index(["match_id", "round_num", "t_round_ms"]).index
@@ -78,6 +96,9 @@ def main():
     drift = (start.y - start.p_atk - live.reindex(start.index).fillna(0)).abs()
     by_res = drift.groupby(rd.set_index(["match_id", "round_num"]).result_code.reindex(start.index)).mean()
     check("(info) variação só pelo tempo, não creditada", True, " · ".join(f"{k} {v:.3f}" for k, v in by_res.items()))
+    et = ev.merge(rd[["match_id", "round_num", "result_code"]], on=["match_id", "round_num"])
+    late = et[(et.result_code == "Timer") & (et.t_round_ms > 100_000)]
+    check("rounds por tempo: nada depois dos 100 s conta como jogada", late.post_end.all(), f"{len(late)} eventos, {int((~late.post_end).sum())} contando")
     check("eventos após o fim do round valem zero", ev[ev.post_end].wpa.abs().max() < 1e-9 if ev.post_end.any() else True)
 
     # ---------------------------------------------------------------- jogadores

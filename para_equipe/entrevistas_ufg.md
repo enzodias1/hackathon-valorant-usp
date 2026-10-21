@@ -55,6 +55,6 @@ convivência no lobby, não da análise da partida.
 | Momento de uso de cada habilidade | Kills por habilidade aparecem com o nome e o ícone | **Não está nos dados da Riot fornecidos** (o campo de uso vem vazio nos 66.180 registros); só o total por partida |
 | Lobby e "evitar" jogador | — | Fora do escopo (pós-partida analítico; denúncia é função do jogo) |
 
-**Detalhe para o pitch:** o UFG Eagles está na base do campeonato. É o 11º mais forte dos 68 times, com defesa sólida (vence 77% dos
+**Detalhe para o pitch:** o UFG Eagles está na base do campeonato. É o 13º mais forte dos 68 times, com defesa sólida (vence 77% dos
 rounds defendendo; liga: 48%) e o ataque como ponto fraco (35%; liga: 52%), e o darnubra tem o maior impacto por round da liga entre os 298 jogadores com pelo menos 60 rounds (ele tem 71). Os
 entrevistados podem ver a página do próprio time.

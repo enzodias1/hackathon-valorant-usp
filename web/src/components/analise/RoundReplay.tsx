@@ -7,9 +7,9 @@ import type { Color, Match, MatchPlayer, Round, RoundEvent } from "@/lib/types";
 import { clock, nick, pct, pp } from "@/lib/format";
 import { roundEndMs, SPIKE_TIMER_MS, toMinimap, type UV } from "@/lib/minimap";
 import { decodeNavGrid, lineOfSight, type NavGrid, type NavGridRaw } from "@/lib/navgrid";
-import { roundStory } from "@/lib/roundStory";
+import { reviveHow, roundStory } from "@/lib/roundStory";
 import ChanceInfo from "./ChanceInfo";
-import { buildTracks, isDead, nearestAlly, poseAt, wpAt, type Pose, type Track } from "@/lib/replay";
+import { buildTracks, deadAt, nearestAlly, poseAt, wpAt, type Pose, type Track } from "@/lib/replay";
 import MinimapBase from "@/components/MinimapBase";
 
 const TEAM_VAR: Record<Color, string> = { Red: "var(--team-red)", Blue: "var(--team-blue)" };
@@ -140,12 +140,15 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
   };
 
   const wp = wpAt(round, t, end);
-  const poses = tracks.map((tr) => ({ tr, dead: isDead(tr, t), pose: poseAt(tr, t, smooth, tf) }));
+  const poses = tracks.map((tr) => {
+    const span = deadAt(tr, t);
+    return { tr, dead: span !== null, deadXY: span?.xy ?? null, pose: poseAt(tr, t, smooth, tf) };
+  });
   // caminho do jogador selecionado até agora (amostrado a cada 0,25 s)
   let trail: UV[] | null = null;
   if (focus !== null && tracks[focus]) {
     const tr = tracks[focus];
-    const until = tr.deathT !== null && isDead(tr, t) ? tr.deathT : t;
+    const until = deadAt(tr, t)?.from ?? t;
     trail = [];
     for (let x = 0; x < until; x += 250) {
       const q = poseAt(tr, x, smooth, tf);
@@ -244,8 +247,8 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
             {planted?.xy && <Spike at={toMinimap(planted.xy, tf)} live={spikeLeft !== null && spikeLeft > 0} />}
 
             {/* quem já morreu: ícone apagado com ✕ da cor do time */}
-            {poses.map(({ tr, dead }, i) =>
-              dead && tr.deathXY ? <DeadMark key={`d${i}`} at={toMinimap(tr.deathXY, tf)} p={tr.p} clip={clipId} /> : null,
+            {poses.map(({ tr, deadXY }, i) =>
+              deadXY ? <DeadMark key={`d${i}`} at={toMinimap(deadXY, tf)} p={tr.p} clip={clipId} /> : null,
             )}
 
             {/* linha do tiro, logo depois de cada kill */}
@@ -539,6 +542,11 @@ function SequenceRow({ i, e, byId, past, current, decisive, onSeek }: {
             {e.after_round_end && <span className="text-muted"> · após o fim</span>}
             {decisive && <span className="font-semibold text-lime"> · maior impacto</span>}
           </span>
+          {e.revived?.map((id) => (
+            <span key={id} className="mt-1 block text-xs text-lime">
+              ↺ {nick(byId.get(id)?.name)} voltou ao round {reviveHow([...byId.values()], id)}
+            </span>
+          ))}
         </span>
         <span className="tabular text-right text-xs">
           {e.after_round_end ? (

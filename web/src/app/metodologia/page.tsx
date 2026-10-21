@@ -163,10 +163,13 @@ export default async function MethodologyPage() {
               99,97% das posições registradas ficam no chão ou a até 1,4 m dele), pelo caminho mais curto que <b className="text-ink">evita a visão dos
               inimigos</b> quando dá tempo, no ritmo de corrida, e se move no momento mais seguro. No começo do round, sai do spawn.
             </Method>
-            <Method title="Habilidades de movimento">
+            <Method title="Saltos e ressurreições">
               Se o caminho exige mais de 7,5 m/s (correndo não passa de ~6,75 m/s), o trecho vira um salto (↯): o jogador some e reaparece.
               Isso acontece em 0,9% dos trechos e se concentra em quem tem mobilidade (Iso 6,6%, Neon 5,3%, Yoru 2,6%) contra ~0,3% nos demais.
               Casos que os dados não revelam, como uma ultimate dentro de um intervalo longo, entram como <b className="text-ink">anotação da equipe</b>, sempre identificada.
+              <b className="text-ink"> Ressurreições</b> (ultimate da Sage num aliado, ou da Clove nela mesma) aparecem nos dados: quem morreu volta à
+              lista de vivos da Riot. São 95 em 91 rounds; o jogador volta a contar como vivo na chance de vitória a partir desse registro e
+              reaparece no replay onde morreu.
             </Method>
             <Method title="O que os dados não têm">
               O momento de uso de cada habilidade (smokes, flashes, drones): a Riot informa só o total por partida, que mostramos por agente.

@@ -58,7 +58,7 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
 > "E isso importa: morrer a menos de 5 metros de um aliado dá **41%** de chance de a morte ser trocada; a mais de 30 metros, **6%**."
 
 **2:45 · Jogador**: BRaim (Unicamp Tritons Black): perfil → "Duelos" → "Quando morre no round" → "Habilidades".
-> "O K/D engana. Este jogador está no percentil 32 em K/D, mas no **percentil 63 em impacto**: as jogadas dele acontecem quando o
+> "O K/D engana. Este jogador está no percentil 32 em K/D, mas no **percentil 66 em impacto**: as jogadas dele acontecem quando o
 > round está em jogo. E o papel é descoberto pelo comportamento: joga de iniciador, mas age como **clutch**."
 >
 > "E o que os jogadores pediram nas entrevistas está aqui: contra quem ele mais perde duelos, em que momento do round costuma morrer
@@ -73,7 +73,7 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
 
 > "Um número sozinho engana, então tomamos cuidados. Cada comparação desconta o tamanho da amostra e passa por um **controle
 > de falsos positivos**. O replay sempre diz o que foi registrado pela Riot e o que é estimado, e validamos até a mira: em 99% das
-> kills, quem mata está olhando para a vítima. E **38 checagens automáticas** garantem que os números fecham."
+> kills, quem mata está olhando para a vítima. E **40 checagens automáticas** garantem que os números fecham."
 
 ## 4:25–5:00 · Valor e viabilidade + fechamento
 **Tela:** página do time → página inicial com o link visível.
@@ -98,11 +98,11 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
 - [ ] Nome da equipe e dos integrantes na tela final (o formulário também pede).
 
 ## Números de reserva (se precisar trocar algum exemplo)
-- Modelo: AUC 0,887; erro de calibração 1,4%; validado com 5 grupos de partidas.
+- Modelo: AUC 0,888; erro de calibração 1,3%; validado com 5 grupos de partidas.
 - Uma vantagem de 55% por round vira ~70% de chance de vencer o mapa.
 - Papéis pelo comportamento: 72% dos duelistas caem em "Entry" e 71% dos sentinelas em "Lurker", sem o modelo ver o agente.
 - Replay: a mira de quem mata aponta para a vítima em 99% das 45.440 kills; 99,97% das posições ficam no chão do mapa.
-- UFG Eagles (time dos entrevistados): 11º mais forte de 68; vence 77% dos rounds defendendo (liga: 48%); o darnubra tem o maior
+- UFG Eagles (time dos entrevistados): 13º mais forte de 68; vence 77% dos rounds defendendo (liga: 48%); o darnubra tem o maior
   impacto por round entre os jogadores com 60+ rounds.
 - Evolução: o Azure Bears Black melhorou o jogo de trade e a conversão do first blood mesmo enfrentando adversários mais fortes.
 - Rounds "jogados fora" acontecem em proporção parecida em todos os times: é mais azar que padrão (por isso não acusamos ninguém disso).

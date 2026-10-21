@@ -29,7 +29,9 @@ export type Leg = {
   early?: boolean; // saiu logo (a rota ficaria mais exposta perto da chegada)
   note?: ReplayNote; // anotação da equipe sobre este trecho
 };
-export type Track = { p: MatchPlayer; samples: Sample[]; legs: Leg[]; deathT: number | null; deathXY: [number, number] | null };
+/** Tempo morto: da morte até reaparecer (ressurreição da Sage ou da Clove), ou até o fim do round (to null). */
+export type DeadSpan = { from: number; to: number | null; xy: [number, number] };
+export type Track = { p: MatchPlayer; samples: Sample[]; legs: Leg[]; dead: DeadSpan[] };
 export type Pose = { at: UV; dir: number | null }; // dir: ângulo na tela, em radianos
 export type RouteStats = { legs: number; avoided: number; extraM: number; early: number };
 
@@ -57,18 +59,25 @@ export function buildTracks(match: Match, round: Round, nav: NavGrid | null, sta
   const tf = match.map.transform;
   const mPerUv = 1 / Math.abs(tf.xMultiplier) / 100;
   const idx = new Map(match.players.map((p, i) => [p.puuid, i]));
-  const tracks: Track[] = match.players.map((p) => ({ p, samples: [], legs: [], deathT: null, deathXY: null }));
+  const tracks: Track[] = match.players.map((p) => ({ p, samples: [], legs: [], dead: [] }));
   const posAt = new Map<number, PosEntry[]>(); // todos os vivos em cada instante registrado
+  const deaths = new Map<number, { t: number; xy: [number, number] }[]>();
+  const revives = new Map<number, number[]>(); // instante do registro em que cada um reaparece vivo
   for (const e of round.events) {
     for (const [i, x, y, view] of e.pos ?? []) tracks[i]?.samples.push({ t: e.t, x, y, view });
     if (e.pos?.length) posAt.set(e.t, [...(posAt.get(e.t) ?? []), ...e.pos]);
+    for (const id of e.revived ?? []) {
+      const i = idx.get(id);
+      if (i !== undefined) revives.set(i, [...(revives.get(i) ?? []), e.t]);
+    }
     const v = e.type === "kill" && e.victim ? idx.get(e.victim) : undefined;
     if (v !== undefined && e.victim_xy) {
       tracks[v].samples.push({ t: e.t, x: e.victim_xy[0], y: e.victim_xy[1], view: null });
-      tracks[v].deathT = e.t; // a última morte vale (revive da Sage: volta a ter posições depois)
-      tracks[v].deathXY = e.victim_xy;
+      deaths.set(v, [...(deaths.get(v) ?? []), { t: e.t, xy: e.victim_xy }]);
     }
   }
+  /** Último registro do round antes de t: a ressurreição aconteceu depois dele. */
+  const prevRecord = (t: number) => round.events.reduce((m, e) => (e.t < t && e.t > m ? e.t : m), 0);
 
   // o que cada time enxerga em cada instante registrado (calculado uma vez e reaproveitado)
   const rangeCells = nav ? SEEN_RANGE_M / (mPerUv / nav.n) : 0;
@@ -129,18 +138,28 @@ export function buildTracks(match: Match, round: Round, nav: NavGrid | null, sta
       const { pts, avoided } = route(spawn, at(s[0]), s[0].t / 1000, tr.p.color, [s[0].t]);
       if (pts) tr.legs.push({ ...makeLeg(0, s[0].t, pts, null, s[0].view, mPerUv, true), avoided });
     }
+    const backAt = revives.get(tracks.indexOf(tr)) ?? [];
     for (let k = 0; k + 1 < s.length; k++) {
       const a = s[k], b = s[k + 1];
       if (b.t <= a.t) continue;
-      const { pts, avoided } = route(at(a), at(b), (b.t - a.t) / 1000, tr.p.color, [a.t, b.t]);
+      // volta de uma ressurreição: renasce onde morreu (Sage e Clove revivem no lugar do corpo), depois do registro anterior
+      const back = backAt.includes(b.t);
+      const t0 = back ? Math.max(a.t, prevRecord(b.t)) : a.t;
+      const { pts, avoided } = route(at(a), at(b), (b.t - t0) / 1000, tr.p.color, [t0, b.t]);
       // sai logo se a rota estiver mais exposta aos inimigos na chegada do que na saída (eles estão vindo)
       const enemy: Color = tr.p.color === "Red" ? "Blue" : "Red";
-      const early = !!pts && exposure(pts, seenBy(b.t, enemy)) > exposure(pts, seenBy(a.t, enemy)) + 0.1;
+      const early = !back && !!pts && exposure(pts, seenBy(b.t, enemy)) > exposure(pts, seenBy(t0, enemy)) + 0.1;
       if (stats && early) stats.early++;
-      const leg = { ...makeLeg(a.t, b.t, pts ?? [at(a), at(b)], a.view, b.view, mPerUv, false, early), avoided };
+      const leg = { ...makeLeg(t0, b.t, pts ?? [at(a), at(b)], a.view, b.view, mPerUv, false, early), avoided };
       if (!pts) leg.kind = "jump"; // um dos pontos fora do chão (ex.: arena da ultimate da Iso)
       tr.legs.push(leg);
       if (stats) stats.legs++;
+    }
+    // tempo morto: de cada morte até reaparecer (quando começa a andar de volta, o mais tarde possível) ou até o fim
+    for (const d of deaths.get(tracks.indexOf(tr)) ?? []) {
+      const r = backAt.filter((x) => x > d.t).sort((x, y) => x - y)[0];
+      const leg = r === undefined ? undefined : tr.legs.find((l) => l.t1 === r && l.t0 >= d.t);
+      tr.dead.push({ from: d.t, to: r === undefined ? null : leg ? (leg.kind === "jump" ? leg.t0 : leg.depart) : r, xy: d.xy });
     }
   }
   // anotações da equipe: o trecho vira salto, com o rótulo da anotação
@@ -155,7 +174,9 @@ export function buildTracks(match: Match, round: Round, nav: NavGrid | null, sta
   return tracks;
 }
 
-export const isDead = (tr: Track, t: number) => tr.deathT !== null && t >= tr.deathT && !tr.samples.some((s) => s.t > tr.deathT!);
+/** O tempo morto que contém t, se o jogador estiver morto nesse instante. */
+export const deadAt = (tr: Track, t: number) => tr.dead.find((d) => t >= d.from && (d.to === null || t < d.to)) ?? null;
+export const isDead = (tr: Track, t: number) => deadAt(tr, t) !== null;
 
 /** Ponto do caminho a uma distância d do início, e a direção do trecho (ângulo na tela). */
 function along(leg: Leg, d: number): Pose {

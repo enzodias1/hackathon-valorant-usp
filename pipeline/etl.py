@@ -9,6 +9,7 @@ Tables
   player_round   one row per player per round (economy, combat, KAST parts, clutch)
   kills          one row per kill, in chronological order, with alive counts before/after and trade links
   positions      player positions snapshot at each kill / plant / defuse
+  revives        a dead player back among the alive (Sage's ultimate, Clove's own): first record where they show up again
   damage         damage dealt per (round, dealer, receiver)
 """
 import json
@@ -24,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "processed"
 LOOKUP = json.loads((ROOT / "data" / "meta" / "lookup.json").read_text(encoding="utf-8"))
 
+REVIVE_MIN_MS = 500  # see the revive note in parse_match
 TRADE_WINDOW_MS = 5000
 FILE_RE = re.compile(
     r"^(?P<prefix>.+?)_(?P<seq>\d+)(?P<game>[a-z]?)_(?P<date>\d\d-\d\d-\d\d)_"
@@ -132,20 +134,47 @@ def parse_match(path: Path, data_root: Path, T):
             team_spent[color_of[pu]] += e.get("spent", 0)
             team_bank[color_of[pu]] += e.get("remaining", 0)
 
-        # --- kills in chronological order, with alive counts and revive handling
+        # --- kills in chronological order, with alive counts and revive handling.
+        # Revives: the Riot data lists every alive player at each kill, plant and defuse (99.9% complete; the rare gaps are
+        # agents inside an ultimate, e.g. Omen's teleport). A dead player who shows up again in one of these records was
+        # revived (Sage's ultimate on a teammate, or Clove's on herself) and counts as alive from that record on. The exact
+        # moment of the revive is not in the data: it happened between the previous record and this one. A record less than
+        # REVIVE_MIN_MS after the death is not a revive: two kills in the same instant (a trade) list each other's victim
+        # (the fastest real revive in the base, Clove's, takes 0.8 s; Sage's, 4 s).
         raw = [k for ps in r["playerStats"] for k in ps["kills"]]
         raw.sort(key=lambda k: (k["timeSinceRoundStartMillis"], k["timeSinceGameStartMillis"]))
         alive = {pu: True for pu in color_of}
-        kills = []
+        died_at = {}
+        sightings = [(r["plantRoundTime"] if ev == "plant" else r["defuseRoundTime"], ev, {pl["puuid"] for pl in locs})
+                     for ev, locs in (("plant", r.get("plantPlayerLocations")), ("defuse", r.get("defusePlayerLocations"))) if locs]
+
+        round_revives = []
+
+        def revive(seen, t, ev, idx):
+            for pu in seen:
+                if not alive.get(pu, True) and t - died_at[pu] >= REVIVE_MIN_MS:
+                    alive[pu] = True
+                    round_revives.append({"match_id": mid, "round_num": rn, "puuid": pu, "color": color_of.get(pu),
+                                          "t_round_ms": t, "event": ev, "event_idx": idx})
+
+        kills, alive_after_sets = [], []
         for i, k in enumerate(raw):
             victim, killer = k["victim"], k["killer"]
-            revived = not alive.get(victim, True)  # died twice -> was revived in between
+            t_k = k["timeSinceRoundStartMillis"]
+            for s in [s for s in sightings if s[0] <= t_k]:  # a plant/defuse record before this kill
+                revive(s[2], s[0], s[1], -1)
+                sightings.remove(s)
+            locs = {pl["puuid"]: pl for pl in (k.get("playerLocations") or [])}
+            revive(set(locs) - {victim}, t_k, "kill", i)
+            revived = not alive.get(victim, True)  # died twice without showing up in between: revived before this kill
             if revived:
-                alive[victim] = True
+                revive({victim}, t_k, "kill", i)
+                revived = alive[victim]
             before = {c: sum(1 for pu, al in alive.items() if al and color_of[pu] == c) for c in ("Red", "Blue")}
             alive[victim] = False
+            died_at[victim] = t_k
             after = {c: sum(1 for pu, al in alive.items() if al and color_of[pu] == c) for c in ("Red", "Blue")}
-            locs = {pl["puuid"]: pl for pl in (k.get("playerLocations") or [])}
+            alive_after_sets.append({pu for pu, al in alive.items() if al})
             kl = locs.get(killer)
             fd = k["finishingDamage"]
             kc, vc = color_of.get(killer), color_of[victim]
@@ -190,18 +219,22 @@ def parse_match(path: Path, data_root: Path, T):
                     b["is_trade"] = True
                     break
         T["kills"].extend(kills)
+        for s in sightings:  # plant/defuse records after the last kill
+            revive(s[2], s[0], s[1], -1)
+        T["revives"].extend(round_revives)
 
-        # --- clutches: first moment a team is down to 1 alive while enemies remain
+        # --- clutches: first moment a team is down to 1 alive while enemies remain (revived players count as alive)
         clutch = {}
-        for kr in kills:
+        for kr, alive_now in zip(kills, alive_after_sets):
             for c, n_after in (("Red", kr["atk_alive_after"] if atk == "Red" else kr["def_alive_after"]),
                                ("Blue", kr["atk_alive_after"] if atk == "Blue" else kr["def_alive_after"])):
                 enemy = kr["def_alive_after"] if c == atk else kr["atk_alive_after"]
                 if c not in clutch and n_after == 1 and enemy >= 1:
                     # the remaining alive player of color c
-                    dead = {x["victim"] for x in kills if x["kill_idx"] <= kr["kill_idx"]}
-                    last = [pu for pu in color_of if color_of[pu] == c and pu not in dead]
-                    if len(last) == 1:
+                    last = [pu for pu in alive_now if color_of[pu] == c]
+                    # not a clutch if a teammate is revived afterwards: the player did not win it alone
+                    back = any(x["color"] == c and x["t_round_ms"] > kr["t_round_ms"] for x in round_revives)
+                    if len(last) == 1 and not back:
                         clutch[c] = (last[0], enemy)
 
         # --- per-player round rows
@@ -225,6 +258,8 @@ def parse_match(path: Path, data_root: Path, T):
                                     "friendly": color_of.get(x["receiver"]) == c})
             my_deaths = deaths.get(pu, [])
             final_death = my_deaths[-1] if my_deaths else None
+            if final_death is not None and alive.get(pu):  # revived after the last death and not killed again
+                final_death = None
             cl = clutch.get(c)
             T["player_round"].append({
                 "match_id": mid, "round_num": rn, "puuid": pu, "team_color": c, "side": side_of(c, atk),
@@ -289,7 +324,9 @@ def validate(T):
     el = rd[rd.result_code == "Elimination"].set_index(["match_id", "round_num"]).join(last[["atk_alive_after", "def_alive_after"]])
     bad = el[((el.winner_side == "Ataque") & (el.def_alive_after != 0)) | ((el.winner_side == "Defesa") & (el.atk_alive_after != 0))]
     issues.append(f"elimination rounds where loser still alive: {len(bad)} / {len(el)}")
-    issues.append(f"revived-victim kills: {int(kl.victim_was_revived.sum())}")
+    rv = pd.DataFrame(T["revives"])
+    issues.append(f"revives (dead player back among the alive): {len(rv)} in {rv.groupby(['match_id', 'round_num']).ngroups if len(rv) else 0} rounds; "
+                  f"killed twice without showing up in between: {int(kl.victim_was_revived.sum())}")
     issues.append(f"negative alive counts: {int((kl[['atk_alive_after','def_alive_after']] < 0).any(axis=1).sum())}")
     issues.append(f"trade rate (deaths traded within {TRADE_WINDOW_MS} ms): {kl.traded.mean():.1%}")
     return issues

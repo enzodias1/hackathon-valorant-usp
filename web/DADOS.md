@@ -167,7 +167,10 @@ Referências da liga inteira (taxas médias dos times, vitória por tipo de comp
           // o que matou, legível: arma, habilidade do agente (nome em português), "Spike", "Queda" ou "Faca"
           "weapon_icon": "<url killfeed>" | null, "kill_kind": "weapon | ability | melee | spike | fall | other",
           // em todo evento: todos os vivos naquele instante (a vítima de uma kill vem em victim_xy)
-          "pos": [ [i, x, y, view] ]   // i = índice em `players`; view = direção da mira em radianos, atan2(dy, dx) nos eixos do jogo
+          "pos": [ [i, x, y, view] ],  // i = índice em `players`; view = direção da mira em radianos, atan2(dy, dx) nos eixos do jogo
+          // só quando alguém morto reaparece vivo neste registro (ultimate da Sage num aliado, ou da Clove nela mesma);
+          // a volta aconteceu entre o registro anterior e este, no lugar do corpo
+          "revived": ["<puuid>"]
       } ]
   } ],
   "weapon_icons": { "Vandal": "<url killfeed>" }   // ícones das armas que aparecem em `gear`

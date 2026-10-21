@@ -18,13 +18,12 @@ para ver. Ele é o centro da demonstração do vídeo.
 | Membro | Tarefa | Status | Entrega |
 |---|---|---|---|
 | Camila | [Nomes dos 68 times](#camila--nomes-dos-68-times) | 🟡 Em andamento | Planilha preenchida → Enzo |
-| Nukan | [Página "Destaques do campeonato"](#nukan--página-destaques-do-campeonato) | 🟡 A fazer | PR da branch `destaques` |
 | Jodão | [Roteiro do vídeo pitch](#jodão--roteiro-do-vídeo-pitch) | 🟡 A fazer (entrevistas prontas) | Documento com o roteiro → Enzo |
 | Camila | [Validação das análises com olhar de jogador](#camila--validação-das-análises-com-olhar-de-jogador) | ⏳ Depois da planilha | Lista de observações → Enzo |
 | Camila | [Apresentação (slides)](#camila--apresentação-slides) | ⏳ Depois da validação | Link da apresentação → Enzo |
 | — | [Gravações de tela para o vídeo](#gravações-de-tela-para-o-vídeo) | ⏳ Quando o front estiver fechado | Arquivos de vídeo → Jodão |
 
-✅ **Concluídas: 6** (Azi ×4, Nukan ×1, Jodão ×1). As descrições ficam recolhidas no [fim do arquivo](#-tarefas-concluídas).
+✅ **Concluídas: 7** (Azi ×4, Nukan ×2, Jodão ×1). As descrições ficam recolhidas no [fim do arquivo](#-tarefas-concluídas).
 
 Legenda: ⏳ aguardando · 🟡 a fazer / em andamento · 🔵 entregue, em revisão · ✅ concluída
 
@@ -62,33 +61,6 @@ As colunas "nicks mais frequentes" e "competições" ajudam a identificar cada t
 
 ---
 
-## Nukan — Página "Destaques do campeonato"
-**O que fazer:** criar a página `/destaques` (`web/src/app/destaques/page.tsx`, Server Component gerado no build) com dois rankings
-tirados das 336 partidas, cada item com um botão **"Ver no replay"** que abre o replay 2D (o do mapa) no instante exato da jogada:
-1. **Jogadas de maior impacto (10):** os eventos (kill, plant, desarme) com maior `wpa`, ignorando os que têm `after_round_end: true`.
-   Em cada card: ícone do agente (`players[i].agent_icon`), nick, o que fez ("matou X com Vandal", "desarmou a spike"), a chance do time
-   de quem agiu antes → depois (`wp_red_before`/`wp_red_after`; se o time for Blue, use `1 − valor`), o `+pp` e a partida (times, mapa, data).
-2. **Maiores viradas (10):** rounds em que o vencedor chegou à menor chance de vitória e mesmo assim ganhou. Para cada round, ache a menor
-   chance do vencedor ao longo dos eventos e guarde o instante dela, que é para onde o botão do replay leva.
-
-O link do replay é `/partidas/<id>#round-<n>@<segundos>` (ex.: `#round-12@84.1`; `t` dos eventos está em milissegundos).
-
-Por onde começar:
-- **Dados no servidor:** `getIndex()` e `getMatch(id)` de `@/lib/data` (já leem `public/data` com cache). Tipos em `@/lib/types`
-  (`Match`, `Round`, `RoundEvent`); formatação em `@/lib/format` (`pct`, `pp`, `nick`, `clock`, `date`, `competitionLabel`).
-- **Visual:** no padrão das páginas novas, com a faixa roxa `PageBand` e os títulos numerados `SectionHead` (`@/components/analise/ui`). Se quiser
-  um fundo nos cards, use o splash do mapa: `mapSplash(match.map.code)` de `@/lib/art`.
-- **Menu:** inclua "Destaques" na lista `NAV` de `web/src/components/site/Sidebar.tsx`, depois de "Comparar".
-- **Antes de entregar:** confira que cada link abre o replay no momento certo e que nenhum texto mostra `NaN`/`undefined`.
-
-**Por quê:** a AcadArena, que está na banca, organiza o UNIVAVÁ. Destaques automáticos que abrem no replay viram conteúdo para redes
-sociais e transmissão sem trabalho manual, o que mostra impacto além dos times. Também rendem um trecho forte do vídeo.
-
-**Como entregar:** PR da branch `destaques` (ver [Como entregar](#como-entregar)), com prints da página e `npm run build` passando.
-Antes de começar, `git pull origin main` e `npm install` dentro de `web/`. Quanto antes, mais tempo para ajustes; se travar, avise o Enzo.
-
----
-
 ## Jodão — Roteiro do vídeo pitch
 > **Entrevistas prontas:** use o resumo em [`para_equipe/entrevistas_ufg.md`](para_equipe/entrevistas_ufg.md) nos trechos **[ENTREVISTA]**
 > (ex.: 2 de 8 pediram um replay 2D com agentes, mortes e abates, e o produto já tem). Os entrevistados são do UFG Eagles, que está na base.
@@ -117,7 +89,7 @@ alguns rounds), e anotar tudo que **não faz sentido para quem joga VALORANT**: 
 Clutch) que não combina com o jogador, uma região do mapa de calor esquisita, um caminho no replay que nenhum jogador faria, um texto
 confuso. Também vale anotar o que achou **mais útil**: isso orienta o que mostrar no vídeo.
 
-**Por quê:** os números passam por 37 checagens automáticas, mas nenhuma checagem substitui alguém que entende o jogo. A banca tem
+**Por quê:** os números passam por 40 checagens automáticas, mas nenhuma checagem substitui alguém que entende o jogo. A banca tem
 gente da Riot: se algo soar errado para um jogador, eles vão perceber.
 
 **Como entregar:** uma lista curta (pode ser no WhatsApp) para o Enzo, com o link da página e o que pareceu estranho. Tempo: ~1h.
@@ -150,6 +122,35 @@ lentos e sem notificações na tela. Grave cada clipe com alguns segundos de fol
 ---
 
 ## ✅ Tarefas concluídas
+
+<details>
+<summary>✅ <b>Nukan — Página "Destaques do campeonato"</b> (PR #6, no ar: as 10 jogadas de maior impacto e as 10 maiores viradas, com "Ver no replay")</summary>
+
+**O que fazer:** criar a página `/destaques` (`web/src/app/destaques/page.tsx`, Server Component gerado no build) com dois rankings
+tirados das 336 partidas, cada item com um botão **"Ver no replay"** que abre o replay 2D (o do mapa) no instante exato da jogada:
+1. **Jogadas de maior impacto (10):** os eventos (kill, plant, desarme) com maior `wpa`, ignorando os que têm `after_round_end: true`.
+   Em cada card: ícone do agente (`players[i].agent_icon`), nick, o que fez ("matou X com Vandal", "desarmou a spike"), a chance do time
+   de quem agiu antes → depois (`wp_red_before`/`wp_red_after`; se o time for Blue, use `1 − valor`), o `+pp` e a partida (times, mapa, data).
+2. **Maiores viradas (10):** rounds em que o vencedor chegou à menor chance de vitória e mesmo assim ganhou. Para cada round, ache a menor
+   chance do vencedor ao longo dos eventos e guarde o instante dela, que é para onde o botão do replay leva.
+
+O link do replay é `/partidas/<id>#round-<n>@<segundos>` (ex.: `#round-12@84.1`; `t` dos eventos está em milissegundos).
+
+Por onde começar:
+- **Dados no servidor:** `getIndex()` e `getMatch(id)` de `@/lib/data` (já leem `public/data` com cache). Tipos em `@/lib/types`
+  (`Match`, `Round`, `RoundEvent`); formatação em `@/lib/format` (`pct`, `pp`, `nick`, `clock`, `date`, `competitionLabel`).
+- **Visual:** no padrão das páginas novas, com a faixa roxa `PageBand` e os títulos numerados `SectionHead` (`@/components/analise/ui`). Se quiser
+  um fundo nos cards, use o splash do mapa: `mapSplash(match.map.code)` de `@/lib/art`.
+- **Menu:** inclua "Destaques" na lista `NAV` de `web/src/components/site/Sidebar.tsx`, depois de "Comparar".
+- **Antes de entregar:** confira que cada link abre o replay no momento certo e que nenhum texto mostra `NaN`/`undefined`.
+
+**Por quê:** a AcadArena, que está na banca, organiza o UNIVAVÁ. Destaques automáticos que abrem no replay viram conteúdo para redes
+sociais e transmissão sem trabalho manual, o que mostra impacto além dos times. Também rendem um trecho forte do vídeo.
+
+**Como entregar:** PR da branch `destaques` (ver [Como entregar](#como-entregar)), com prints da página e `npm run build` passando.
+Antes de começar, `git pull origin main` e `npm install` dentro de `web/`. Quanto antes, mais tempo para ajustes; se travar, avise o Enzo.
+
+</details>
 
 <details>
 <summary>✅ <b>Azi — Prévia do link das partidas</b> (PR #5, no ar: cartão com placar, vencedor, mapa e competição)</summary>
