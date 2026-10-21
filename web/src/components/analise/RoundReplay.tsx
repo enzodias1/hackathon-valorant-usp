@@ -190,6 +190,8 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(2);
   const [smooth, setSmooth] = useState(true);
+  const [focus, setFocus] = useState<number | null>(null); // jogador selecionado (índice em match.players): mostra o caminho dele
+  const [copied, setCopied] = useState(false);
   const clipId = `replay-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const listRef = useRef<HTMLOListElement>(null);
 
@@ -235,8 +237,52 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
     setPlaying((p) => !p);
   };
 
+  // instantes com posição registrada pela Riot (kill, plant, desarme)
+  const regTimes = round.events.filter((e) => e.pos?.length).map((e) => e.t);
+  const lastReg = regTimes.filter((x) => x <= t).pop();
+  const nextReg = regTimes.find((x) => x > t);
+  const registered = lastReg !== undefined && t - lastReg < 400;
+
+  const eventTimes = round.events.map((e) => e.t);
+  const onKey = (ev: React.KeyboardEvent) => {
+    if (ev.target instanceof HTMLInputElement) return; // o slider cuida das próprias setas
+    if (ev.key === " " && ev.target instanceof HTMLButtonElement) return; // espaço num botão já é o clique dele
+    if (ev.key === " ") {
+      ev.preventDefault();
+      togglePlay();
+    } else if (ev.key === "ArrowRight" || ev.key === "ArrowLeft") {
+      ev.preventDefault();
+      const to = ev.key === "ArrowRight" ? eventTimes.find((x) => x > t + 50) : eventTimes.filter((x) => x < t - 50).pop();
+      seek(to ?? (ev.key === "ArrowRight" ? maxT : 0));
+    }
+  };
+  const copyLink = async () => {
+    const url = `${window.location.origin}${window.location.pathname}#round-${round.n}@${(t / 1000).toFixed(1)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.location.hash = `round-${round.n}@${(t / 1000).toFixed(1)}`; // sem permissão de área de transferência: o link fica na barra
+    }
+  };
+
   const wp = wpAt(round, t, end);
   const poses = tracks.map((tr) => ({ tr, dead: isDead(tr, t), pose: poseAt(tr, t, smooth, tf) }));
+  // caminho do jogador selecionado até agora (amostrado a cada 0,25 s)
+  let trail: UV[] | null = null;
+  if (focus !== null && tracks[focus]) {
+    const tr = tracks[focus];
+    const until = tr.deathT !== null && isDead(tr, t) ? tr.deathT : t;
+    trail = [];
+    for (let x = 0; x < until; x += 250) {
+      const q = poseAt(tr, x, smooth, tf);
+      if (q) trail.push(q.at);
+    }
+    const q = poseAt(tr, until, smooth, tf);
+    if (q) trail.push(q.at);
+  }
+  const pick = (i: number) => setFocus((f) => (f === i ? null : i));
   // saltos em andamento (habilidade de movimento / teleporte): trajeto tracejado
   const jumps = smooth ? poses.flatMap(({ tr, dead }) => (dead ? [] : tr.legs.filter((l) => l.kind === "jump" && t >= l.t0 && t < l.t1))) : [];
   const kills = round.events.filter((e) => e.type === "kill" && e.t <= t);
@@ -250,7 +296,8 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
   const spikeLeft = planted && !(round.defuse && t >= round.defuse.t) ? planted.t + SPIKE_TIMER_MS - t : null;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-lime/40" tabIndex={0} onKeyDown={onKey}
+         aria-label={`Replay do round ${round.n}. Atalhos: espaço toca ou pausa; setas pulam para a jogada anterior ou a próxima.`}>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="min-w-0 space-y-3">
           <WinBar match={match} wp={wp} swing={swing} byId={byId} />
@@ -264,6 +311,11 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
                 <div className="pointer-events-none absolute left-3 top-3 rounded-md bg-black/55 px-2.5 py-1.5 text-xs text-white backdrop-blur-sm">
                   <span className="tabular font-semibold">{clock(t)}</span>
                   {spikeLeft !== null && spikeLeft > 0 && <span className="ml-2 text-warn">◆ spike no {planted?.site ?? "?"} · {clock(spikeLeft)}</span>}
+                  <span className={`mt-0.5 block text-[10px] ${registered ? "text-lime" : "text-white/60"}`}>
+                    {registered ? "● posições registradas pela Riot"
+                      : !smooth && lastReg !== undefined ? `◌ posições do registro de ${clock(lastReg)}`
+                      : `◌ posições estimadas${nextReg !== undefined ? ` · próximo registro ${clock(nextReg)}` : ""}`}
+                  </span>
                 </div>
                 {focusEvent && focusVictim && focusAt && <FocusLabel at={ally ? mid(focusAt, ally.at) : focusAt} e={focusEvent} meters={ally?.m ?? null} />}
                 {t === 0 && !playing && (
@@ -311,7 +363,12 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
                     strokeWidth={1.5} strokeDasharray="4 4" strokeOpacity={0.9} vectorEffect="non-scaling-stroke" />
             )}
 
-            {jumps.map((l, i) => {
+            {trail && trail.length > 1 && focus !== null && (
+            <polyline points={trail.map((q) => `${q.u},${q.v}`).join(" ")} fill="none" stroke={TEAM_VAR[match.players[focus].color]} strokeWidth={2.5}
+                      strokeOpacity={0.75} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          )}
+
+          {jumps.map((l, i) => {
             const a = l.pts[0], b = l.pts[l.pts.length - 1];
             return (
               <g key={`j${i}`}>
@@ -324,11 +381,13 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
           })}
 
           {poses.map(({ dead, pose }, i) => (!dead && pose?.dir != null ? <Cone key={`c${i}`} pose={pose} fill={`url(#${clipId}-g${i})`} /> : null))}
-            {poses.map(({ tr, dead, pose }, i) => (!dead && pose ? <Token key={`p${i}`} p={tr.p} at={pose.at} clip={clipId} /> : null))}
+            {poses.map(({ tr, dead, pose }, i) =>
+            !dead && pose ? <Token key={`p${i}`} p={tr.p} at={pose.at} clip={clipId} selected={focus === i} onPick={() => pick(i)} /> : null,
+          )}
           </MinimapBase>
 
           <Controls t={t} maxT={maxT} end={end} playing={playing} speed={speed} events={round.events} byId={byId}
-                    onToggle={togglePlay} onSeek={seek} onSpeed={setSpeed} />
+                    onToggle={togglePlay} onSeek={seek} onSpeed={setSpeed} onCopy={copyLink} copied={copied} />
 
           <label className="flex items-start gap-2 text-xs text-muted">
             <input type="checkbox" checked={smooth} onChange={(e) => setSmooth(e.target.checked)} className="mt-0.5 accent-[var(--brand-2)]" />
@@ -337,6 +396,7 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
               jogador sai do spawn e anda pelos corredores até o próximo registro; <b className="text-lime">↯</b> marca um deslocamento rápido
               demais para correr (habilidade de movimento ou teleporte, como a ultimate do Omen). Desmarque para ver só os instantes
               registrados. O uso de utilitárias não vem nos dados; kills por habilidade, sim, com o ícone da habilidade.
+              Clique num jogador (no mapa ou no elenco) para ver o caminho dele. Atalhos: espaço toca ou pausa; ← → pulam de jogada.
             </span>
           </label>
         </div>
@@ -357,7 +417,7 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
           </div>
         </div>
       </div>
-      <Rosters match={match} round={round} poses={poses} t={t} />
+      <Rosters match={match} round={round} poses={poses} t={t} focus={focus} onPick={pick} />
     </div>
   );
 }
@@ -407,10 +467,12 @@ function Cone({ pose, fill }: { pose: Pose; fill: string }) {
   return <path d={d} fill={fill} />;
 }
 
-function Token({ p, at, clip }: { p: MatchPlayer; at: UV; clip: string }) {
+function Token({ p, at, clip, selected, onPick }: { p: MatchPlayer; at: UV; clip: string; selected: boolean; onPick: () => void }) {
   const icon = p.minimap_icon ?? p.agent_icon;
   return (
-    <g>
+    <g onClick={onPick} className="cursor-pointer">
+      <title>{`${nick(p.name)} (${p.agent}): clique para ${selected ? "esconder" : "ver"} o caminho`}</title>
+      {selected && <circle cx={at.u} cy={at.v} r={R + 0.011} fill="none" stroke="var(--lime)" strokeWidth={2.5} vectorEffect="non-scaling-stroke" />}
       <circle cx={at.u} cy={at.v} r={R + 0.004} fill={TEAM_VAR[p.color]} stroke="#0b0918" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
       {icon && <image href={icon} x={at.u - R} y={at.v - R} width={2 * R} height={2 * R} clipPath={`url(#${clip})`} preserveAspectRatio="xMidYMid slice" />}
       <text x={at.u} y={at.v + R + 0.019} textAnchor="middle" fontSize={0.0155} fontWeight={600} fill="white" stroke="#0b0918" strokeWidth={0.005}
@@ -458,9 +520,9 @@ function FocusLabel({ at, e, meters }: { at: UV; e: RoundEvent; meters: number |
   );
 }
 
-function Controls({ t, maxT, end, playing, speed, events, byId, onToggle, onSeek, onSpeed }: {
+function Controls({ t, maxT, end, playing, speed, events, byId, onToggle, onSeek, onSpeed, onCopy, copied }: {
   t: number; maxT: number; end: number; playing: boolean; speed: number; events: RoundEvent[]; byId: Map<string, MatchPlayer>;
-  onToggle: () => void; onSeek: (ms: number) => void; onSpeed: (s: number) => void;
+  onToggle: () => void; onSeek: (ms: number) => void; onSpeed: (s: number) => void; onCopy: () => void; copied: boolean;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -492,6 +554,10 @@ function Controls({ t, maxT, end, playing, speed, events, byId, onToggle, onSeek
         </div>
       </div>
       <span className="tabular w-20 shrink-0 text-right text-sm text-ink-2">{clock(t)} / {clock(maxT)}</span>
+      <button type="button" onClick={onCopy} title="Copia o link deste instante do round (para mandar ao time)"
+              className={`label-caps shrink-0 rounded-md border px-2.5 py-1.5 text-[10px] transition-colors ${copied ? "border-lime text-lime" : "border-line text-ink-2 hover:border-ink-2 hover:text-ink"}`}>
+        {copied ? "Link copiado ✓" : "Copiar link do momento"}
+      </button>
     </div>
   );
 }
@@ -565,7 +631,9 @@ function KillIcon({ e }: { e: RoundEvent }) {
   return <span className="label-caps shrink-0 rounded-sm bg-surface-2 px-1 py-0.5 text-[9px] text-ink-2">{e.weapon ?? "?"}</span>;
 }
 
-function Rosters({ match, round, poses, t }: { match: Match; round: Round; poses: { tr: Track; dead: boolean }[]; t: number }) {
+function Rosters({ match, round, poses, t, focus, onPick }: {
+  match: Match; round: Round; poses: { tr: Track; dead: boolean }[]; t: number; focus: number | null; onPick: (i: number) => void;
+}) {
   const killsBy = new Map<string, number>();
   for (const e of round.events) if (e.type === "kill" && e.actor && !e.teamkill && e.t <= t) killsBy.set(e.actor, (killsBy.get(e.actor) ?? 0) + 1);
   const side = (c: Color) => (round.attacker === c ? "Ataque" : "Defesa");
@@ -584,7 +652,10 @@ function Rosters({ match, round, poses, t }: { match: Match; round: Round; poses
               const icon = g?.[0] ? match.weapon_icons?.[g[0]] : undefined;
               const k = killsBy.get(tr.p.puuid) ?? 0;
               return (
-                <li key={tr.p.puuid} className={`flex items-center gap-2 text-xs ${dead ? "opacity-45" : ""}`}>
+                <li key={tr.p.puuid}>
+                  <button type="button" onClick={() => onPick(i)} aria-pressed={focus === i} title="Ver o caminho deste jogador no mapa"
+                          className={`flex w-full items-center gap-2 rounded-md px-1 py-0.5 text-left text-xs transition-colors hover:bg-surface-2 ${
+                            focus === i ? "bg-surface-2 ring-1 ring-lime/60" : ""} ${dead ? "opacity-45" : ""}`}>
                   <AgentDot p={tr.p} dim={dead} />
                   <span className={`min-w-0 flex-1 truncate ${dead ? "text-muted line-through" : "text-ink"}`}>{nick(tr.p.name)}</span>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -592,6 +663,7 @@ function Rosters({ match, round, poses, t }: { match: Match; round: Round; poses
                         : <span className="w-12 text-right text-muted">{g?.[0] ?? "—"}</span>}
                   <Armor a={g?.[1]} />
                   <span className="tabular w-8 text-right text-ink-2" title="kills neste round até agora">{k ? `${k} K` : ""}</span>
+                  </button>
                 </li>
               );
             })}
