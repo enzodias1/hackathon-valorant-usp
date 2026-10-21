@@ -21,6 +21,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import brier_score_loss, log_loss, roc_auc_score
 from sklearn.model_selection import GroupKFold
@@ -63,6 +64,11 @@ def build_timelines():
                     s[f"{sd}_alive"] += 1
                     s[f"{sd}_lo"] += lo[key + (pu,)]
             s.update(planted=int(planted), t=t / 1000, t_since_plant=(t - plant_t) / 1000 if planted else 0.0)
+            # nobody alive on a side: its equipment is missing, not 0. With 0 the model reads "equipment 0" as "everyone dead"
+            # (they always came together) and an alive player who bought nothing (eco, free pistol) looked like a dead team
+            for sd in ("atk", "def"):
+                if s[f"{sd}_alive"] == 0:
+                    s[f"{sd}_lo"] = np.nan
             return s
 
         timeline = []
@@ -126,7 +132,7 @@ def evaluate_and_predict(states):
     train = states[~states.anomalous & ~states.post_end].reset_index(drop=True)
     X, y, groups = train[FEATS].to_numpy(float), train["y"].to_numpy(), train["match_id"].to_numpy()
     models = {
-        "logistic": lambda: make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000)),
+        "logistic": lambda: make_pipeline(SimpleImputer(strategy="constant", fill_value=0), StandardScaler(), LogisticRegression(max_iter=2000)),
         "gbm": lambda: HistGradientBoostingClassifier(max_iter=300, learning_rate=0.05, max_leaf_nodes=31, l2_regularization=1.0,
                                                       monotonic_cst=[1, -1, 1, -1, 1, 0, 0], random_state=0),
     }

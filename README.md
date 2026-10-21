@@ -108,6 +108,10 @@ Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela veloc
 ## Decisões de métrica (validadas com os dados)
 - **Probabilidade de vitória do round:** gradient boosting com validação cruzada por partida (AUC 0,888; erro de calibração 1,3%).
   O impacto (WPA) de cada partida é calculado por um modelo que nunca viu aquela partida.
+  O equipamento de um lado sem ninguém vivo fica ausente, não zero (21/10): com zero, o modelo lia "equipamento 0" como "time
+  inteiro morto" (as duas coisas sempre vinham juntas) e um jogador vivo que não comprou nada (eco, só a pistola grátis) parecia um
+  time morto. No único 1 contra 1 pós-plant da base com um atacante assim (round 14 de UFMG Fênix B × CAAP Malditos), o atacante
+  aparecia com 0,25% de chance; agora, 18%.
 - **Trade:** morte vingada por um aliado em até 5 s.
 - **Morte isolada:** aliado vivo mais próximo a mais de 3.000 unidades (~30 m). A chance de ser trocado cai de 41% (< 5 m) para 6% (> 30 m).
 - **Papéis por comportamento** (percentis na liga, mín. 60 rounds): Entry, Support, Lurker, Clutch.

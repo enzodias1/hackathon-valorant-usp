@@ -58,7 +58,7 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
 > "E isso importa: morrer a menos de 5 metros de um aliado dá **41%** de chance de a morte ser trocada; a mais de 30 metros, **6%**."
 
 **2:45 · Jogador**: BRaim (Unicamp Tritons Black): perfil → "Duelos" → "Quando morre no round" → "Habilidades".
-> "O K/D engana. Este jogador está no percentil 32 em K/D, mas no **percentil 66 em impacto**: as jogadas dele acontecem quando o
+> "O K/D engana. Este jogador está no percentil 32 em K/D, mas no **percentil 63 em impacto**: as jogadas dele acontecem quando o
 > round está em jogo. E o papel é descoberto pelo comportamento: joga de iniciador, mas age como **clutch**."
 >
 > "E o que os jogadores pediram nas entrevistas está aqui: contra quem ele mais perde duelos, em que momento do round costuma morrer
