@@ -204,7 +204,7 @@ export default async function MethodologyPage() {
               ["Brier · log loss", "Erro das probabilidades previstas em relação ao que aconteceu. Menor é melhor; o log loss pune mais os erros confiantes."],
               ["Calibração", "Quando o modelo diz 70%, o time vence perto de 70% das vezes? O erro de calibração é a distância média entre o previsto e o real."],
               ["Validação cruzada por partida", "Cada partida é avaliada por um modelo treinado sem ela, para que o modelo não “decore” as partidas que analisa."],
-              ["Impacto (WPA)", "Variação da chance de vitória no instante de cada kill, plant ou desarme, em pontos percentuais. Eventos depois do fim do round valem zero."],
+              ["Impacto (WPA)", "Variação da chance de vitória no instante de cada kill, plant ou desarme, em pontos percentuais: são os “pontos de chance” do site (de 45% para 76%, +31 pontos). Eventos depois do fim do round valem zero."],
               ["Significância", "Ponto forte ou fraco só quando a diferença para a liga passa no teste estatístico, já com o controle de falsos positivos. Amostras pequenas são sinalizadas."],
             ].map(([term, def]) => (
               <div key={term}>

@@ -7,6 +7,7 @@ import type { Color, Match } from "@/lib/types";
 import MatchView from "@/components/analise/MatchView";
 import { PageBand, PlayerLink, Section, Td, Th, WpaBar } from "@/components/analise/ui";
 import { agentArt, mapSplash } from "@/lib/art";
+import { CHANCE_EXPLAINED } from "@/components/analise/ChanceInfo";
 
 // só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
 export const dynamicParams = false;
@@ -50,7 +51,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
         <MatchView match={match} nav={nav} />
 
-        <Section title="Jogadas que mais mudaram rounds" subtitle="Chance de vitória do time de quem agiu, antes → depois.">
+        <Section title="Jogadas que mais mudaram rounds" subtitle="Chance de vitória do time de quem agiu, antes → depois, e quantos pontos de chance a jogada valeu."
+                 info={CHANCE_EXPLAINED}>
           <ul className="divide-y divide-line/50">
             {key.map(({ r, e }, i) => {
               const p = name[e.actor!];
@@ -103,7 +105,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             </Section>
           ))}
         </div>
-        <p className="text-xs text-muted">Impacto: soma, em pontos percentuais, de quanto as ações do jogador mudaram a chance de vitória dos rounds desta partida.</p>
+        <p className="text-xs text-muted">Impacto: soma dos pontos de chance das ações do jogador nesta partida, ou seja, quanto elas mudaram a chance de vitória dos rounds.</p>
       </div>
     </main>
   );

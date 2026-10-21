@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import type { Color, Match, Round, RoundEvent, Team } from "@/lib/types";
 import { date, nick, num, pp } from "@/lib/format";
 import { roundStory } from "@/lib/roundStory";
+import ChanceInfo from "./ChanceInfo";
 
 type Key = { round: Round; e: RoundEvent };
 
@@ -56,7 +57,10 @@ export default function HeadToHead({ A, B, ids }: { A: Team; B: Team; ids: strin
 
   return (
     <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
-      <h2 className="text-2xl tracking-wide text-ink">Histórico do confronto</h2>
+      <div className="flex items-center gap-2">
+        <h2 className="text-2xl tracking-wide text-ink">Histórico do confronto</h2>
+        <ChanceInfo />
+      </div>
       <p className="mt-1 text-sm text-ink-2">
         {matches.length} {matches.length === 1 ? "mapa" : "mapas"} entre os dois: <b className="text-ink">{A.name} {mapsA} × {matches.length - mapsA} {B.name}</b>
         {" "}({roundsA} × {roundsB} em rounds). Em cada mapa, o momento que mais mudou a chance de vitória, com link para o replay.
@@ -120,7 +124,7 @@ export default function HeadToHead({ A, B, ids }: { A: Team; B: Team; ids: strin
           </div>
         ))}
       </div>
-      <p className="mt-3 text-xs text-muted">Impacto: soma, em pontos percentuais, de quanto as jogadas mudaram a chance de vitória dos rounds nesses mapas.</p>
+      <p className="mt-3 text-xs text-muted">Impacto: soma dos pontos de chance das jogadas de cada jogador nesses mapas, ou seja, quanto elas mudaram a chance de vitória dos rounds.</p>
     </section>
   );
 }

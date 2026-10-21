@@ -41,7 +41,11 @@ export function Section({ title, subtitle, info, teaser, collapsible, defaultOpe
         </div>
         <span className="flex shrink-0 items-center gap-3">
           {aside && <span className="hidden group-open:inline">{aside}</span>}
-          <span aria-hidden className="grid h-8 w-8 place-items-center rounded-full border border-line text-ink-2 transition-transform group-open:rotate-180">⌄</span>
+          <span aria-hidden className="grid h-8 w-8 place-items-center rounded-full border border-line text-ink-2 transition-[transform,color,border-color] group-open:rotate-180 group-hover:border-ink-2 group-hover:text-ink">
+            <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 6l4 4 4-4" />
+            </svg>
+          </span>
         </span>
       </summary>
       <div className="px-5 pb-5 sm:px-6 sm:pb-6">{children}</div>

@@ -209,7 +209,7 @@ function Comparison({ A, B }: { A: Team; B: Team }) {
               </div>
             ))}
           </div>
-          <p className="mt-3 text-xs text-muted">Impacto: quanto o jogador muda, em média, a chance de vitória do round (pontos percentuais).</p>
+          <p className="mt-3 text-xs text-muted">Impacto: quanto o jogador muda, em média, a chance de vitória do round, em pontos de chance por round.</p>
         </section>
       </div>
     </div>

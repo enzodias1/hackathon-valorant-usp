@@ -35,7 +35,7 @@ export function RoleRadar({ axes }: { axes: Axes }) {
 export function MatchImpactChart({ matches }: { matches: Player["matches"] }) {
   const data = matches.map((m, i) => ({ ...m, i: i + 1 }));
   return (
-    <div className="h-56 w-full" role="img" aria-label="Impacto do jogador em cada partida (pontos percentuais)">
+    <div className="h-56 w-full" role="img" aria-label="Impacto do jogador em cada partida (pontos de chance)">
       <ResponsiveContainer>
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: 0 }} barCategoryGap={2}>
           <XAxis dataKey="i" tick={{ fill: "var(--muted)", fontSize: 11 }} tickLine={false} axisLine={{ stroke: "var(--axis)" }} interval="preserveStartEnd" />

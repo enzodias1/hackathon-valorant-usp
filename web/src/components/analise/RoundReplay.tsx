@@ -8,6 +8,7 @@ import { clock, nick, pct, pp } from "@/lib/format";
 import { roundEndMs, SPIKE_TIMER_MS, toMinimap, type UV } from "@/lib/minimap";
 import { decodeNavGrid, lineOfSight, type NavGrid, type NavGridRaw } from "@/lib/navgrid";
 import { roundStory } from "@/lib/roundStory";
+import ChanceInfo from "./ChanceInfo";
 import { buildTracks, isDead, nearestAlly, poseAt, wpAt, type Pose, type Track } from "@/lib/replay";
 import MinimapBase from "@/components/MinimapBase";
 
@@ -190,7 +191,10 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
       )}
       {story.length > 0 && (
         <div className="rounded-xl border border-lime/25 bg-lime/[0.06] px-4 py-3">
-          <span className="label-caps text-[10px] text-lime">O que decidiu o round</span>
+          <span className="flex items-center gap-2">
+            <span className="label-caps text-[10px] text-lime">O que decidiu o round</span>
+            <ChanceInfo />
+          </span>
           <p className="mt-1 text-sm leading-relaxed text-ink">{story.join(" ")}</p>
         </div>
       )}
@@ -319,7 +323,10 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
           <div className="flex flex-col rounded-xl border border-line bg-surface-2/40 lg:absolute lg:inset-0">
             <div className="flex items-baseline justify-between gap-2 border-b border-line px-4 py-3">
               <h3 className="font-display whitespace-nowrap text-base uppercase tracking-wide text-ink">Sequência do round</h3>
-              <span className="label-caps whitespace-nowrap text-[9px] text-muted">chance · impacto</span>
+              <span className="flex items-center gap-2">
+                <span className="label-caps whitespace-nowrap text-[9px] text-muted">chance · impacto</span>
+                <ChanceInfo align="right" />
+              </span>
             </div>
             <ol ref={listRef} className="relative max-h-[28rem] min-h-0 flex-1 overflow-y-auto lg:max-h-none">
               {round.events.map((e, i) => (
@@ -343,7 +350,10 @@ function WinBar({ match, wp, swing, byId }: { match: Match; wp: number; swing: R
     <div className="rounded-xl border border-line bg-surface-2/40 px-4 py-3" aria-live="polite">
       <div className="flex items-baseline justify-between gap-3 text-xs">
         <span className="label-caps truncate text-team-red">{match.teams.Red.name}</span>
-        <span className="label-caps hidden shrink-0 text-muted sm:inline">chance de vencer o round</span>
+        <span className="hidden shrink-0 items-center gap-2 sm:flex">
+          <span className="label-caps text-muted">chance de vencer o round</span>
+          <ChanceInfo />
+        </span>
         <span className="label-caps truncate text-right text-team-blue">{match.teams.Blue.name}</span>
       </div>
       <div className="mt-1.5 flex items-center gap-3">

@@ -7,6 +7,7 @@ import type { Color, Match, Round, RoundEvent } from "@/lib/types";
 import type { NavGridRaw } from "@/lib/navgrid";
 import { clock, nick, pct, RESULT_PT } from "@/lib/format";
 import RoundReplay from "@/components/analise/RoundReplay";
+import ChanceInfo from "@/components/analise/ChanceInfo";
 
 const ROUND_SPAN_MS = 145_000; // ~100 s de round + 45 s de spike: posição do evento dentro do "slot" do round
 
@@ -75,7 +76,10 @@ export default function MatchView({ match, nav }: { match: Match; nav: NavGridRa
     <div className="space-y-6">
       <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
         <header className="mb-3">
-          <h2 className="text-lg font-semibold text-ink">Momentum da partida</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-ink">Momentum da partida</h2>
+            <ChanceInfo />
+          </div>
           <p className="mt-1 max-w-3xl text-sm text-ink-2">
             Chance de vitória do round a cada kill, plant e desarme. Acima do meio: vantagem de{" "}
             <span className="font-medium text-team-red">{teamName("Red")}</span>; abaixo: de{" "}

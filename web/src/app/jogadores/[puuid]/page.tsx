@@ -102,7 +102,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
         </Section>
 
         <Section id="impacto" title="De onde vem o impacto" collapsible teaser={`Saldo: ${pp(imp.wpa_per_round)} por round · cada kill vale ${pp(imp.per_kill)} (liga ${pp(imp.league_per_kill)})`}
-                 info="Variação média na chance de vitória por round, por tipo de ação (pontos percentuais). Mortes sempre custam; a pergunta é quanto. À direita, cada métrica comparada com a liga.">
+                 info="Variação média na chance de vitória por round, por tipo de ação, em pontos de chance (se a chance vai de 45% para 76%, a jogada vale +31 pontos). Mortes sempre custam; a pergunta é quanto. À direita, cada métrica comparada com a liga.">
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-2">
               {breakdown.map(([k, v]) => (

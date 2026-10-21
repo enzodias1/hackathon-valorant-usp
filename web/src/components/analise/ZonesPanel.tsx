@@ -76,7 +76,18 @@ export default function ZonesPanel({ zones }: { zones: TeamZones }) {
   );
 }
 
-/** Mapa de calor: grade sobre o minimapa; quanto mais forte a célula, mais mortes do time ali (todas ou só as sem trade). */
+/** Escala de calor (amarelo → laranja → vermelho, do menos ao mais intenso): lê bem sobre o cinza do minimapa. */
+const HEAT = [[255, 224, 102], [255, 140, 26], [222, 38, 38]];
+function heat(t: number) {
+  const x = Math.min(1, Math.max(0, t)) * (HEAT.length - 1);
+  const i = Math.min(HEAT.length - 2, Math.floor(x));
+  const f = x - i;
+  const [r, g, b] = HEAT[i].map((c, k) => Math.round(c + (HEAT[i + 1][k] - c) * f));
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+/** Mapa de calor: grade sobre o minimapa; quanto mais quente e forte a célula, mais mortes do time ali (todas ou só as sem trade).
+ *  A cor segue a contagem e a opacidade cresce mais rápido, para áreas com poucas mortes ficarem visíveis sem competir com as quentes. */
 function Heatmap({ map, grid, size }: { map: TeamZones["maps"][number]; grid: [number, number, number, number][]; size: number }) {
   const [onlyUntraded, setOnlyUntraded] = useState(false);
   const value = (c: [number, number, number, number]) => (onlyUntraded ? c[3] : c[2]);
@@ -91,7 +102,7 @@ function Heatmap({ map, grid, size }: { map: TeamZones["maps"][number]; grid: [n
           const v = value(c);
           return (
             <rect key={`${c[0]}-${c[1]}`} x={c[0] * cell} y={c[1] * cell} width={cell} height={cell}
-                  fill="var(--accent)" fillOpacity={0.15 + 0.75 * Math.sqrt(v / max)}>
+                  fill={heat(v / max)} fillOpacity={0.25 + 0.65 * Math.sqrt(v / max)}>
               <title>{`${v} ${v === 1 ? "morte" : "mortes"}${onlyUntraded ? " sem trade" : ""} nesta área`}</title>
             </rect>
           );
@@ -108,7 +119,7 @@ function Heatmap({ map, grid, size }: { map: TeamZones["maps"][number]; grid: [n
         </div>
         <span className="flex items-center gap-1.5">
           menos
-          <span className="h-2.5 w-20 rounded-sm" style={{ background: "linear-gradient(to right, color-mix(in srgb, var(--accent) 15%, transparent), var(--accent))" }} />
+          <span className="h-2.5 w-20 rounded-sm" style={{ background: `linear-gradient(to right, ${heat(0)}, ${heat(0.5)}, ${heat(1)})` }} />
           mais · {total} mortes
         </span>
       </div>

@@ -17,7 +17,7 @@ export default async function PlayersPage() {
     <main>
       <PageBand kicker="Impacto e papel em jogo" title="Jogadores">
         {players.length} jogadores. <b className="text-white">Impacto por round</b> é quanto, em média, as jogadas de cada um mudam a chance de o time vencer o round,
-        em pontos percentuais. <b className="text-white">Papel real</b> é descoberto pelo comportamento em jogo, não pelo agente. Os dois só aparecem a partir de 60 rounds.
+        em pontos de chance (de 45% para 76% são +31 pontos). <b className="text-white">Papel real</b> é descoberto pelo comportamento em jogo, não pelo agente. Os dois só aparecem a partir de 60 rounds.
       </PageBand>
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
         <PlayerTable players={players} />
