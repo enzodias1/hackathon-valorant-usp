@@ -60,10 +60,13 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 As posições existem só nos instantes de kill, plant e desarme; o primeiro registro do round sai, em mediana, aos 15,7 s (metade dos
 rounds entre 8,5 s e 26,9 s). Entre os registros, cada jogador anda pelo **chão do mapa** (grade de ~0,7 m tirada do minimapa oficial,
 em que as linhas brancas finas são paredes; 99,97% das posições registradas ficam no chão ou a até 1,4 m dele) pelo caminho mais curto
-(A*), no ritmo de corrida, e espera no destino.
+(A*), no ritmo de corrida: no meio do round o jogador **segura a posição e se move a tempo de chegar** no próximo registro (o time
+segura ângulo e rotaciona/executa perto da hora); no começo do round, sai do spawn assim que a barreira cai.
 No começo do round, sai do spawn do seu lado. Se o caminho exigir mais de 7,5 m/s (correndo não passa de ~6,75 m/s), o trecho é um
 **salto** (habilidade de movimento ou teleporte): o jogador some e reaparece, com o trajeto tracejado (↯). Isso ocorre em 0,9% dos
-trechos e se concentra em Iso (6,3%: arena da ultimate), Neon, Yoru, Waylay, Jett, Chamber e Omen; em agentes sem mobilidade fica em ~0,2%.
+trechos e se concentra em Iso (6,6%: arena da ultimate), Neon, Yoru, Waylay, Chamber, Jett e Omen; em agentes sem mobilidade fica em ~0,3%.
+Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela velocidade. Para esses casos há **anotações da equipe**
+(`data/meta/replay_notes.json`, com o motivo), mostradas no replay como "anotação da equipe", separadas do que vem dos dados.
 
 ## Decisões de métrica (validadas com os dados)
 - **Probabilidade de vitória do round:** gradient boosting com validação cruzada por partida (AUC 0,888; erro de calibração 1,3%).

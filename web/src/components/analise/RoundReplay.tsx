@@ -5,7 +5,7 @@
 // rápidos demais para correr viram "salto" (habilidade de movimento ou teleporte). Junto vêm a chance de vitória ao vivo,
 // a sequência do round com o impacto de cada jogada e, em cada morte, a distância do aliado mais próximo.
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import type { Color, MapTransform, Match, MatchPlayer, Round, RoundEvent } from "@/lib/types";
+import type { Color, MapTransform, Match, MatchPlayer, ReplayNote, Round, RoundEvent } from "@/lib/types";
 import { clock, nick, pct, pp } from "@/lib/format";
 import { roundEndMs, SPIKE_TIMER_MS, toMinimap, type UV } from "@/lib/minimap";
 import { decodeNavGrid, findPath, type NavGrid, type NavGridRaw } from "@/lib/navgrid";
@@ -23,15 +23,18 @@ const R = 0.019; // raio do ícone do jogador, em fração do mapa
 
 type Sample = { t: number; x: number; y: number; view: number | null };
 /**
- * Trecho entre dois registros. walk: anda pelos corredores no ritmo de corrida e espera no destino (ou, se não der
- * tempo, anda mais rápido até chegar na hora). jump: rápido demais para correr (habilidade de movimento, teleporte):
- * fica no ponto de partida e reaparece no destino no meio do intervalo, com o trajeto tracejado na tela.
+ * Trecho entre dois registros. walk: segura a posição e anda pelos corredores no ritmo de corrida a tempo de chegar no
+ * próximo registro (no meio do round o time segura ângulo e só rotaciona/executa perto da hora); saindo do spawn é o
+ * contrário: sai na queda da barreira e espera no destino. jump: rápido demais para correr (habilidade de movimento,
+ * teleporte) ou anotado pela equipe: fica no ponto de partida e reaparece no destino no meio do intervalo, com o trajeto
+ * tracejado na tela.
  */
 type Leg = {
   t0: number; t1: number; kind: "walk" | "jump";
   pts: UV[]; cum: number[]; len: number; // caminho (uv) e comprimento acumulado
-  start: number; arrive: number; // walk: distância já percorrida em t0 (spawn) e instante de chegada
+  start: number; depart: number; arrive: number; // walk: distância já percorrida ao sair (spawn), quando sai e quando chega
   view0: number | null; view1: number | null; // mira registrada (radianos, eixos do jogo)
+  note?: ReplayNote; // anotação da equipe sobre este trecho
 };
 type Track = { p: MatchPlayer; samples: Sample[]; legs: Leg[]; deathT: number | null; deathXY: [number, number] | null };
 type Pose = { at: UV; dir: number | null }; // dir: ângulo na tela, em radianos
@@ -47,7 +50,10 @@ function makeLeg(t0: number, t1: number, pts: UV[], view0: number | null, view1:
   for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i].u - pts[i - 1].u, pts[i].v - pts[i - 1].v));
   const len = cum[cum.length - 1];
   const runMs = ((len * mPerUv) / RUN_MPS) * 1000;
-  const leg: Leg = { t0, t1, kind: "walk", pts, cum, len, start: 0, arrive: t0 + Math.min(runMs, t1 - t0), view0, view1 };
+  const move = Math.min(runMs, t1 - t0); // se não dá tempo no ritmo de corrida, anda mais rápido (até o limite do salto)
+  const leg: Leg = fromSpawn
+    ? { t0, t1, kind: "walk", pts, cum, len, start: 0, depart: t0, arrive: t0 + move, view0, view1 }
+    : { t0, t1, kind: "walk", pts, cum, len, start: 0, depart: t1 - move, arrive: t1, view0, view1 };
   if (fromSpawn && runMs > t1 - t0) leg.start = len * (1 - (t1 - t0) / runMs); // na queda da barreira já estava adiantado no spawn
   else if (!fromSpawn && (len * mPerUv) / Math.max((t1 - t0) / 1000, 0.001) > JUMP_MPS) leg.kind = "jump";
   return leg;
@@ -86,6 +92,15 @@ function buildTracks(match: Match, round: Round, nav: NavGrid | null): Track[] {
       const leg = makeLeg(a.t, b.t, pts ?? [at(a), at(b)], a.view, b.view, mPerUv, false);
       if (!pts) leg.kind = "jump"; // um dos pontos fora do chão (ex.: arena da ultimate da Iso)
       tr.legs.push(leg);
+    }
+  }
+  // anotações da equipe: o trecho vira salto, com o rótulo da anotação
+  for (const nt of round.notes ?? []) {
+    for (const leg of tracks[nt.player]?.legs ?? []) {
+      if (leg.t0 >= nt.from - 600 && leg.t1 <= nt.to + 600) {
+        leg.kind = "jump";
+        leg.note = nt;
+      }
     }
   }
   return tracks;
@@ -133,10 +148,10 @@ function poseAt(tr: Track, t: number, smooth: boolean, tf: MapTransform): Pose |
     const second = t >= (leg.t0 + leg.t1) / 2;
     return { at: second ? leg.pts[leg.pts.length - 1] : leg.pts[0], dir: second ? v1 ?? v0 : v0 };
   }
+  if (t < leg.depart) return { at: leg.pts[0], dir: v0 ?? along(leg, 0).dir }; // ainda segurando a posição
   if (t >= leg.arrive) return { at: leg.pts[leg.pts.length - 1], dir: v1 ?? along(leg, leg.len).dir }; // chegou: espera mirando
-  const f = (t - leg.t0) / Math.max(leg.arrive - leg.t0, 1);
-  const pose = along(leg, leg.start + (leg.len - leg.start) * f); // andando: olha para onde vai
-  return t - leg.t0 < 250 && v0 !== null ? { ...pose, dir: v0 } : pose;
+  const f = (t - leg.depart) / Math.max(leg.arrive - leg.depart, 1);
+  return along(leg, leg.start + (leg.len - leg.start) * f); // andando: olha para onde vai
 }
 
 /** Chance de vitória do time vermelho no instante t: salto em cada evento e, entre eles, só o relógio (rampa). */
@@ -376,6 +391,13 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
                       vectorEffect="non-scaling-stroke" />
                 <text x={(a.u + b.u) / 2} y={(a.v + b.v) / 2} textAnchor="middle" dominantBaseline="middle" fontSize={0.03} fill="var(--lime)"
                       stroke="#0b0918" strokeWidth={0.006} paintOrder="stroke">↯</text>
+                {l.note && (
+                  <text x={(a.u + b.u) / 2} y={(a.v + b.v) / 2 + 0.032} textAnchor="middle" fontSize={0.017} fontWeight={700} fill="var(--lime)"
+                        stroke="#0b0918" strokeWidth={0.005} paintOrder="stroke">
+                    <title>{`${l.note.why} (${l.note.by})`}</title>
+                    {l.note.label} · anotação da equipe
+                  </text>
+                )}
               </g>
             );
           })}
@@ -393,9 +415,9 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
             <input type="checkbox" checked={smooth} onChange={(e) => setSmooth(e.target.checked)} className="mt-0.5 accent-[var(--brand-2)]" />
             <span>
               Movimento estimado. A Riot registra a posição e a mira de todos a cada kill, plant e desarme. Entre esses instantes, cada
-              jogador sai do spawn e anda pelos corredores até o próximo registro; <b className="text-lime">↯</b> marca um deslocamento rápido
-              demais para correr (habilidade de movimento ou teleporte, como a ultimate do Omen). Desmarque para ver só os instantes
-              registrados. O uso de utilitárias não vem nos dados; kills por habilidade, sim, com o ícone da habilidade.
+              jogador segura a posição e anda pelos corredores a tempo de chegar no próximo registro (no começo, sai do spawn assim que a
+              barreira cai); <b className="text-lime">↯</b> marca um deslocamento rápido demais para correr (habilidade de movimento ou
+              teleporte) ou uma <b className="text-lime">anotação da equipe</b>. Desmarque para ver só os instantes registrados. O uso de utilitárias não vem nos dados; kills por habilidade, sim, com o ícone da habilidade.
               Clique num jogador (no mapa ou no elenco) para ver o caminho dele. Atalhos: espaço toca ou pausa; ← → pulam de jogada.
             </span>
           </label>

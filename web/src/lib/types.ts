@@ -120,7 +120,11 @@ export interface Round {
   events: RoundEvent[];
   /** alinhado com match.players */
   gear?: (GearEntry | null)[];
+  /** anotações da equipe (data/meta/replay_notes.json): o que os dados não mostram, como um teleporte de ultimate */
+  notes?: ReplayNote[];
 }
+
+export interface ReplayNote { player: number; from: number; to: number; kind: "teleport"; label: string; why: string; by: string }
 
 export interface MapTransform {
   xMultiplier: number;

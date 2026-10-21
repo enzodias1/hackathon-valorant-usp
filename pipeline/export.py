@@ -23,6 +23,8 @@ P = ROOT / "data" / "processed"
 OUT = ROOT / "web" / "public" / "data"
 LOOKUP = json.loads((ROOT / "data" / "meta" / "lookup.json").read_text(encoding="utf-8"))
 SHEET = ROOT / "para_equipe" / "nomes_dos_times.xlsx"
+# team annotations on the replay (things the data cannot show, e.g. an ultimate teleport inside a long gap); always labeled as such
+NOTES = json.loads((ROOT / "data" / "meta" / "replay_notes.json").read_text(encoding="utf-8"))
 AXES = ["Entry", "Support", "Lurker", "Clutch", "Impacto"]
 PERCENTILE_COLS = ["kd", "kpr", "adr", "acs", "kast", "hs_pct", "wpa_per_round", "opening_rate", "clutch_rate"]
 # finishingDamage.damageItem of ability kills (lowercased in kills.weapon_id) -> slot in the agent metadata
@@ -138,6 +140,12 @@ def export_matches(t, names):
                   for k, g in pos_by[mid].groupby(["round_num", "event", "event_idx"])}
         gear = gear_by[mid]
         used_weapons = set()
+        pname = {p["name"]: i for i, p in enumerate(players)}
+        notes = {}
+        for nt in NOTES:
+            if nt["match_id"] == mid and nt["player"] in pname:
+                notes.setdefault(nt["round"], []).append({"player": pname[nt["player"]], "from": nt["from_ms"], "to": nt["to_ms"],
+                                                          "kind": nt["kind"], "label": nt["label"], "why": nt["why"], "by": nt["by"]})
         rounds = []
         for r in rd_by[mid].sort_values("round_num").itertuples(index=False):
             key = (mid, r.round_num)
@@ -173,7 +181,7 @@ def export_matches(t, names):
                 "wp_red_start": to_red(p0[key]),
                 "plant": {"t": r.plant_time_ms, "site": r.plant_site, "by": r.planter, "xy": [r.plant_x, r.plant_y]} if r.planted else None,
                 "defuse": {"t": r.defuse_time_ms, "by": r.defuser} if r.defused else None,
-                "anomalous": bool(r.anomalous), "events": events, "gear": round_gear,
+                "anomalous": bool(r.anomalous), "events": events, "gear": round_gear, "notes": notes.get(r.round_num + 1, []),
             })
         teams = {c: {"slug": s, **names.get(s, {"name": s, "tag": s})} for c, s in (("Red", mt.team_red), ("Blue", mt.team_blue))}
         doc = {

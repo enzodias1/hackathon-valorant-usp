@@ -139,6 +139,8 @@ Referências da liga inteira (taxas médias dos times, vitória por tipo de comp
       "defuse": { "t": 80000, "by": "<puuid>" } | null,
       "anomalous": false,            // round com erro na base (ignorar nas análises)
       "gear": [ ["Vandal", "Armadura Pesada", 3900], null, ... ],   // por jogador, na ordem de `players`: arma, colete, valor do equipamento
+      "notes": [ { "player": 6, "from": 54316, "to": 85749, "kind": "teleport", "label": "Ultimate do Omen", "why": "...", "by": "equipe" } ],
+                                     // anotações da equipe (data/meta/replay_notes.json): o que os dados não mostram
       "events": [ {
           "t": 21227,                // ms desde o início do round (fim da fase de compra)
           "type": "kill | plant | defuse",
