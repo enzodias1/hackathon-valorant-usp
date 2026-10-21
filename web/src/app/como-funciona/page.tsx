@@ -41,7 +41,9 @@ export default async function HowToUsePage() {
     { q: "Que papel cada um realmente exerce em jogo?", where: "Jogador › Perfil de jogo", href: `${pl}#perfil` },
     { q: "Contra quem e contra quais agentes o jogador mais ganha e perde duelos?", where: "Jogador › Duelos", href: `${pl}#duelos` },
     { q: "Em que momento do round o jogador costuma morrer?", where: "Jogador › Quando morre", href: `${pl}#quando-morre` },
-    { q: "Como foi aquele round, kill por kill?", where: "Partida › replay no minimapa", href: `/partidas/${match.id}` },
+    { q: "O jogador usa as habilidades mais ou menos que a média do agente?", where: "Jogador › Habilidades", href: `${pl}#habilidades` },
+    { q: "Como foi aquele round, kill por kill? O que decidiu?", where: "Partida › replay do round", href: `/partidas/${match.id}` },
+    { q: "Como foram os últimos confrontos contra o próximo adversário?", where: "Comparar › histórico", href: `/comparar?a=${team.slug}` },
   ];
 
   const terms: [string, React.ReactNode][] = [

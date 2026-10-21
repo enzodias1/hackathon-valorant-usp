@@ -37,6 +37,9 @@ MIN_DUELS_AGENT = 10  # duels against an enemy agent to compare it
 DEATH_BINS = [0, 15, 30, 45, 60, 75, 90, 1000]  # seconds since the barrier dropped
 EARLY_DEATH_S = 20
 MIN_DEATHS_TIMING = 25
+# abilities used (totals per match from the Riot data; there is no per-moment usage): per round (C, Q, E) and ultimates per map
+CAST_SLOTS = {"C": ("casts_c", "Grenade"), "Q": ("casts_q", "Ability1"), "E": ("casts_e", "Ability2")}
+MIN_MAPS_ABILITIES = 2
 
 
 def team_names():
@@ -137,6 +140,7 @@ def export_matches(t, names):
             players.append({
                 "puuid": p.puuid, "name": p.name, "color": p.team_color, "agent": p.agent, "agent_icon": a.get("icon"),
                 "minimap_icon": a.get("minimap_icon"), "role": p.role,
+                "casts": [int(p.casts_c), int(p.casts_q), int(p.casts_e), int(p.casts_x)],  # C, Q, E, ultimate in this match
                 "kills": p.kills, "deaths": p.deaths, "assists": p.assists, "acs": p.score / max(p.rounds, 1),
                 "adr": adr.get((mid, p.puuid)), "wpa": t["wpa_pm"].get((mid, p.puuid), 0.0),
             })
@@ -473,6 +477,28 @@ def export_players(t, names):
     role_median = dth_t.groupby("role").s.median().to_dict()
     dth_t_by = {k: g for k, g in dth_t.groupby("victim")}
 
+    by_agent_casts = pm.groupby("agent").agg(maps=("match_id", "count"), rounds=("rounds", "sum"), casts_c=("casts_c", "sum"),
+                                             casts_q=("casts_q", "sum"), casts_e=("casts_e", "sum"), casts_x=("casts_x", "sum"))
+
+    def abilities_of(g):
+        """Per agent played on 2+ maps: uses of each ability per round and ultimates per map, vs. the league on the same agent."""
+        out = []
+        for ag, ga in g.groupby("agent"):
+            if len(ga) < MIN_MAPS_ABILITIES or ag not in by_agent_casts.index:
+                continue
+            meta = t["agents_by_name"].get(ag, {}).get("abilities", {})
+            lg = by_agent_casts.loc[ag]
+            r_ = ga.rounds.sum()
+            out.append({
+                "agent": ag, "icon": t["agents_by_name"].get(ag, {}).get("icon"), "maps": len(ga), "rounds": int(r_),
+                "slots": [{"key": k, "name": meta.get(slot, {}).get("name"), "icon": meta.get(slot, {}).get("icon"),
+                           "per_round": ga[col].sum() / max(r_, 1), "league": lg[col] / max(lg.rounds, 1)} for k, (col, slot) in CAST_SLOTS.items()],
+                "ult": {"name": meta.get("Ultimate", {}).get("name"), "icon": meta.get("Ultimate", {}).get("icon"), "total": int(ga.casts_x.sum()),
+                        "per_map": ga.casts_x.sum() / len(ga), "league": lg.casts_x / max(lg.maps, 1)},
+            })
+        out.sort(key=lambda x: -x["maps"])
+        return out
+
     def duels_of(puuid):
         w_, l_ = won_by.get(puuid), lost_by.get(puuid)
         kc = w_.victim.value_counts() if w_ is not None else pd.Series(dtype=int)
@@ -647,7 +673,7 @@ def export_players(t, names):
                      "axes": {a: p[f"axis_{a}"] for a in AXES} if p.role_eligible else None},
             "comparisons": comps, "insights": ins,
             "agents": agents, "maps": maps, "matches": matches, "best_plays": best, "costliest_deaths": worst, "partners": partners,
-            "duels": duels_of(puuid), "death_timing": death_timing_of(puuid),
+            "duels": duels_of(puuid), "death_timing": death_timing_of(puuid), "abilities": abilities_of(g_pm),
             "stages": [{"etapa": r.etapa, "team": r.team, "rounds": int(r.rounds), "wpa_per_round": r.wpa_per_round,
                         "kd": r.kills / max(r.deaths, 1)}
                        for r in t["player_stage"][t["player_stage"].puuid == puuid].sort_values("etapa_idx").itertuples(index=False)],

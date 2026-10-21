@@ -86,7 +86,11 @@ No código, carregue com `fetch("/data/index.json")` e `fetch(\`/data/matches/${
   // quando morre no round (s desde a queda da barreira); referência = liga na mesma mistura de funções; null com < 25 mortes
   "death_timing": { "n", "early_s": 20, "roles": { "Duelista": 41 }, "median", "league_median", "early", "league_early",
                     "bins": [ { "from": 0, "to": 15, "share", "league" } ],
-                    "by_agent": [ { "agent", "role", "n", "median", "early", "league_median", "league_early" } ] } | null
+                    "by_agent": [ { "agent", "role", "n", "median", "early", "league_median", "league_early" } ] } | null,
+  // habilidades por agente jogado em 2+ mapas: usos por round (C, Q, E) e ultimates por mapa, vs. a média da liga no mesmo agente
+  "abilities": [ { "agent", "icon", "maps", "rounds",
+                   "slots": [ { "key": "C", "name", "icon", "per_round", "league" } ],
+                   "ult": { "name", "icon", "total", "per_map", "league" } } ]
 }
 ```
 
@@ -133,6 +137,7 @@ Referências da liga inteira (taxas médias dos times, vitória por tipo de comp
   "score": { "Red": 13, "Blue": 2 }, "winner": "Red",
   "players": [ { "puuid", "name": "Nick#TAG", "color": "Red", "agent": "Jett", "agent_icon": "<url>",
                  "minimap_icon": "<url>",   // ícone redondo do agente no minimapa do jogo (replay)
+                 "casts": [C, Q, E, X],     // usos de cada habilidade na partida (a Riot não diz em que momento)
                  "role": "Duelista",
                  "kills", "deaths", "assists", "acs", "adr",
                  "wpa" } ],          // impacto total na partida, em pontos percentuais de prob. de vitória

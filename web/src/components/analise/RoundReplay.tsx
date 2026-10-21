@@ -6,7 +6,8 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Color, Match, MatchPlayer, Round, RoundEvent } from "@/lib/types";
 import { clock, nick, pct, pp } from "@/lib/format";
 import { roundEndMs, SPIKE_TIMER_MS, toMinimap, type UV } from "@/lib/minimap";
-import { decodeNavGrid, type NavGrid, type NavGridRaw } from "@/lib/navgrid";
+import { decodeNavGrid, lineOfSight, type NavGrid, type NavGridRaw } from "@/lib/navgrid";
+import { roundStory } from "@/lib/roundStory";
 import { buildTracks, isDead, nearestAlly, poseAt, wpAt, type Pose, type Track } from "@/lib/replay";
 import MinimapBase from "@/components/MinimapBase";
 
@@ -19,6 +20,7 @@ const SWING_MS = 2500; // e o "+X pp" da última jogada ao lado da chance de vit
 const CONE_HALF = (28 * Math.PI) / 180;
 const CONE_LEN = 0.075;
 const R = 0.019; // raio do ícone do jogador, em fração do mapa
+const SPOT_RANGE_M = 45; // "quem podia trocar": aliado com visão de quem matou até essa distância
 
 export default function RoundReplay({ match, round, initialT, nav }: { match: Match; round: Round; initialT?: number; nav?: NavGridRaw | null }) {
   const grid = useMemo(() => (nav ? decodeNavGrid(nav) : null), [nav]);
@@ -46,6 +48,14 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
   const [smooth, setSmooth] = useState(true);
   const [focus, setFocus] = useState<number | null>(null); // jogador selecionado (índice em match.players): mostra o caminho dele
   const [copied, setCopied] = useState(false);
+  const [full, setFull] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const story = useMemo(() => roundStory(match, round), [match, round]);
+  useEffect(() => {
+    const onChange = () => setFull(document.fullscreenElement === rootRef.current);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
   const clipId = `replay-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const listRef = useRef<HTMLOListElement>(null);
 
@@ -98,12 +108,19 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
   const registered = lastReg !== undefined && t - lastReg < 400;
 
   const eventTimes = round.events.map((e) => e.t);
+  const toggleFull = () => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void rootRef.current?.requestFullscreen();
+  };
   const onKey = (ev: React.KeyboardEvent) => {
     if (ev.target instanceof HTMLInputElement) return; // o slider cuida das próprias setas
     if (ev.key === " " && ev.target instanceof HTMLButtonElement) return; // espaço num botão já é o clique dele
     if (ev.key === " ") {
       ev.preventDefault();
       togglePlay();
+    } else if (ev.key === "f" || ev.key === "F") {
+      ev.preventDefault();
+      toggleFull();
     } else if (ev.key === "ArrowRight" || ev.key === "ArrowLeft") {
       ev.preventDefault();
       const to = ev.key === "ArrowRight" ? eventTimes.find((x) => x > t + 50) : eventTimes.filter((x) => x < t - 50).pop();
@@ -145,14 +162,39 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
   const focusVictim = focusEvent?.victim ? byId.get(focusEvent.victim) : undefined;
   const ally = focusEvent && focusVictim ? nearestAlly(focusEvent, match, focusVictim) : null;
   const focusAt = focusEvent?.victim_xy ? toMinimap(focusEvent.victim_xy, tf) : null;
+  // quem podia trocar: aliados de quem morreu com visão de quem matou (paredes bloqueiam; smokes não vêm nos dados)
+  const killerAt = focusEvent?.killer_xy ? toMinimap(focusEvent.killer_xy, tf) : null;
+  const spotters = focusEvent?.killer_xy && focusVictim && killerAt && nav
+    ? (focusEvent.pos ?? [])
+        .filter(([i, x, y]) => {
+          const q = match.players[i];
+          return q && q.color === focusVictim.color && q.puuid !== focusVictim.puuid
+            && Math.hypot(x - focusEvent.killer_xy![0], y - focusEvent.killer_xy![1]) / 100 <= SPOT_RANGE_M
+            && lineOfSight(nav, toMinimap([x, y], tf), killerAt);
+        })
+        .map(([, x, y]) => toMinimap([x, y], tf))
+    : null;
   const swing = cur >= 0 && !round.events[cur].after_round_end && t - round.events[cur].t < SWING_MS ? round.events[cur] : null;
   const planted = round.plant && t >= round.plant.t ? round.plant : null;
   const spikeLeft = planted && !(round.defuse && t >= round.defuse.t) ? planted.t + SPIKE_TIMER_MS - t : null;
 
   return (
-    <div className="space-y-5 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-lime/40" tabIndex={0} onKeyDown={onKey}
-         aria-label={`Replay do round ${round.n}. Atalhos: espaço toca ou pausa; setas pulam para a jogada anterior ou a próxima.`}>
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div ref={rootRef} tabIndex={0} onKeyDown={onKey}
+         className={`space-y-5 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-lime/40 ${full ? "h-screen overflow-auto bg-bg p-6" : ""}`}
+         aria-label={`Replay do round ${round.n}. Atalhos: espaço toca ou pausa; setas pulam de jogada; F, tela cheia.`}>
+      {full && (
+        <p className="label-caps text-[11px] text-ink-2">
+          <span className="font-display mr-2 text-xl normal-case text-ink">Round {round.n}</span>
+          {match.teams.Red.name} × {match.teams.Blue.name} · {match.map.name}
+        </p>
+      )}
+      {story.length > 0 && (
+        <div className="rounded-xl border border-lime/25 bg-lime/[0.06] px-4 py-3">
+          <span className="label-caps text-[10px] text-lime">O que decidiu o round</span>
+          <p className="mt-1 text-sm leading-relaxed text-ink">{story.join(" ")}</p>
+        </div>
+      )}
+      <div className={`grid gap-5 ${full ? "grid-cols-[minmax(0,calc(100vh-22rem))_24rem] justify-center" : "lg:grid-cols-[minmax(0,1fr)_22rem]"}`}>
         <div className="min-w-0 space-y-3">
           <WinBar match={match} wp={wp} swing={swing} byId={byId} />
 
@@ -171,7 +213,9 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
                       : `◌ posições estimadas${nextReg !== undefined ? ` · próximo registro ${clock(nextReg)}` : ""}`}
                   </span>
                 </div>
-                {focusEvent && focusVictim && focusAt && <FocusLabel at={ally ? mid(focusAt, ally.at) : focusAt} e={focusEvent} meters={ally?.m ?? null} />}
+                {focusEvent && focusVictim && focusAt && (
+                  <FocusLabel at={ally ? mid(focusAt, ally.at) : focusAt} e={focusEvent} meters={ally?.m ?? null} spotters={spotters?.length ?? null} />
+                )}
                 {t === 0 && !playing && (
                   <button type="button" onClick={togglePlay}
                           className="label-caps absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-lime px-6 py-3.5 text-[12px] text-bg shadow-xl [clip-path:polygon(0_0,calc(100%-10px)_0,100%_10px,100%_100%,0_100%)] hover:opacity-90">
@@ -217,47 +261,55 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
                     strokeWidth={1.5} strokeDasharray="4 4" strokeOpacity={0.9} vectorEffect="non-scaling-stroke" />
             )}
 
+            {/* quem podia trocar: linha de cada aliado com visão até quem matou */}
+            {killerAt && focusVictim && spotters?.map((a, i) => (
+              <line key={`v${i}`} x1={a.u} y1={a.v} x2={killerAt.u} y2={killerAt.v} stroke={TEAM_VAR[focusVictim.color]} strokeWidth={1.5}
+                    strokeDasharray="2 4" strokeLinecap="round" strokeOpacity={0.9} vectorEffect="non-scaling-stroke" />
+            ))}
+
             {trail && trail.length > 1 && focus !== null && (
-            <polyline points={trail.map((q) => `${q.u},${q.v}`).join(" ")} fill="none" stroke={TEAM_VAR[match.players[focus].color]} strokeWidth={2.5}
-                      strokeOpacity={0.75} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-          )}
+              <polyline points={trail.map((q) => `${q.u},${q.v}`).join(" ")} fill="none" stroke={TEAM_VAR[match.players[focus].color]} strokeWidth={2.5}
+                        strokeOpacity={0.75} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            )}
 
-          {jumps.map((l, i) => {
-            const a = l.pts[0], b = l.pts[l.pts.length - 1];
-            return (
-              <g key={`j${i}`}>
-                <line x1={a.u} y1={a.v} x2={b.u} y2={b.v} stroke="var(--lime)" strokeWidth={1.5} strokeDasharray="1 5" strokeLinecap="round"
-                      vectorEffect="non-scaling-stroke" />
-                <text x={(a.u + b.u) / 2} y={(a.v + b.v) / 2} textAnchor="middle" dominantBaseline="middle" fontSize={0.03} fill="var(--lime)"
-                      stroke="#0b0918" strokeWidth={0.006} paintOrder="stroke">↯</text>
-                {l.note && (
-                  <text x={(a.u + b.u) / 2} y={(a.v + b.v) / 2 + 0.032} textAnchor="middle" fontSize={0.017} fontWeight={700} fill="var(--lime)"
-                        stroke="#0b0918" strokeWidth={0.005} paintOrder="stroke">
-                    <title>{`${l.note.why} (${l.note.by})`}</title>
-                    {l.note.label} · anotação da equipe
-                  </text>
-                )}
-              </g>
-            );
-          })}
+            {jumps.map((l, i) => {
+              const a = l.pts[0], b = l.pts[l.pts.length - 1];
+              return (
+                <g key={`j${i}`}>
+                  <line x1={a.u} y1={a.v} x2={b.u} y2={b.v} stroke="var(--lime)" strokeWidth={1.5} strokeDasharray="1 5" strokeLinecap="round"
+                        vectorEffect="non-scaling-stroke" />
+                  <text x={(a.u + b.u) / 2} y={(a.v + b.v) / 2} textAnchor="middle" dominantBaseline="middle" fontSize={0.03} fill="var(--lime)"
+                        stroke="#0b0918" strokeWidth={0.006} paintOrder="stroke">↯</text>
+                  {l.note && (
+                    <text x={(a.u + b.u) / 2} y={(a.v + b.v) / 2 + 0.032} textAnchor="middle" fontSize={0.017} fontWeight={700} fill="var(--lime)"
+                          stroke="#0b0918" strokeWidth={0.005} paintOrder="stroke">
+                      <title>{`${l.note.why} (${l.note.by})`}</title>
+                      {l.note.label} · anotação da equipe
+                    </text>
+                  )}
+                </g>
+              );
+            })}
 
-          {poses.map(({ dead, pose }, i) => (!dead && pose?.dir != null ? <Cone key={`c${i}`} pose={pose} fill={`url(#${clipId}-g${i})`} /> : null))}
+            {poses.map(({ dead, pose }, i) => (!dead && pose?.dir != null ? <Cone key={`c${i}`} pose={pose} fill={`url(#${clipId}-g${i})`} /> : null))}
             {poses.map(({ tr, dead, pose }, i) =>
-            !dead && pose ? <Token key={`p${i}`} p={tr.p} at={pose.at} clip={clipId} selected={focus === i} onPick={() => pick(i)} /> : null,
-          )}
+              !dead && pose ? <Token key={`p${i}`} p={tr.p} at={pose.at} clip={clipId} selected={focus === i} onPick={() => pick(i)} /> : null,
+            )}
           </MinimapBase>
 
           <Controls t={t} maxT={maxT} end={end} playing={playing} speed={speed} events={round.events} byId={byId}
-                    onToggle={togglePlay} onSeek={seek} onSpeed={setSpeed} onCopy={copyLink} copied={copied} />
+                    onToggle={togglePlay} onSeek={seek} onSpeed={setSpeed} onCopy={copyLink} copied={copied} onFull={toggleFull} full={full} />
 
-          <label className="flex items-start gap-2 text-xs text-muted">
+          <label className={`flex items-start gap-2 text-xs text-muted ${full ? "hidden" : ""}`}>
             <input type="checkbox" checked={smooth} onChange={(e) => setSmooth(e.target.checked)} className="mt-0.5 accent-[var(--brand-2)]" />
             <span>
               Movimento estimado. A Riot registra a posição e a mira de todos a cada kill, plant e desarme. Entre esses instantes, cada
               jogador segura a posição e anda pelos corredores a tempo de chegar no próximo registro (no começo, sai do spawn assim que a
               barreira cai); <b className="text-lime">↯</b> marca um deslocamento rápido demais para correr (habilidade de movimento ou
               teleporte) ou uma <b className="text-lime">anotação da equipe</b>. Desmarque para ver só os instantes registrados. O uso de utilitárias não vem nos dados; kills por habilidade, sim, com o ícone da habilidade.
-              Clique num jogador (no mapa ou no elenco) para ver o caminho dele. Atalhos: espaço toca ou pausa; ← → pulam de jogada.
+              Em cada morte, as linhas pontilhadas ligam quem matou aos aliados de quem morreu que tinham visão dele (paredes bloqueiam;
+              smokes não vêm nos dados). Clique num jogador (no mapa ou no elenco) para ver o caminho dele. Atalhos: espaço toca ou pausa;
+              ← → pulam de jogada; F, tela cheia.
             </span>
           </label>
         </div>
@@ -278,7 +330,7 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
           </div>
         </div>
       </div>
-      <Rosters match={match} round={round} poses={poses} t={t} focus={focus} onPick={pick} />
+      {!full && <Rosters match={match} round={round} poses={poses} t={t} focus={focus} onPick={pick} />}
     </div>
   );
 }
@@ -369,7 +421,7 @@ function Spike({ at, live }: { at: UV; live: boolean }) {
   );
 }
 
-function FocusLabel({ at, e, meters }: { at: UV; e: RoundEvent; meters: number | null }) {
+function FocusLabel({ at, e, meters, spotters }: { at: UV; e: RoundEvent; meters: number | null; spotters: number | null }) {
   const isolated = meters !== null && meters > ISOLATED_M;
   const x = at.u < 0.2 ? "-10%" : at.u > 0.8 ? "-90%" : "-50%";
   return (
@@ -377,13 +429,19 @@ function FocusLabel({ at, e, meters }: { at: UV; e: RoundEvent; meters: number |
          style={{ left: `${at.u * 100}%`, top: `${at.v * 100}%`, transform: `translate(${x}, calc(-100% - 10px))` }}>
       {meters === null ? "sem aliados vivos" : <>aliado mais perto a <b>{Math.round(meters)} m</b>{isolated && <b className="text-lime"> · isolado</b>}</>}
       <span className={e.traded ? "text-good" : "text-ink-2"}>{e.traded ? " · vingado" : " · não vingado"}</span>
+      {spotters !== null && (
+        <span className="block text-ink-2">
+          {spotters === 0 ? "nenhum aliado via quem matou" : `${spotters} ${spotters === 1 ? "aliado via" : "aliados viam"} quem matou`}
+        </span>
+      )}
     </div>
   );
 }
 
-function Controls({ t, maxT, end, playing, speed, events, byId, onToggle, onSeek, onSpeed, onCopy, copied }: {
+function Controls({ t, maxT, end, playing, speed, events, byId, onToggle, onSeek, onSpeed, onCopy, copied, onFull, full }: {
   t: number; maxT: number; end: number; playing: boolean; speed: number; events: RoundEvent[]; byId: Map<string, MatchPlayer>;
   onToggle: () => void; onSeek: (ms: number) => void; onSpeed: (s: number) => void; onCopy: () => void; copied: boolean;
+  onFull: () => void; full: boolean;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -418,6 +476,10 @@ function Controls({ t, maxT, end, playing, speed, events, byId, onToggle, onSeek
       <button type="button" onClick={onCopy} title="Copia o link deste instante do round (para mandar ao time)"
               className={`label-caps shrink-0 rounded-md border px-2.5 py-1.5 text-[10px] transition-colors ${copied ? "border-lime text-lime" : "border-line text-ink-2 hover:border-ink-2 hover:text-ink"}`}>
         {copied ? "Link copiado ✓" : "Copiar link do momento"}
+      </button>
+      <button type="button" onClick={onFull} title={full ? "Sair da tela cheia (Esc)" : "Tela cheia (F): bom para apresentar e gravar"}
+              className="label-caps shrink-0 rounded-md border border-line px-2.5 py-1.5 text-[10px] text-ink-2 transition-colors hover:border-ink-2 hover:text-ink">
+        {full ? "Sair da tela cheia" : "⛶ Tela cheia"}
       </button>
     </div>
   );

@@ -80,7 +80,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             <Section key={c} title={match.teams[c].name} subtitle={c === match.winner ? "Vencedor" : "Derrota"}>
               <div className="overflow-x-auto">
                 <table className="w-full sm:min-w-[480px]">
-                  <thead><tr><Th>Jogador</Th><Th right>K / D / A</Th><Th right className="hidden sm:table-cell">ACS</Th><Th right className="hidden sm:table-cell">ADR</Th><Th>Impacto</Th></tr></thead>
+                  <thead><tr><Th>Jogador</Th><Th right>K / D / A</Th><Th right className="hidden sm:table-cell">ACS</Th><Th right className="hidden sm:table-cell">ADR</Th><Th right className="hidden sm:table-cell"><span title="ultimates usadas na partida">Ult.</span></Th><Th>Impacto</Th></tr></thead>
                   <tbody>
                     {match.players.filter((p) => p.color === c).sort((a, b) => b.wpa - a.wpa).map((p) => (
                       <tr key={p.puuid}>
@@ -93,6 +93,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                         <Td right className="whitespace-nowrap">{p.kills} / {p.deaths} / {p.assists}</Td>
                         <Td right className="hidden sm:table-cell">{num(p.acs)}</Td>
                         <Td right className="hidden sm:table-cell">{num(p.adr)}</Td>
+                        <Td right className="hidden sm:table-cell">{p.casts ? p.casts[3] : "—"}</Td>
                         <Td><WpaBar value={p.wpa} max={maxWpa} digits={0} /></Td>
                       </tr>
                     ))}

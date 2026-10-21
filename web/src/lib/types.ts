@@ -65,6 +65,8 @@ export interface MatchPlayer {
   agent_icon: string | null;
   /** ícone redondo do agente usado no minimapa do jogo (replay) */
   minimap_icon?: string | null;
+  /** usos de cada habilidade na partida: [C, Q, E, ultimate] (a Riot não diz em que momento) */
+  casts?: [number, number, number, number];
   role: AgentRole;
   kills: number;
   deaths: number;
@@ -370,6 +372,17 @@ export interface Player {
   duels: PlayerDuels;
   /** null com menos de 25 mortes */
   death_timing: DeathTiming | null;
+  /** por agente jogado em 2+ mapas; referência = média da liga no mesmo agente */
+  abilities: PlayerAbilities[];
+}
+
+export interface PlayerAbilities {
+  agent: string;
+  icon: string | null;
+  maps: number;
+  rounds: number;
+  slots: { key: "C" | "Q" | "E"; name: string | null; icon: string | null; per_round: number; league: number }[];
+  ult: { name: string | null; icon: string | null; total: number; per_map: number; league: number };
 }
 
 /** Duelos: quem matou quem (sem team kill), somado em todas as partidas da base. */

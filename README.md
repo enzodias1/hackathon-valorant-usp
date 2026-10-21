@@ -64,6 +64,16 @@ Das entrevistas com 8 jogadores do UFG Eagles ([`para_equipe/entrevistas_ufg.md`
   função** (duelistas morrem mais cedo: 25% das mortes nos primeiros 20 s, contra ~16% de iniciadores e controladores). Descritivo: na liga,
   o time vence ~31% dos rounds em que o jogador morre, seja antes ou depois dos 20 s, então não afirmamos que morrer cedo é pior.
 
+## Leitura automática e comparações (21/10)
+- **"O que decidiu o round":** até 3 frases geradas dos eventos e da chance de vitória: virada (o vencedor chegou a ≤ 20%) ou vitória
+  contra a economia, multi-kill, clutch, desarme no limite e a jogada de maior impacto. Sem texto escrito à mão.
+- **Quem podia trocar:** em cada morte, os aliados de quem morreu que tinham linha de visão até quem matou (até 45 m; paredes do mapa
+  bloqueiam; altura e smokes não entram, porque não vêm nos dados).
+- **Habilidades:** usos por round (C, Q, E) e ultimates por mapa, por agente, contra a média da liga no mesmo agente. A Riot informa só o
+  total por partida, não o momento de cada uso.
+- **Histórico do confronto** no comparador: placar, a jogada que mais pesou em cada mapa (com o resumo e o link para o replay) e o impacto
+  de cada jogador nesses mapas.
+
 ## Replay 2D (movimento estimado)
 As posições existem só nos instantes de kill, plant e desarme; o primeiro registro do round sai, em mediana, aos 15,7 s (metade dos
 rounds entre 8,5 s e 26,9 s). Entre os registros, cada jogador anda pelo **chão do mapa** (grade de ~0,7 m tirada do minimapa oficial,

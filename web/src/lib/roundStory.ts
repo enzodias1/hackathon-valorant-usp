@@ -1,0 +1,94 @@
+// "O que decidiu o round": até 3 frases geradas a partir dos eventos e da chance de vitória (sem texto escrito à mão).
+// Regras, em ordem: virada (o vencedor chegou a ≤ 20%) ou vitória contra a economia; multi-kill (3+); clutch; desarme no
+// limite; e a jogada de maior impacto, se ainda não foi citada.
+import { nick, pct, pp } from "./format";
+import type { Color, Match, Round, RoundEvent } from "./types";
+
+const MULTI: Record<number, string> = { 3: "um triplo", 4: "uma quadra", 5: "um ace" };
+const COMEBACK_WP = 0.2;
+const UNDERDOG_WP = 0.35;
+const SPIKE_MS = 45_000;
+
+/** Duração legível: "55 ms" abaixo de 1 s; "1,4 s" até 10 s; "12 s" acima. */
+const dur = (ms: number) =>
+  ms < 1000 ? `${Math.round(ms)} ms`
+    : `${(ms / 1000).toLocaleString("pt-BR", { maximumFractionDigits: ms < 10_000 ? 1 : 0, minimumFractionDigits: ms < 10_000 ? 1 : 0 })} s`;
+
+export function roundStory(match: Match, round: Round): string[] {
+  const P = new Map(match.players.map((p) => [p.puuid, p]));
+  const who = (id: string | null | undefined) => {
+    const p = id ? P.get(id) : undefined;
+    return p ? `${nick(p.name)} (${p.agent})` : "?";
+  };
+  const W: Color = round.winner;
+  const L: Color = W === "Red" ? "Blue" : "Red";
+  const tn = (c: Color) => match.teams[c].name;
+  const wpW = (wpRed: number) => (W === "Red" ? wpRed : 1 - wpRed);
+  const live = round.events.filter((e) => !e.after_round_end);
+
+  // estado depois de cada evento: chance do vencedor, vivos de cada lado, spike plantada
+  const alive: Record<Color, Set<string>> = {
+    Red: new Set(match.players.filter((p) => p.color === "Red").map((p) => p.puuid)),
+    Blue: new Set(match.players.filter((p) => p.color === "Blue").map((p) => p.puuid)),
+  };
+  type State = { t: number; wp: number; w: number; l: number; planted: boolean; aliveW: string[] };
+  const states: State[] = [{ t: 0, wp: wpW(round.wp_red_start), w: 5, l: 5, planted: false, aliveW: [...alive[W]] }];
+  for (const e of live) {
+    if (e.type === "kill" && e.victim) {
+      const c = P.get(e.victim)?.color;
+      if (c) alive[c].delete(e.victim);
+    }
+    states.push({ t: e.t, wp: wpW(e.wp_red_after), w: alive[W].size, l: alive[L].size,
+                  planted: !!round.plant && e.t >= round.plant.t, aliveW: [...alive[W]] });
+  }
+
+  const out: string[] = [];
+  const mentioned = new Set<RoundEvent>();
+
+  // 1. virada ou vitória contra a economia (ou só o resultado)
+  const worst = states.reduce((a, b) => (b.wp < a.wp ? b : a));
+  if (worst.wp <= COMEBACK_WP) {
+    const plant = worst.planted && round.attacker === L ? " e a spike plantada" : "";
+    out.push(`${tn(W)} venceu de virada: ${tn(L)} chegou a ${pct(1 - worst.wp)} de chance, com ${worst.l} contra ${worst.w}${plant}.`);
+  } else if (states[0].wp <= UNDERDOG_WP) {
+    out.push(`${tn(W)} venceu mesmo começando com só ${pct(states[0].wp)} de chance pela economia (${round.buy[W]} contra ${round.buy[L]}).`);
+  } else {
+    const how = { Elimination: "eliminando o time adversário", Defuse: "desarmando a spike",
+                  Detonate: `com a explosão da spike${round.plant?.site ? ` no ${round.plant.site}` : ""}`, Timer: "segurando até o tempo acabar" }[round.result];
+    out.push(`${tn(W)} venceu ${how}.`);
+  }
+
+  // 2. multi-kill
+  const killsBy = new Map<string, RoundEvent[]>();
+  for (const e of live) if (e.type === "kill" && e.actor && !e.teamkill) killsBy.set(e.actor, [...(killsBy.get(e.actor) ?? []), e]);
+  const [mkActor, mk] = [...killsBy.entries()].sort((a, b) => b[1].length - a[1].length)[0] ?? [null, []];
+  if (mkActor && mk.length >= 3) {
+    const span = mk[mk.length - 1].t - mk[0].t;
+    out.push(`${who(mkActor)} fez ${MULTI[Math.min(mk.length, 5)]}${span <= 15_000 ? ` em ${dur(span)}` : ""}.`);
+    mk.forEach((e) => mentioned.add(e));
+  }
+
+  // 3. clutch: o vencedor ficou com 1 contra 2 ou mais
+  const clutch = states.find((s) => s.w === 1 && s.l >= 2);
+  if (clutch) out.push(`${who(clutch.aliveW[0])} venceu um 1 contra ${clutch.l}.`);
+
+  // 4. desarme no limite
+  const defuse = live.find((e) => e.type === "defuse");
+  if (defuse && round.plant) {
+    const left = round.plant.t + SPIKE_MS - defuse.t;
+    const death = round.events.find((e) => e.after_round_end && e.type === "kill" && e.victim === defuse.actor && e.t - defuse.t <= 1500);
+    const bits = [left <= 7_000 ? `com ${dur(left)} sobrando na spike` : "", death ? `${dur(death.t - defuse.t)} antes de morrer` : ""].filter(Boolean);
+    if (bits.length) {
+      out.push(`${who(defuse.actor)} desarmou a spike ${bits.join(" e ")}.`);
+      mentioned.add(defuse);
+    }
+  }
+
+  // 5. a jogada de maior impacto, se ainda não apareceu
+  const top = live.filter((e) => e.actor).sort((a, b) => Math.abs(b.wpa) - Math.abs(a.wpa))[0];
+  if (top && !mentioned.has(top)) {
+    const what = top.type === "plant" ? "plantou a spike" : top.type === "defuse" ? "desarmou a spike" : `matou ${nick(P.get(top.victim ?? "")?.name)}`;
+    out.push(`Jogada que mais pesou: ${who(top.actor)} ${what} (${pp(top.wpa)}).`);
+  }
+  return out.slice(0, 3);
+}

@@ -94,7 +94,7 @@ Antes de começar, `git pull origin main` e `npm install` dentro de `web/`. Quan
 > (ex.: 2 de 8 pediram um replay 2D com agentes, mortes e abates, e o produto já tem). Os entrevistados são do UFG Eagles, que está na base.
 >
 > **Atualização (21/10):** a demonstração agora gira em torno do **replay do round 12** (UFMT Turuna × Macklogic Red): a chance de vitória ao
-> vivo cai de 99% enquanto a Jett (kim) faz o triplo, e a spike é desarmada 0,05 s antes da morte do Cypher (sick). Os números do roteiro
+> vivo cai de 99% enquanto a Jett (kim) faz o triplo, e a spike é desarmada 55 milissegundos antes da morte do Cypher (sick). Os números do roteiro
 > foram conferidos no replay. O Enzo vai atualizar o roteiro-base com esse trecho; adapte a partir dele.
 >
 > **Atualização (20/10):** já existe um **roteiro-base pronto** em [`para_equipe/roteiro_pitch.md`](para_equipe/roteiro_pitch.md), com falas,

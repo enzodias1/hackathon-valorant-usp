@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Team, TeamSummary } from "@/lib/types";
 import { date, nick, pct, pp } from "@/lib/format";
 import { Td, Th } from "./ui";
+import HeadToHead from "./HeadToHead";
 
 const sigmoid = (x: number) => 1 / (1 + Math.exp(-x));
 
@@ -118,6 +119,8 @@ function Comparison({ A, B }: { A: Team; B: Team }) {
           ) : <p className="mt-2 text-sm text-ink-2">Nunca se enfrentaram nestes campeonatos.</p>}
         </div>
       </section>
+
+      {h2h.length > 0 && <HeadToHead A={A} B={B} ids={h2h.map((m) => m.id)} />}
 
       <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Mapas</h2>

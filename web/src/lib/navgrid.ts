@@ -64,6 +64,13 @@ function clear(g: NavGrid, a: UV, b: UV, cost?: Float32Array | null, maxCost = I
   return true;
 }
 
+/** Linha de visada entre dois pontos pelo mapa: paredes bloqueiam (altura e smokes não entram, porque não vêm nos dados). */
+export function lineOfSight(g: NavGrid, a: UV, b: UV) {
+  const s = nearestFloor(g, cellOf(g, a));
+  const t = nearestFloor(g, cellOf(g, b));
+  return s >= 0 && t >= 0 && clear(g, centerOf(g, s), centerOf(g, t));
+}
+
 /**
  * Células do chão que alguém nas posições `eyes` enxerga até `range` células: raios a cada 1° que param na primeira parede.
  * Serve para a rota estimada evitar passar na frente dos inimigos.

@@ -8,6 +8,7 @@ import { MatchImpactChart, RoleRadar } from "@/components/analise/PlayerCharts";
 import { BandButton, CompareRow, InsightPanel, PageBand, PercentileRow, PlayerLink, Section, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
 import { agentArt } from "@/lib/art";
 import { DeathTimingPanel, DuelsPanel, referenceLabel } from "@/components/analise/PlayerDuels";
+import { AbilitiesPanel } from "@/components/analise/PlayerAbilities";
 
 // só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
 export const dynamicParams = false;
@@ -132,6 +133,12 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
                  teaser={p.death_timing ? `Metade das mortes até ${clock(p.death_timing.median * 1000)} (${referenceLabel(p.death_timing)}: ${clock(p.death_timing.league_median * 1000)})` : "Disponível a partir de 25 mortes"}
                  info="Em que momento do round o jogador morre, contado desde a queda da barreira. A referência é a liga na mesma função de agente, porque duelistas morrem mais cedo por definição. É uma comparação descritiva: mostra o padrão, sem afirmar que é melhor ou pior.">
           {p.death_timing ? <DeathTimingPanel timing={p.death_timing} /> : <p className="text-sm text-ink-2">Disponível a partir de 25 mortes.</p>}
+        </Section>
+
+        <Section id="habilidades" title="Habilidades" collapsible
+                 teaser={p.abilities.length ? `${p.abilities[0].agent}: ${num(p.abilities[0].ult.per_map, 1)} ultimates por mapa (média do agente: ${num(p.abilities[0].ult.league, 1)})` : "Disponível com 2+ mapas no mesmo agente"}
+                 info="Quantas vezes o jogador usou cada habilidade por round, e a ultimate por mapa, comparado com a média de quem joga o mesmo agente na liga. A Riot informa só o total por partida: não dá para saber em que momento do round cada habilidade foi usada.">
+          {p.abilities.length ? <AbilitiesPanel abilities={p.abilities} /> : <p className="text-sm text-ink-2">Disponível com 2 ou mais mapas no mesmo agente.</p>}
         </Section>
 
         <Section id="partidas" title="Impacto partida a partida" collapsible
