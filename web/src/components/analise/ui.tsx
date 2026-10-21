@@ -1,20 +1,88 @@
-// Blocos visuais compartilhados das telas de análise (Server Components: sem estado).
+// Blocos visuais compartilhados das telas de análise (Server Components; InfoTip é o único pedaço interativo).
 import Link from "next/link";
 import type { Comparison, Insight, Insights } from "@/lib/types";
 import { pct, pp } from "@/lib/format";
+import InfoTip from "./InfoTip";
 
-export function Section({ title, subtitle, children, id, aside }: { title: string; subtitle?: string; children: React.ReactNode; id?: string; aside?: React.ReactNode }) {
+/**
+ * Caixa de seção.
+ * - `info`: explicação no botão "i" ao lado do título (prefira a `subtitle`, que ocupa a tela).
+ * - `collapsible`: vira uma caixa expansível (<details>); `defaultOpen` define se começa aberta.
+ * - `teaser`: prévia de uma linha mostrada no cabeçalho quando a caixa está fechada.
+ */
+export function Section({ title, subtitle, info, teaser, collapsible, defaultOpen, children, id, aside }: {
+  title: string; subtitle?: string; info?: React.ReactNode; teaser?: React.ReactNode; collapsible?: boolean; defaultOpen?: boolean;
+  children: React.ReactNode; id?: string; aside?: React.ReactNode;
+}) {
+  const heading = (
+    <div className="min-w-0">
+      <div className="flex items-center gap-2">
+        <h2 className="text-2xl tracking-wide text-ink">{title}</h2>
+        {info && <InfoTip text={info} />}
+      </div>
+      {subtitle && <p className="mt-1 max-w-3xl text-sm text-ink-2">{subtitle}</p>}
+    </div>
+  );
+  const box = "min-w-0 scroll-mt-20 rounded-xl border border-line bg-surface";
+  if (!collapsible) {
+    return (
+      <section id={id} className={`${box} p-5 sm:p-6`}>
+        <header className="mb-4 flex flex-wrap items-end justify-between gap-2">{heading}{aside}</header>
+        {children}
+      </section>
+    );
+  }
   return (
-    <section id={id} className="min-w-0 scroll-mt-20 rounded-xl border border-line bg-surface p-5 sm:p-6">
-      <header className="mb-4 flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h2 className="text-2xl tracking-wide text-ink">{title}</h2>
-          {subtitle && <p className="mt-1 max-w-3xl text-sm text-ink-2">{subtitle}</p>}
+    <details id={id} open={defaultOpen} className={`${box} group`}>
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 sm:px-6 [&::-webkit-details-marker]:hidden">
+        <div className="min-w-0">
+          {heading}
+          {teaser && <p className="mt-1 truncate text-sm text-ink-2 group-open:hidden">{teaser}</p>}
         </div>
-        {aside}
-      </header>
-      {children}
+        <span className="flex shrink-0 items-center gap-3">
+          {aside && <span className="hidden group-open:inline">{aside}</span>}
+          <span aria-hidden className="grid h-8 w-8 place-items-center rounded-full border border-line text-ink-2 transition-transform group-open:rotate-180">⌄</span>
+        </span>
+      </summary>
+      <div className="px-5 pb-5 sm:px-6 sm:pb-6">{children}</div>
+    </details>
+  );
+}
+
+/** Faixa roxa de cabeçalho das páginas de detalhe (time, jogador, partida), com arte opcional à direita. */
+export function PageBand({ back, kicker, title, children, actions, art }: {
+  back?: { href: string; label: string }; kicker?: React.ReactNode; title: React.ReactNode; children?: React.ReactNode;
+  actions?: React.ReactNode; art?: { portrait?: string; background?: string };
+}) {
+  return (
+    <section className="relative isolate overflow-hidden bg-brand">
+      {/* arte oficial dos agentes (política "Legal Jibber Jabber" da Riot) */}
+      {art?.background && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={art.background} alt="" aria-hidden className="pointer-events-none absolute -top-8 right-[14%] -z-10 hidden h-[130%] opacity-[0.14] md:block" />
+      )}
+      {art?.portrait && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={art.portrait} alt="" aria-hidden
+             className="pointer-events-none absolute -top-[6%] right-[-14%] -z-10 h-[250%] opacity-25 [mask-image:linear-gradient(to_right,transparent_0%,black_35%)] md:right-[-4%] md:opacity-100" />
+      )}
+      <div className="mx-auto max-w-6xl px-4 pb-8 pt-7 sm:px-8">
+        {back && <Link href={back.href} className="label-caps text-[11px] text-white/70 hover:text-white">← {back.label}</Link>}
+        {kicker && <div className="label-caps mt-4 text-[11px] text-lime">{kicker}</div>}
+        <h1 className="mt-1 max-w-3xl text-[clamp(2.4rem,5.5vw,4.2rem)] leading-[1.02] text-white">{title}</h1>
+        {children && <div className="mt-3 max-w-2xl text-white/85">{children}</div>}
+        {actions && <div className="mt-5 flex flex-wrap items-center gap-3">{actions}</div>}
+      </div>
     </section>
+  );
+}
+
+/** Botões no estilo da identidade: principal (verde-limão) e secundário (contorno branco), para usar sobre a faixa roxa. */
+export function BandButton({ href, children, primary }: { href: string; children: React.ReactNode; primary?: boolean }) {
+  return primary ? (
+    <Link href={href} className="label-caps bg-lime px-5 py-3 text-[11px] text-bg transition-opacity [clip-path:polygon(0_0,calc(100%-10px)_0,100%_10px,100%_100%,0_100%)] hover:opacity-90">{children}</Link>
+  ) : (
+    <Link href={href} className="label-caps border-2 border-white/90 px-5 py-2.5 text-[11px] text-white transition-colors hover:bg-white hover:text-brand">{children}</Link>
   );
 }
 

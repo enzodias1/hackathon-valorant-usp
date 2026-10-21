@@ -5,7 +5,8 @@ import { getIndex, getPlayer } from "@/lib/data";
 import { clock, nick, num, pct, pp } from "@/lib/format";
 import type { Moment, Player } from "@/lib/types";
 import { MatchImpactChart, RoleRadar } from "@/components/analise/PlayerCharts";
-import { Badge, CompareRow, InsightPanel, PercentileRow, PlayerLink, Section, StatTile, TeamLink, Td, Th, WpaBar } from "@/components/analise/ui";
+import { BandButton, CompareRow, InsightPanel, PageBand, PercentileRow, PlayerLink, Section, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
+import { agentArt } from "@/lib/art";
 
 // só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
 export const dynamicParams = false;
@@ -31,162 +32,182 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
   const maxB = Math.max(...breakdown.map(([, v]) => Math.abs(v)));
   const maxAgent = Math.max(...p.agents.map((a) => Math.abs(a.wpa_per_round)), 0.1);
   const maxMap = Math.max(...p.maps.map((a) => Math.abs(a.wpa_per_round)), 0.1);
+  const mainAgent = p.agents[0]?.agent;
+  const bestAgent = [...p.agents].filter((a) => a.rounds >= 40).sort((a, b) => b.wpa_per_round - a.wpa_per_round)[0];
+  const bestMap = [...p.maps].filter((m) => m.rounds >= 40).sort((a, b) => b.wpa_per_round - a.wpa_per_round)[0];
+  const topPartner = p.partners[0];
+  const best = p.best_plays[0];
+  const posMatches = p.matches.filter((m) => m.wpa > 0).length;
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
-      <header className="space-y-2">
-        <Link href="/jogadores" className="text-sm text-muted hover:text-ink-2">← Jogadores</Link>
-        <h1 className="text-3xl font-bold text-ink">{nick(p.name)} <span className="text-lg font-normal text-muted">#{p.name.split("#")[1]}</span></h1>
-        <div className="flex flex-wrap items-center gap-2 text-ink-2">
-          <TeamLink slug={p.team} name={p.team_name} />
-          {p.teams.length > 1 && <span className="text-sm text-muted">(também jogou por {p.teams.slice(1).map((t) => t.name).join(", ")})</span>}
-          {p.role.agent_role && <Badge title="Função dos agentes que mais joga">{p.role.agent_role}</Badge>}
-          {p.role.behavior_role && <Badge title="Papel descoberto pelo comportamento em jogo">Em jogo: {p.role.behavior_role}</Badge>}
-        </div>
+    <main>
+      <PageBand back={{ href: "/jogadores", label: "Jogadores" }} art={agentArt(mainAgent)}
+                kicker={[p.role.agent_role, p.role.behavior_role && `em jogo: ${p.role.behavior_role}`].filter(Boolean).join(" · ")}
+                title={<>{nick(p.name)} <span className="text-[0.45em] text-white/60">#{p.name.split("#")[1]}</span></>}
+                actions={<BandButton href={`/times/${p.team}`} primary>Ver {p.team_name}</BandButton>}>
+        <p className="text-sm">
+          {mainAgent && <>Mais jogado: <b>{mainAgent}</b> · </>}{p.sample.rounds} rounds em {p.sample.maps} mapas
+          {p.teams.length > 1 && <span className="text-white/60"> · também jogou por {p.teams.slice(1).map((t) => t.name).join(", ")}</span>}
+        </p>
+      </PageBand>
+
+      <div className="mx-auto max-w-6xl space-y-4 px-4 py-8 sm:px-8">
         {!p.sample.eligible && (
           <p className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink-2">
             <span className="font-bold text-warn">!</span> Amostra pequena ({p.sample.rounds} rounds): percentis e papel em jogo aparecem a partir de 60 rounds.
           </p>
         )}
-      </header>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        <StatTile label="Impacto por round" value={pp(imp.wpa_per_round)} tone={imp.wpa_per_round >= 0 ? "good" : "bad"}
-                  sub={pc?.wpa_per_round != null ? `percentil ${Math.round(pc.wpa_per_round)} da liga` : `${p.sample.rounds} rounds`} />
-        <StatTile label="K/D" value={num(s.kd, 2)} sub={pc?.kd != null ? `percentil ${Math.round(pc.kd)}` : `${s.kills}/${s.deaths}`} />
-        <StatTile label="ACS" value={num(s.acs)} sub={pc?.acs != null ? `percentil ${Math.round(pc.acs)}` : undefined} />
-        <StatTile label="KAST" value={pct(s.kast)} sub={pc?.kast != null ? `percentil ${Math.round(pc.kast)}` : undefined} />
-        <StatTile label="Rounds" value={p.sample.rounds} sub={`${p.sample.maps} mapas`} />
-      </div>
-
-      <Section title="Diagnóstico" subtitle="Comparação com a média da liga. Pontos fortes e fracos só aparecem quando a diferença é estatisticamente confiável.">
-        <InsightPanel insights={p.insights} />
-      </Section>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Section title="Perfil de jogo" subtitle="Percentis na liga (0–100) em cada eixo de comportamento. O maior eixo de papel define o papel em jogo.">
-          {p.role.axes ? <RoleRadar axes={p.role.axes} /> : <p className="text-sm text-ink-2">Disponível a partir de 60 rounds.</p>}
-        </Section>
-        <Section title="Impacto vs. estatísticas tradicionais" subtitle="Percentil na liga: 100 = melhor da liga. Compare o impacto com o K/D.">
-          {pc ? (
-            <div>
-              <PercentileRow label="Impacto / round" value={pc.wpa_per_round} />
-              <PercentileRow label="K/D" value={pc.kd} />
-              <PercentileRow label="Kills / round" value={pc.kpr} />
-              <PercentileRow label="ADR" value={pc.adr} />
-              <PercentileRow label="KAST" value={pc.kast} />
-              <PercentileRow label="% headshot" value={pc.hs_pct} />
-              <PercentileRow label="Abre rounds" value={pc.opening_rate} hint="frequência com que disputa o primeiro duelo" />
-              <PercentileRow label="Clutches" value={pc.clutch_rate} hint="frequência de situações em que fica sozinho" />
-            </div>
-          ) : <p className="text-sm text-ink-2">Disponível a partir de 60 rounds.</p>}
-        </Section>
-      </div>
-
-      <Section title="De onde vem o impacto" subtitle="Variação média na chance de vitória por round, por tipo de ação (pontos percentuais). Mortes sempre custam; a pergunta é quanto.">
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-2">
-            {breakdown.map(([k, v]) => (
-              <div key={k} className="grid grid-cols-[7rem_minmax(0,1fr)] items-center gap-3">
-                <span className="text-sm text-ink-2">{BREAKDOWN_LABEL[k] ?? k}</span>
-                <WpaBar value={v} max={maxB} />
-              </div>
-            ))}
-            <p className="pt-1 text-sm text-ink">Saldo: <b>{pp(imp.wpa_per_round)}</b> por round <span className="text-muted">({pp(imp.wpa_total, 0)} em {p.sample.rounds} rounds)</span></p>
-          </div>
-          <div className="divide-y divide-line/50">
-            {p.comparisons.kill_value && <CompareRow label="Valor médio de cada kill" c={p.comparisons.kill_value} format={(x) => pp(x)} domain={[0, 30]} />}
-            {p.comparisons.death_cost && <CompareRow label="Custo médio de cada morte" c={p.comparisons.death_cost} format={(x) => pp(x)} domain={[-30, 0]} />}
-            {p.comparisons.traded_death_rate && <CompareRow label="Mortes trocadas pelo time" c={p.comparisons.traded_death_rate} domain={[0, 0.6]} />}
-            {p.comparisons.isolated_death_rate && <CompareRow label="Mortes isoladas" c={p.comparisons.isolated_death_rate} domain={[0, 0.6]} />}
-            {p.comparisons.first_duel && <CompareRow label="Primeiros duelos vencidos" c={p.comparisons.first_duel} />}
-            {p.comparisons.clutch_win && <CompareRow label="Clutches vencidos" c={p.comparisons.clutch_win} />}
-          </div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+          <StatTile label="Impacto por round" value={pp(imp.wpa_per_round)} tone={imp.wpa_per_round >= 0 ? "good" : "bad"}
+                    sub={pc?.wpa_per_round != null ? `percentil ${Math.round(pc.wpa_per_round)} da liga` : `${p.sample.rounds} rounds`} />
+          <StatTile label="K/D" value={num(s.kd, 2)} sub={pc?.kd != null ? `percentil ${Math.round(pc.kd)}` : `${s.kills}/${s.deaths}`} />
+          <StatTile label="ACS" value={num(s.acs)} sub={pc?.acs != null ? `percentil ${Math.round(pc.acs)}` : undefined} />
+          <StatTile label="KAST" value={pct(s.kast)} sub={pc?.kast != null ? `percentil ${Math.round(pc.kast)}` : undefined} />
+          <StatTile label="Rounds" value={p.sample.rounds} sub={`${p.sample.maps} mapas`} />
         </div>
-      </Section>
 
-      <Section title="Impacto partida a partida" subtitle={`Cada barra é uma partida, em ordem cronológica. Ataque: ${pp(imp.wpa_pr_atk)} por round · Defesa: ${pp(imp.wpa_pr_def)} por round.`}>
-        <MatchImpactChart matches={p.matches} />
-      </Section>
+        <Section title="Diagnóstico" collapsible defaultOpen
+                 info="Comparação com a média da liga. Pontos fortes e fracos só aparecem quando a diferença é estatisticamente confiável, já com controle de falsos positivos.">
+          <InsightPanel insights={p.insights} />
+        </Section>
 
-      {p.stages.length > 1 && (
-        <Section title="Evolução no campeonato" subtitle="Impacto médio por round em cada etapa. Etapas com poucos rounds variam muito; compare com cautela.">
-          <div className="divide-y divide-line/50">
-            {p.stages.map((s) => (
-              <div key={`${s.etapa}-${s.team}`} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-2 sm:grid-cols-[18rem_minmax(0,1fr)_6rem]">
-                <div>
-                  <div className="text-sm text-ink">{s.etapa}</div>
-                  <div className="text-xs text-muted">{s.rounds} rounds{p.teams.length > 1 ? ` · ${p.teams.find((t) => t.slug === s.team)?.name ?? s.team}` : ""}</div>
+        <Section title="Perfil de jogo" collapsible teaser={p.role.behavior_role ? `Papel em jogo: ${p.role.behavior_role}${p.role.agent_role ? ` (joga de ${p.role.agent_role})` : ""}` : "Disponível a partir de 60 rounds"}
+                 info="À esquerda, o percentil na liga (0–100) em cada eixo de comportamento: o maior eixo de papel define o papel em jogo. À direita, o impacto comparado às estatísticas tradicionais (100 = melhor da liga).">
+          <div className="grid gap-6 lg:grid-cols-2">
+            {p.role.axes ? <RoleRadar axes={p.role.axes} /> : <p className="text-sm text-ink-2">Disponível a partir de 60 rounds.</p>}
+            {pc ? (
+              <div>
+                <PercentileRow label="Impacto / round" value={pc.wpa_per_round} />
+                <PercentileRow label="K/D" value={pc.kd} />
+                <PercentileRow label="Kills / round" value={pc.kpr} />
+                <PercentileRow label="ADR" value={pc.adr} />
+                <PercentileRow label="KAST" value={pc.kast} />
+                <PercentileRow label="% headshot" value={pc.hs_pct} />
+                <PercentileRow label="Abre rounds" value={pc.opening_rate} hint="frequência com que disputa o primeiro duelo" />
+                <PercentileRow label="Clutches" value={pc.clutch_rate} hint="frequência de situações em que fica sozinho" />
+              </div>
+            ) : null}
+          </div>
+        </Section>
+
+        <Section title="De onde vem o impacto" collapsible teaser={`Saldo: ${pp(imp.wpa_per_round)} por round · cada kill vale ${pp(imp.per_kill)} (liga ${pp(imp.league_per_kill)})`}
+                 info="Variação média na chance de vitória por round, por tipo de ação (pontos percentuais). Mortes sempre custam; a pergunta é quanto. À direita, cada métrica comparada com a liga.">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="space-y-2">
+              {breakdown.map(([k, v]) => (
+                <div key={k} className="grid grid-cols-[7rem_minmax(0,1fr)] items-center gap-3">
+                  <span className="text-sm text-ink-2">{BREAKDOWN_LABEL[k] ?? k}</span>
+                  <WpaBar value={v} max={maxB} />
                 </div>
-                <WpaBar value={s.wpa_per_round} max={Math.max(...p.stages.map((x) => Math.abs(x.wpa_per_round)), 1)} />
-                <span className={`tabular hidden text-right text-sm sm:block ${s.rounds < 60 ? "text-muted" : "text-ink-2"}`}>K/D {num(s.kd, 2)}</span>
-              </div>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Section title="Jogadas que mais mudaram rounds" subtitle="Chance de vitória do time antes → depois da jogada.">
-          <MomentList items={p.best_plays} kind="play" />
-        </Section>
-        <Section title="Mortes que mais custaram" subtitle="Chance de vitória do time antes → depois da morte. Bons rounds para revisar.">
-          <MomentList items={p.costliest_deaths} kind="death" />
-        </Section>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Section title="Agentes">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead><tr><Th>Agente</Th><Th right>Mapas</Th><Th right>K/D</Th><Th right className="hidden sm:table-cell">ACS</Th><Th>Impacto / round</Th></tr></thead>
-              <tbody>
-                {p.agents.map((a) => (
-                  <tr key={a.agent}>
-                    <Td><span className="flex items-center gap-2">{a.icon && <img src={a.icon} alt="" className="h-6 w-6 rounded" />}{a.agent}</span></Td>
-                    <Td right>{a.maps}</Td><Td right>{num(a.kd, 2)}</Td><Td right className="hidden sm:table-cell">{num(a.acs)}</Td>
-                    <Td><WpaBar value={a.wpa_per_round} max={maxAgent} /></Td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
-        <Section title="Mapas">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead><tr><Th>Mapa</Th><Th right className="hidden sm:table-cell">Mapas</Th><Th right>Vitórias</Th><Th right>K/D</Th><Th>Impacto / round</Th></tr></thead>
-              <tbody>
-                {p.maps.map((m) => (
-                  <tr key={m.map}>
-                    <Td>{m.map}</Td><Td right className="hidden sm:table-cell">{m.maps}</Td><Td right>{pct(m.map_win_rate)}</Td><Td right>{num(m.kd, 2)}</Td>
-                    <Td><WpaBar value={m.wpa_per_round} max={maxMap} /></Td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
-      </div>
-
-      <Section title="Parceiros" subtitle="Trades em até 5 s entre o jogador e cada parceiro, nos dois sentidos.">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px]">
-            <thead><tr><Th className="sticky left-0 z-10 bg-surface">Parceiro</Th><Th right>Rounds juntos</Th><Th right>Parceiro vingou o jogador</Th><Th right>Jogador vingou o parceiro</Th><Th right>Assistências nas kills do jogador</Th></tr></thead>
-            <tbody>
-              {p.partners.map((x) => (
-                <tr key={x.puuid}>
-                  <Td className="sticky left-0 z-10 bg-surface"><PlayerLink puuid={x.puuid} name={nick(x.name)} /></Td>
-                  <Td right>{x.rounds_together}</Td>
-                  <Td right>{x.they_traded_you}× <span className="text-muted">({pct(x.your_deaths_with_them_alive ? x.they_traded_you / x.your_deaths_with_them_alive : null)})</span></Td>
-                  <Td right>{x.you_traded_them}×</Td>
-                  <Td right>{x.their_assists_on_your_kills}</Td>
-                </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </Section>
+              <p className="pt-1 text-sm text-ink">Saldo: <b>{pp(imp.wpa_per_round)}</b> por round <span className="text-muted">({pp(imp.wpa_total, 0)} em {p.sample.rounds} rounds)</span></p>
+            </div>
+            <div className="divide-y divide-line/50">
+              {p.comparisons.kill_value && <CompareRow label="Valor médio de cada kill" c={p.comparisons.kill_value} format={(x) => pp(x)} domain={[0, 30]} />}
+              {p.comparisons.death_cost && <CompareRow label="Custo médio de cada morte" c={p.comparisons.death_cost} format={(x) => pp(x)} domain={[-30, 0]} />}
+              {p.comparisons.traded_death_rate && <CompareRow label="Mortes trocadas pelo time" c={p.comparisons.traded_death_rate} domain={[0, 0.6]} />}
+              {p.comparisons.isolated_death_rate && <CompareRow label="Mortes isoladas" c={p.comparisons.isolated_death_rate} domain={[0, 0.6]} />}
+              {p.comparisons.first_duel && <CompareRow label="Primeiros duelos vencidos" c={p.comparisons.first_duel} />}
+              {p.comparisons.clutch_win && <CompareRow label="Clutches vencidos" c={p.comparisons.clutch_win} />}
+            </div>
+          </div>
+        </Section>
+
+        <Section title="Impacto partida a partida" collapsible
+                 teaser={`Impacto positivo em ${posMatches} de ${p.matches.length} partidas · ataque ${pp(imp.wpa_pr_atk)} · defesa ${pp(imp.wpa_pr_def)} por round`}
+                 info="Cada barra é uma partida, em ordem cronológica: a soma do impacto do jogador naquele mapa. Passe o mouse (ou toque) numa barra para ver adversário, mapa e agente.">
+          <MatchImpactChart matches={p.matches} />
+        </Section>
+
+        {p.stages.length > 1 && (
+          <Section title="Evolução no campeonato" collapsible teaser={`${p.stages.length} etapas · ${p.stages.map((x) => `${x.etapa.split(" · ").at(-1)} ${pp(x.wpa_per_round)}`).slice(-2).join(" · ")}`}
+                   info="Impacto médio por round em cada etapa. Etapas com poucos rounds variam muito; compare com cautela.">
+            <div className="divide-y divide-line/50">
+              {p.stages.map((x) => (
+                <div key={`${x.etapa}-${x.team}`} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 py-2 sm:grid-cols-[18rem_minmax(0,1fr)_6rem]">
+                  <div>
+                    <div className="text-sm text-ink">{x.etapa}</div>
+                    <div className="text-xs text-muted">{x.rounds} rounds{p.teams.length > 1 ? ` · ${p.teams.find((t) => t.slug === x.team)?.name ?? x.team}` : ""}</div>
+                  </div>
+                  <WpaBar value={x.wpa_per_round} max={Math.max(...p.stages.map((y) => Math.abs(y.wpa_per_round)), 1)} />
+                  <span className={`tabular hidden text-right text-sm sm:block ${x.rounds < 60 ? "text-muted" : "text-ink-2"}`}>K/D {num(x.kd, 2)}</span>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        <Section title="Jogadas para revisar" collapsible
+                 teaser={best ? `Maior jogada: ${pct(best.wp_before)} → ${pct(best.wp_after)} de chance no ${best.map}, round ${best.round}` : "Sem registros"}
+                 info="As jogadas que mais mudaram a chance de vitória do time, e as mortes que mais custaram. Cada linha abre o round na tela da partida.">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div>
+              <h3 className="label-caps mb-1 text-[10px] text-muted">Que mais mudaram rounds</h3>
+              <MomentList items={p.best_plays} kind="play" />
+            </div>
+            <div>
+              <h3 className="label-caps mb-1 text-[10px] text-muted">Mortes que mais custaram</h3>
+              <MomentList items={p.costliest_deaths} kind="death" />
+            </div>
+          </div>
+        </Section>
+
+        <Section title="Agentes e mapas" collapsible
+                 teaser={[bestAgent && `Mais impacto de ${bestAgent.agent} (${pp(bestAgent.wpa_per_round)}/round)`, bestMap && `melhor mapa: ${bestMap.map}`].filter(Boolean).join(" · ") || `${p.agents.length} agentes`}
+                 info="Desempenho por agente e por mapa. O impacto por round compara situações diferentes; agentes e mapas com poucos rounds variam muito.">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead><tr><Th>Agente</Th><Th right>Mapas</Th><Th right>K/D</Th><Th right className="hidden sm:table-cell">ACS</Th><Th>Impacto / round</Th></tr></thead>
+                <tbody>
+                  {p.agents.map((a) => (
+                    <tr key={a.agent}>
+                      <Td><span className="flex items-center gap-2">{a.icon && <img src={a.icon} alt="" className="h-6 w-6 rounded" />}{a.agent}</span></Td>
+                      <Td right>{a.maps}</Td><Td right>{num(a.kd, 2)}</Td><Td right className="hidden sm:table-cell">{num(a.acs)}</Td>
+                      <Td><WpaBar value={a.wpa_per_round} max={maxAgent} /></Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead><tr><Th>Mapa</Th><Th right className="hidden sm:table-cell">Mapas</Th><Th right>Vitórias</Th><Th right>K/D</Th><Th>Impacto / round</Th></tr></thead>
+                <tbody>
+                  {p.maps.map((m) => (
+                    <tr key={m.map}>
+                      <Td>{m.map}</Td><Td right className="hidden sm:table-cell">{m.maps}</Td><Td right>{pct(m.map_win_rate)}</Td><Td right>{num(m.kd, 2)}</Td>
+                      <Td><WpaBar value={m.wpa_per_round} max={maxMap} /></Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </Section>
+
+        <Section title="Parceiros" collapsible
+                 teaser={topPartner ? `Mais trades com ${nick(topPartner.name)}: ${topPartner.they_traded_you + topPartner.you_traded_them} nos dois sentidos` : "Sem parceiros com rounds suficientes"}
+                 info="Trades em até 5 s entre o jogador e cada parceiro, nos dois sentidos. Entre parênteses: a parcela das mortes do jogador (com o parceiro vivo) que o parceiro vingou.">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[520px]">
+              <thead><tr><Th className="sticky left-0 z-10 bg-surface">Parceiro</Th><Th right>Rounds juntos</Th><Th right>Parceiro vingou o jogador</Th><Th right>Jogador vingou o parceiro</Th><Th right>Assistências nas kills do jogador</Th></tr></thead>
+              <tbody>
+                {p.partners.map((x) => (
+                  <tr key={x.puuid}>
+                    <Td className="sticky left-0 z-10 bg-surface"><PlayerLink puuid={x.puuid} name={nick(x.name)} /></Td>
+                    <Td right>{x.rounds_together}</Td>
+                    <Td right>{x.they_traded_you}× <span className="text-muted">({pct(x.your_deaths_with_them_alive ? x.they_traded_you / x.your_deaths_with_them_alive : null)})</span></Td>
+                    <Td right>{x.you_traded_them}×</Td>
+                    <Td right>{x.their_assists_on_your_kills}</Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Section>
+      </div>
     </main>
   );
 }

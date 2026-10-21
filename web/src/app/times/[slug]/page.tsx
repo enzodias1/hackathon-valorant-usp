@@ -6,7 +6,7 @@ import { competitionLabel, date, nick, num, pct } from "@/lib/format";
 import type { Comparison, Team, TeamMetric } from "@/lib/types";
 import SynergyGraph from "@/components/analise/SynergyGraph";
 import ZonesPanel from "@/components/analise/ZonesPanel";
-import { Badge, CompareLegend, CompareRow, InsightPanel, PlayerLink, Section, StageRow, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
+import { BandButton, Badge, CompareLegend, CompareRow, InsightPanel, PageBand, PlayerLink, Section, StageRow, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
 
 // só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
 export const dynamicParams = false;
@@ -39,85 +39,97 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
   const wae = team.wins_above_expected;
   const maxWpa = Math.max(...team.roster.map((p) => Math.abs(p.wpa_per_round)));
   const small = team.record.rounds < 100;
+  const t = teasers(team, zones);
 
   return (
-    <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
-      <header className="space-y-2">
-        <Link href="/times" className="text-sm text-muted hover:text-ink-2">← Times</Link>
-        <h1 className="text-3xl font-bold text-ink">{team.name}</h1>
-        {team.institution && <p className="text-ink-2">{team.institution}</p>}
+    <main>
+      <PageBand back={{ href: "/times", label: "Times" }} kicker={`Força ${team.strength.rank}º de ${team.strength.of}`} title={team.name}
+                actions={<>
+                  <BandButton href={`/comparar?a=${team.slug}`} primary>Comparar com outro time</BandButton>
+                  <BandButton href={`/partidas?time=${team.slug}`}>Ver partidas</BandButton>
+                </>}>
+        {team.institution && <p className="text-sm">{team.institution}</p>}
+        <p className="label-caps mt-1 text-[11px] text-white/70">
+          {team.record.map_wins}V · {team.record.maps - team.record.map_wins}D em {team.record.maps} mapas · {pct(team.record.round_win)} dos rounds
+        </p>
+      </PageBand>
+
+      <div className="mx-auto max-w-6xl space-y-4 px-4 py-8 sm:px-8">
         {small && (
           <p className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink-2">
             <span className="font-bold text-warn">!</span> Amostra pequena ({team.record.rounds} rounds): a maioria das comparações ainda não é conclusiva.
           </p>
         )}
-      </header>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatTile label="Mapas" value={`${team.record.map_wins}V · ${team.record.maps - team.record.map_wins}D`} sub={`${team.record.maps} mapas jogados`} />
-        <StatTile label="Rounds vencidos" value={pct(team.record.round_win)} sub={`${team.record.rounds} rounds`} />
-        <StatTile label="Rounds além da economia" value={`${wae.diff >= 0 ? "+" : "−"}${num(Math.abs(wae.diff))}`}
-                  tone={wae.significant ? (wae.diff > 0 ? "good" : "bad") : undefined}
-                  sub={`${wae.per100 >= 0 ? "+" : ""}${num(wae.per100, 1)} a cada 100 rounds${wae.significant ? "" : " · não conclusivo"}`} />
-        <StatTile label="Força na liga" value={`${team.strength.rank}º de ${team.strength.of}`}
-                  sub={team.strength.reliable ? `vence ${pct(team.strength.p_vs_avg)} dos rounds contra um time médio` : "poucos rounds: estimativa imprecisa"} />
-      </div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <StatTile label="Mapas" value={`${team.record.map_wins}V · ${team.record.maps - team.record.map_wins}D`} sub={`${team.record.maps} mapas jogados`} />
+          <StatTile label="Rounds vencidos" value={pct(team.record.round_win)} sub={`${team.record.rounds} rounds`} />
+          <StatTile label="Rounds além da economia" value={`${wae.diff >= 0 ? "+" : "−"}${num(Math.abs(wae.diff))}`}
+                    tone={wae.significant ? (wae.diff > 0 ? "good" : "bad") : undefined}
+                    sub={`${wae.per100 >= 0 ? "+" : ""}${num(wae.per100, 1)} a cada 100 rounds${wae.significant ? "" : " · não conclusivo"}`} />
+          <StatTile label="Força na liga" value={`${team.strength.rank}º de ${team.strength.of}`}
+                    sub={team.strength.reliable ? `vence ${pct(team.strength.p_vs_avg)} dos rounds contra um time médio` : "poucos rounds: estimativa imprecisa"} />
+        </div>
 
-      <Section title="Diagnóstico" subtitle="Comparação com a média da liga. Só viram ponto forte ou fraco as diferenças estatisticamente confiáveis para o tamanho da amostra.">
-        <InsightPanel insights={team.insights} />
-      </Section>
+        <Section title="Diagnóstico" collapsible defaultOpen
+                 info="Comparação com a média da liga. Só viram ponto forte ou fraco as diferenças estatisticamente confiáveis para o tamanho da amostra, já com controle de falsos positivos.">
+          <InsightPanel insights={team.insights} />
+        </Section>
 
-      <Section title="Sinergia: quem cobre quem" subtitle="Trade = vingar a morte de um aliado em até 5 segundos. Duplas que se cobrem transformam mortes em duelos trocados.">
-        <SynergyGraph synergy={team.synergy} />
-      </Section>
+        <Section title="Sinergia: quem cobre quem" collapsible teaser={t.synergy}
+                 info="Trade = vingar a morte de um aliado em até 5 segundos. Cada linha do grafo é uma dupla: quanto mais grossa, mais vezes um vingou a morte do outro. Duplas que se cobrem transformam mortes em duelos trocados.">
+          <SynergyGraph synergy={team.synergy} />
+        </Section>
 
-      <Section title="Onde o time morre" subtitle="As regiões do mapa com mais mortes do time, por lado, comparadas com a liga, e quantas dessas mortes ficaram sem trade.">
-        <ZonesPanel zones={zones} />
-      </Section>
+        <Section title="Onde o time morre" collapsible teaser={t.zones}
+                 info="Cada morte é atribuída à região nomeada mais próxima do mapa. A tabela compara a parcela de mortes em cada região com a da liga e mostra quantas ficaram sem trade; o mapa de calor mostra onde elas se concentram.">
+          <ZonesPanel zones={zones} />
+        </Section>
 
-      <Section title="Evolução no campeonato"
-               subtitle="Rounds vencidos acima ou abaixo do esperado em cada etapa, a cada 100 rounds. O esperado já desconta a força dos adversários e a economia, então mostra se o time jogou acima do próprio nível. A faixa clara é o intervalo de 90%.">
-        <Evolution team={team} />
-      </Section>
+        <Section title="Elenco e papéis" collapsible teaser={t.roster}
+                 info="Papel em jogo (Entry, Support, Lurker, Clutch) é descoberto pelo comportamento (primeiros duelos, trades, distância do time, fim de round), não pelo agente. Impacto = quanto o jogador muda, em média, a chance de vitória do round. Esmaecidos: menos de 20% dos rounds do time.">
+          <div className="overflow-x-auto">
+            <table className="w-full sm:min-w-[760px]">
+              <thead><tr><Th className="sticky left-0 z-10 bg-surface">Jogador</Th><Th className="hidden sm:table-cell">Agentes</Th><Th>Função do agente → papel em jogo</Th><Th right>Rounds</Th><Th right>K/D</Th><Th right className="hidden sm:table-cell">ACS</Th><Th>Impacto / round</Th><Th right>Mortes trocadas</Th></tr></thead>
+              <tbody>
+                {team.roster.map((p) => (
+                  <tr key={p.puuid} className={p.core ? "" : "opacity-60"}>
+                    <Td className="sticky left-0 z-10 bg-surface"><PlayerLink puuid={p.puuid} name={nick(p.name)} /></Td>
+                    <Td className="hidden sm:table-cell text-ink-2">{p.agents.join(", ")}</Td>
+                    <Td className="whitespace-nowrap">{p.agent_role ?? "—"} {p.behavior_role && <>→ <Badge>{p.behavior_role}</Badge></>}</Td>
+                    <Td right>{p.rounds}</Td>
+                    <Td right>{num(p.kd, 2)}</Td>
+                    <Td right className="hidden sm:table-cell">{num(p.acs)}</Td>
+                    <Td><WpaBar value={p.wpa_per_round} max={maxWpa} /></Td>
+                    <Td right>{pct(p.traded_death_rate)}</Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Section>
 
-      <Section title="Comparação com a liga" subtitle="Cada linha mostra o time (ponto) e a média da liga (traço)." aside={<CompareLegend />}>
-        <div className="space-y-5">
-          {GROUPS.map((g) => (
-            <div key={g.title}>
-              <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">{g.title}</h3>
-              <div className="divide-y divide-line/50">
-                {g.keys.filter((k) => metric[k]).map((k) => <CompareRow key={k} label={metric[k].label} c={metric[k]} />)}
+        <Section title="Evolução no campeonato" collapsible teaser={t.evolution}
+                 info="Rounds vencidos acima ou abaixo do esperado em cada etapa, a cada 100 rounds. O esperado já desconta a força dos adversários e a economia, então mostra se o time jogou acima do próprio nível. A faixa clara é o intervalo de 90%. Mudanças entre as metades do campeonato só aparecem quando passam no teste estatístico.">
+          <Evolution team={team} />
+        </Section>
+
+        <Section title="Comparação com a liga" collapsible teaser={t.compare} aside={<CompareLegend />}
+                 info="Cada linha mostra o time (ponto) e a média da liga (traço). ▲/▼ marcam diferenças confirmadas estatisticamente.">
+          <div className="space-y-5">
+            {GROUPS.map((g) => (
+              <div key={g.title}>
+                <h3 className="label-caps mb-1 text-[10px] text-muted">{g.title}</h3>
+                <div className="divide-y divide-line/50">
+                  {g.keys.filter((k) => metric[k]).map((k) => <CompareRow key={k} label={metric[k].label} c={metric[k]} />)}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </Section>
+            ))}
+          </div>
+        </Section>
 
-      <Section title="Elenco e papéis" subtitle="Papel em jogo = descoberto pelo comportamento (entradas, distância do time, trades, clutches), não pelo agente. Impacto = quanto o jogador muda a chance de vitória do round, em média.">
-        <div className="overflow-x-auto">
-          <table className="w-full sm:min-w-[760px]">
-            <thead><tr><Th className="sticky left-0 z-10 bg-surface">Jogador</Th><Th className="hidden sm:table-cell">Agentes</Th><Th>Função do agente → papel em jogo</Th><Th right>Rounds</Th><Th right>K/D</Th><Th right className="hidden sm:table-cell">ACS</Th><Th>Impacto / round</Th><Th right>Mortes trocadas</Th></tr></thead>
-            <tbody>
-              {team.roster.map((p) => (
-                <tr key={p.puuid} className={p.core ? "" : "opacity-60"}>
-                  <Td className="sticky left-0 z-10 bg-surface"><PlayerLink puuid={p.puuid} name={nick(p.name)} /></Td>
-                  <Td className="hidden sm:table-cell text-ink-2">{p.agents.join(", ")}</Td>
-                  <Td className="whitespace-nowrap">{p.agent_role ?? "—"} {p.behavior_role && <>→ <Badge>{p.behavior_role}</Badge></>}</Td>
-                  <Td right>{p.rounds}</Td>
-                  <Td right>{num(p.kd, 2)}</Td>
-                  <Td right className="hidden sm:table-cell">{num(p.acs)}</Td>
-                  <Td><WpaBar value={p.wpa_per_round} max={maxWpa} /></Td>
-                  <Td right>{pct(p.traded_death_rate)}</Td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-2 text-xs text-muted">Esmaecidos: jogadores com menos de 20% dos rounds do time.</p>
-      </Section>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Section title="Mapas" subtitle="Vitórias por mapa e por lado.">
+        <Section title="Mapas" collapsible teaser={t.maps}
+                 info="Vitórias por mapa e por lado. Entre parênteses: a vitória média do ataque naquele mapa, na liga.">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead><tr><Th>Mapa</Th><Th right>Mapas</Th><Th right>Rounds</Th><Th right>Ataque</Th><Th right>Defesa</Th></tr></thead>
@@ -134,85 +146,114 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
               </tbody>
             </table>
           </div>
-          <p className="mt-2 text-xs text-muted">Entre parênteses: vitória média do ataque naquele mapa, na liga.</p>
         </Section>
 
-        <Section title="Vitórias por tipo de compra" subtitle="Vitórias do time em cada tipo de compra vs. o esperado pelo modelo (que considera a compra dos dois lados).">
+        <Section title="Economia" collapsible teaser={t.economy}
+                 info="Vitórias em cada tipo de compra comparadas com o esperado pelo modelo (que considera a compra dos dois lados), e o que o time fez quando não tinha dinheiro para full buy (dinheiro + armas abaixo de 20 mil). É descritivo: mostra o que aconteceu, sem recomendar uma decisão.">
+          <h3 className="label-caps mb-1 text-[10px] text-muted">Vitórias por tipo de compra</h3>
           <div className="divide-y divide-line/50">
             {team.buys.map((b) => {
               const c: Comparison = { value: b.win, league: b.expected, n: b.rounds, z: b.z, significant: b.significant, good: b.significant ? b.z > 0 : null };
               return <CompareRow key={b.buy} label={`${b.buy} (${b.rounds} rounds)`} c={c} expectedLabel="esperado" />;
             })}
           </div>
+          <h3 className="label-caps mb-2 mt-6 text-[10px] text-muted">Sem dinheiro para full buy</h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            {team.economy.map((e) => (
+              <div key={e.context} className="rounded-lg bg-surface-2 p-4">
+                <h4 className="text-sm font-medium text-ink">{e.label}</h4>
+                {e.n === 0 ? <p className="mt-2 text-sm text-ink-2">Nenhuma situação assim nos dados.</p> : (
+                  <>
+                    <table className="mt-2 w-full text-sm">
+                      <thead><tr className="text-left text-xs text-muted"><th className="py-1">Decisão</th><th className="py-1 text-right">Vezes</th><th className="py-1 text-right">Venceu o round</th><th className="py-1 text-right">Rounds nos 3 seguintes</th></tr></thead>
+                      <tbody>
+                        {(["Economizar", "Meio-termo", "Forçar"] as const).map((d) => {
+                          const x = e.decisions[d];
+                          return (
+                            <tr key={d} className="border-t border-line/50">
+                              <td className="py-1.5 text-ink">{d}</td>
+                              <td className="tabular py-1.5 text-right text-ink">{x?.n ?? 0}</td>
+                              <td className="tabular py-1.5 text-right text-ink-2">{x ? pct(x.win_now) : "—"}</td>
+                              <td className="tabular py-1.5 text-right text-ink-2">{x?.rounds_next3 != null ? num(x.rounds_next3, 1) : "—"}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    {e.n < 5 && <p className="mt-2 text-xs text-muted">Poucas situações para tirar conclusões sobre o time.</p>}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </Section>
-      </div>
 
-      <Section title="Economia sem full buy"
-               subtitle="O que o time fez quando não tinha dinheiro para full buy (dinheiro + armas abaixo de 20 mil) e o que aconteceu nos rounds seguintes.">
-        <div className="grid gap-4 md:grid-cols-2">
-          {team.economy.map((e) => (
-            <div key={e.context} className="rounded-lg bg-surface-2 p-4">
-              <h3 className="text-sm font-medium text-ink">{e.label}</h3>
-              {e.n === 0 ? <p className="mt-2 text-sm text-ink-2">Nenhuma situação assim nos dados.</p> : (
-                <>
-                  <table className="mt-2 w-full text-sm">
-                    <thead><tr className="text-left text-xs text-muted"><th className="py-1">Decisão</th><th className="py-1 text-right">Vezes</th><th className="py-1 text-right">Venceu o round</th><th className="py-1 text-right">Rounds nos 3 seguintes</th></tr></thead>
-                    <tbody>
-                      {(["Economizar", "Meio-termo", "Forçar"] as const).map((d) => {
-                        const x = e.decisions[d];
-                        return (
-                          <tr key={d} className="border-t border-line/50">
-                            <td className="py-1.5 text-ink">{d}</td>
-                            <td className="tabular py-1.5 text-right text-ink">{x?.n ?? 0}</td>
-                            <td className="tabular py-1.5 text-right text-ink-2">{x ? pct(x.win_now) : "—"}</td>
-                            <td className="tabular py-1.5 text-right text-ink-2">{x?.rounds_next3 != null ? num(x.rounds_next3, 1) : "—"}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                  {e.insight && <p className="mt-3 text-sm text-ink">{e.insight}</p>}
-                  {e.n < 5 && <p className="mt-2 text-xs text-muted">Poucas situações para tirar conclusões sobre o time.</p>}
-                </>
-              )}
+        <Section title="Rounds para revisar no VOD" collapsible teaser={t.decisive}
+                 info="Rounds jogados fora: o time chegou a essa chance de vitória e perdeu. Viradas: caiu a essa chance e venceu. Cada linha abre o round na tela da partida.">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div>
+              <h3 className="label-caps mb-1 text-[10px] text-muted">Jogados fora</h3>
+              <DecisiveList items={team.decisive.throws} verb="chegou a" />
             </div>
-          ))}
-        </div>
-      </Section>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Section title="Rounds jogados fora" subtitle="O time chegou a esta chance de vitória e perdeu o round. Os melhores rounds para revisar no VOD.">
-          <DecisiveList items={team.decisive.throws} verb="chegou a" />
+            <div>
+              <h3 className="label-caps mb-1 text-[10px] text-muted">Viradas</h3>
+              <DecisiveList items={team.decisive.comebacks} verb="caiu a" />
+            </div>
+          </div>
         </Section>
-        <Section title="Viradas" subtitle="O time caiu a esta chance de vitória e venceu o round.">
-          <DecisiveList items={team.decisive.comebacks} verb="caiu a" />
+
+        <Section title="Partidas" collapsible teaser={t.matches}>
+          <div className="overflow-x-auto">
+            <table className="w-full sm:min-w-[560px]">
+              <thead><tr><Th>Data</Th><Th className="hidden sm:table-cell">Competição</Th><Th>Mapa</Th><Th>Adversário</Th><Th right>Placar</Th></tr></thead>
+              <tbody>
+                {team.matches.map((m) => (
+                  <tr key={m.id}>
+                    <Td className="tabular text-ink-2">{date(m.date)}</Td>
+                    <Td className="hidden sm:table-cell text-ink-2">{competitionLabel(m.competition, m.stage)}</Td>
+                    <Td>{m.map}</Td>
+                    <Td><Link href={`/times/${m.opponent}`} className="hover:underline">{m.opponent_name}</Link></Td>
+                    <Td right className="whitespace-nowrap">
+                      <Link href={`/partidas/${m.id}`} className="hover:underline">
+                        <span className={m.won ? "text-good" : "text-bad"}>{m.won ? "V" : "D"}</span> {m.score_for}–{m.score_against}
+                      </Link>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Section>
       </div>
-
-      <Section title="Partidas">
-        <div className="overflow-x-auto">
-          <table className="w-full sm:min-w-[560px]">
-            <thead><tr><Th>Data</Th><Th className="hidden sm:table-cell">Competição</Th><Th>Mapa</Th><Th>Adversário</Th><Th right>Placar</Th></tr></thead>
-            <tbody>
-              {team.matches.map((m) => (
-                <tr key={m.id}>
-                  <Td className="tabular text-ink-2">{date(m.date)}</Td>
-                  <Td className="hidden sm:table-cell text-ink-2">{competitionLabel(m.competition, m.stage)}</Td>
-                  <Td>{m.map}</Td>
-                  <Td><Link href={`/times/${m.opponent}`} className="hover:underline">{m.opponent_name}</Link></Td>
-                  <Td right className="whitespace-nowrap">
-                    <Link href={`/partidas/${m.id}`} className="hover:underline">
-                      <span className={m.won ? "text-good" : "text-bad"}>{m.won ? "V" : "D"}</span> {m.score_for}–{m.score_against}
-                    </Link>
-                  </Td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Section>
     </main>
   );
+}
+
+/** Prévia de uma linha de cada seção recolhida, calculada dos próprios dados. */
+function teasers(team: Team, zones: Awaited<ReturnType<typeof getZones>>) {
+  const name = (id: string) => nick(team.synergy.nodes.find((n) => n.puuid === id)?.name);
+  const pair = [...team.synergy.edges].sort((a, b) => b.a_traded_b + b.b_traded_a - (a.a_traded_b + a.b_traded_a))[0];
+  const map0 = zones.maps[0];
+  const side = map0 && (["Defesa", "Ataque"] as const).map((s) => map0.sides[s]).filter(Boolean).sort((a, b) => b!.deaths - a!.deaths)[0];
+  const roles = team.roster.filter((p) => p.core && p.behavior_role).reduce<Record<string, number>>((acc, p) => ({ ...acc, [p.behavior_role!]: (acc[p.behavior_role!] ?? 0) + 1 }), {});
+  const confirmed = team.evolution.changes.filter((c) => c.significant).length;
+  const up = team.metrics.filter((m) => m.significant && m.good).length, down = team.metrics.filter((m) => m.significant && m.good === false).length;
+  const bestMap = [...team.maps].filter((m) => m.maps >= 2).sort((a, b) => b.round_win - a.round_win)[0];
+  const full = team.buys.find((b) => b.buy === "Full buy");
+  const pistolEco = team.economy.find((e) => e.context === "perdeu o pistol");
+  const last = team.matches.at(-1);
+  return {
+    synergy: pair ? `Dupla que mais se cobre: ${name(pair.a)} + ${name(pair.b)} (${pair.a_traded_b + pair.b_traded_a} trades)` : "Poucos rounds juntos para montar o grafo",
+    zones: map0 && side ? `${map0.map}: mais mortes em ${side.zones[0]?.zone} (${pct(side.zones[0]?.share)} das mortes na ${side === map0.sides.Defesa ? "defesa" : "ataque"})` : "Sem mortes registradas",
+    roster: Object.keys(roles).length ? `Titulares: ${Object.entries(roles).map(([r, n]) => (n > 1 ? `${r} ×${n}` : r)).join(" · ")}` : `${team.roster.length} jogadores`,
+    evolution: !team.evolution.available ? "Menos de 8 mapas: ainda não dá para comparar períodos"
+      : confirmed ? `${confirmed} ${confirmed === 1 ? "mudança confirmada" : "mudanças confirmadas"} entre as metades do campeonato` : "Nenhuma mudança confirmada entre as metades do campeonato",
+    compare: up || down ? `${up} acima da liga · ${down} abaixo da liga (confirmados)` : "Nenhuma diferença confirmada em relação à liga",
+    maps: bestMap ? `Melhor mapa: ${bestMap.map} (${pct(bestMap.round_win)} dos rounds em ${bestMap.maps} mapas)` : `${team.maps.length} mapas diferentes`,
+    economy: [full && `Full buy: ${pct(full.win)} de vitória (esperado ${pct(full.expected)})`, pistolEco?.insight].filter(Boolean).join(" · "),
+    decisive: `${team.decisive.throws.length} rounds jogados fora · ${team.decisive.comebacks.length} viradas`,
+    matches: last ? `${team.matches.length} mapas · último: vs ${last.opponent_name} (${last.won ? "V" : "D"} ${last.score_for}–${last.score_against})` : "",
+  };
 }
 
 function Evolution({ team }: { team: Team }) {
@@ -249,7 +290,6 @@ function Evolution({ team }: { team: Team }) {
       ) : (
         <p className="text-sm text-ink-2">Menos de 8 mapas: ainda não dá para comparar períodos.</p>
       )}
-      <p className="text-xs text-muted">Mudanças só aparecem quando passam no teste estatístico com controle de falsos positivos (Benjamini-Hochberg), já descontada a força dos adversários.</p>
     </div>
   );
 }

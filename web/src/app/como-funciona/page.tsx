@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { getModel } from "@/lib/data";
 import { num, pct, pp } from "@/lib/format";
