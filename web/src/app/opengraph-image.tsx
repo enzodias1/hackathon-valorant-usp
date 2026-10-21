@@ -6,28 +6,13 @@ import path from "node:path";
 import { ImageResponse } from "next/og";
 import { getIndex } from "@/lib/data";
 import { PRODUCT_NAME, TAGLINE } from "@/lib/site";
+import { OG_COLORS, OG_SIZE, nb, ogFonts } from "./_og/og";
 
 export const alt = `${PRODUCT_NAME}: ${TAGLINE.toLowerCase()}`;
-export const size = { width: 1200, height: 630 };
+export const size = OG_SIZE;
 export const contentType = "image/png";
 
-// cores do tema (globals.css); o ImageResponse não lê variáveis CSS
-const C = { brand: "#4a1fe0", bg: "#0c0a1d", white: "#ffffff", lime: "#d4f83a" };
-
-/** Fonte do Google Fonts (completa). Sem rede, cai na fonte padrão. */
-async function googleFont(family: string, weight: number) {
-  try {
-    const css = await (await fetch(`https://fonts.googleapis.com/css2?family=${family}:wght@${weight}`)).text();
-    const url = css.match(/src: url\((.+?)\) format\('(opentype|truetype)'\)/)?.[1];
-    if (!url) return null;
-    return { name: family, data: await (await fetch(url)).arrayBuffer(), weight: weight as 400 | 700, style: "normal" as const };
-  } catch {
-    return null;
-  }
-}
-
-// O Satori alarga o espaço antes de palavras acentuadas; com espaço não separável fica uniforme.
-const nb = (s: string) => s.replace(/ /g, " ");
+const C = OG_COLORS;
 
 export default async function OpenGraphImage() {
   const index = await getIndex();
@@ -36,8 +21,7 @@ export default async function OpenGraphImage() {
     [index.team_list.length, "times"],
     [index.players.length, "jogadores"],
   ] as const;
-  const fonts = (await Promise.all([googleFont("Anton", 400), googleFont("Geist", 700), googleFont("Geist", 400)]))
-    .filter((f): f is NonNullable<typeof f> => f != null);
+  const fonts = await ogFonts();
   const agent = `data:image/png;base64,${(await readFile(path.join(process.cwd(), "src", "app", "_og", "veto_og.png"))).toString("base64")}`;
 
   return new ImageResponse(
@@ -67,6 +51,6 @@ export default async function OpenGraphImage() {
         </div>
       </div>
     ),
-    { ...size, fonts },
+    { ...size, ...fonts },
   );
 }
