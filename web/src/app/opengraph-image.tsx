@@ -1,5 +1,5 @@
 // Imagem da prévia de link (Discord, WhatsApp, X...). Gerada no build; vale para todas as páginas.
-// Mesma identidade da página inicial: fundo roxo, título condensado (Anton), tarja verde-limão e a Jett (arte oficial, política
+// Mesma identidade da página inicial: fundo roxo, título condensado (Anton), tarja verde-limão e o Veto (arte oficial, política
 // "Legal Jibber Jabber" da Riot).
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -38,13 +38,13 @@ export default async function OpenGraphImage() {
   ] as const;
   const fonts = (await Promise.all([googleFont("Anton", 400), googleFont("Geist", 700), googleFont("Geist", 400)]))
     .filter((f): f is NonNullable<typeof f> => f != null);
-  const jett = `data:image/png;base64,${(await readFile(path.join(process.cwd(), "src", "app", "_og", "jett_og.png"))).toString("base64")}`;
+  const agent = `data:image/png;base64,${(await readFile(path.join(process.cwd(), "src", "app", "_og", "veto_og.png"))).toString("base64")}`;
 
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: C.brand, color: C.white, fontFamily: "Geist", overflow: "hidden" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={jett} alt="" height={700} style={{ position: "absolute", right: -70, top: -10 }} />
+        <img src={agent} alt="" height={700} style={{ position: "absolute", right: -70, top: -10 }} />
         <div style={{ display: "flex", flexDirection: "column", padding: "46px 64px", width: 760 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ fontFamily: "Anton", fontSize: 40, letterSpacing: 1 }}>ANALISTA</div>

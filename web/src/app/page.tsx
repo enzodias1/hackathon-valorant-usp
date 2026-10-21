@@ -75,11 +75,11 @@ export default async function Home() {
 function Hero({ stats }: { stats: [number, string][] }) {
   return (
     <section className="relative isolate overflow-hidden bg-brand">
-      {/* arte oficial da Jett (política "Legal Jibber Jabber" da Riot): o nome em coreano ao fundo e o retrato à direita */}
+      {/* arte oficial do Veto (política "Legal Jibber Jabber" da Riot): o nome estilizado ao fundo e o retrato à direita */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/art/jett_bg.webp" alt="" aria-hidden className="pointer-events-none absolute -top-10 right-[2%] -z-10 hidden h-[115%] opacity-[0.12] lg:block xl:right-[8%]" />
+      <img src="/art/agents/veto_bg.webp" alt="" aria-hidden className="pointer-events-none absolute -top-10 right-[2%] -z-10 hidden h-[115%] opacity-[0.12] lg:block xl:right-[8%]" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/art/jett.webp" alt="" aria-hidden
+      <img src="/art/veto.webp" alt="" aria-hidden
            className="pointer-events-none absolute -bottom-6 right-[-18%] -z-10 h-[80%] opacity-20 [mask-image:linear-gradient(to_right,transparent_0%,black_30%)] lg:right-[-14%] lg:h-[104%] lg:opacity-100 xl:right-[-9%]" />
       <span aria-hidden className="absolute left-6 top-5 text-lg text-white/40">+</span>
       <span aria-hidden className="absolute bottom-5 left-6 text-lg text-white/40">+</span>
