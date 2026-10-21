@@ -38,7 +38,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 .venv/Scripts/python pipeline/economy.py                      # decisões de compra sem full buy (descritivo nos times)
 .venv/Scripts/python pipeline/zones.py                        # onde cada time morre (regiões do mapa + grade de calor)
 .venv/Scripts/python pipeline/export.py                       # JSON do site em web/public/data (formato em web/DADOS.md)
-.venv/Scripts/python pipeline/checks.py                       # 32 checagens de consistência (falha se algum número não fechar)
+.venv/Scripts/python pipeline/checks.py                       # 36 checagens de consistência (falha se algum número não fechar)
 .venv/Scripts/python pipeline/teams_sheet.py                  # planilha de nomes dos times (para_equipe/)
 ```
 
@@ -48,6 +48,10 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 - O nome dos times só existe no nome do arquivo. Times da mesma organização (ex.: `azure_bears_black` / `golden`) são elencos diferentes.
 - Posições em unidades do jogo (~1 cm). Em cada kill há a posição de todos os vivos (exceto a vítima, que vem à parte).
 - 2 rounds com erro na própria base (mortes por bug de mapa) são marcados como `anomalous` e ficam fora do modelo.
+- Em cada kill, plant e desarme vêm a posição e a direção da mira de todos os vivos (base do replay 2D). O uso de utilitárias não vem
+  nos dados, mas as kills por habilidade sim (2,6% das kills: ultimate, Q/E e granada), com o slot da habilidade.
+- Armas de habilidade no catálogo de armas: a Tour de Force (ultimate do Chamber) vem **sem ID** a partir do patch 13.02; identificada
+  por ser rara e ~100% com mira (`meta.py`).
 
 ## Decisões de métrica (validadas com os dados)
 - **Probabilidade de vitória do round:** gradient boosting com validação cruzada por partida (AUC 0,888; erro de calibração 1,3%).
@@ -77,4 +81,5 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 ## Checagens de consistência (`pipeline/checks.py`)
 Propriedades que precisam valer se os números estiverem certos, por exemplo: quem planta é sempre do ataque; vitória após first blood +
 após first death = 100%; o impacto de cada kill soma zero entre os times; depois da última kill de um round de eliminação o vencedor está
-com ~100%; ADR, KAST e K/D da liga em faixas plausíveis; coordenadas do minimapa exportadas sem perda de precisão; nenhum link quebrado entre as páginas. Hoje: **32/32 ok**.
+com ~100%; ADR, KAST e K/D da liga em faixas plausíveis; coordenadas do minimapa exportadas sem perda de precisão; nenhum link quebrado entre as páginas;
+no replay, quem mata está olhando para a vítima (valida a direção da mira) e toda kill diz o que matou. Hoje: **36/36 ok**.

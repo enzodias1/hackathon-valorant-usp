@@ -1,32 +1,46 @@
 "use client";
 // Tela interativa da partida: gráfico de momentum (chance de vitória do round, evento a evento, em toda a partida),
-// faixa de rounds e detalhe do round selecionado. O round inicial pode vir da URL (#round-12).
+// faixa de rounds e replay do round selecionado. O round (e o instante) pode vir da URL: #round-12 ou #round-12@78.9 (segundos).
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Area, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { Color, Match, Round, RoundEvent } from "@/lib/types";
-import { clock, nick, pct, pp, RESULT_PT } from "@/lib/format";
-import Minimap from "@/components/Minimap";
+import { clock, nick, pct, RESULT_PT } from "@/lib/format";
+import RoundReplay from "@/components/analise/RoundReplay";
 
 const ROUND_SPAN_MS = 145_000; // ~100 s de round + 45 s de spike: posição do evento dentro do "slot" do round
 
 type Pt = { x: number; wp: number; up: number; down: number; round: number; label: string };
 
+function parseHash(rounds: number) {
+  const m = window.location.hash.match(/round-(\d+)(?:@(\d+(?:\.\d+)?))?/);
+  const n = m ? Number(m[1]) : 0;
+  return m && n >= 1 && n <= rounds ? { n, t: m[2] ? Number(m[2]) * 1000 : undefined } : null;
+}
+
 export default function MatchView({ match }: { match: Match }) {
   const [sel, setSel] = useState<number>(1);
+  const [startT, setStartT] = useState<number | undefined>(undefined);
   const detailRef = useRef<HTMLDivElement>(null);
   const players = useMemo(() => Object.fromEntries(match.players.map((p) => [p.puuid, p])), [match]);
   const teamName = (c: Color) => match.teams[c].name;
 
+  // abre o round (e o instante) da URL, ao carregar e a cada link da própria página
   useEffect(() => {
-    const m = window.location.hash.match(/round-(\d+)/);
-    if (m) {
-      const n = Number(m[1]);
-      if (n >= 1 && n <= match.rounds.length) {
-        setSel(n);
-        setTimeout(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-      }
-    }
+    const apply = () => {
+      const h = parseHash(match.rounds.length);
+      if (!h) return;
+      setSel(h.n);
+      setStartT(h.t);
+      setTimeout(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    };
+    apply();
+    window.addEventListener("hashchange", apply);
+    return () => window.removeEventListener("hashchange", apply);
   }, [match.rounds.length]);
+  const pick = (n: number) => {
+    setSel(n);
+    setStartT(undefined);
+  };
 
   const describe = (e: RoundEvent) => {
     const who = e.actor ? nick(players[e.actor]?.name) : "?";
@@ -73,7 +87,7 @@ export default function MatchView({ match }: { match: Match }) {
         <div className="h-64 w-full" role="img" aria-label="Gráfico de momentum: chance de vitória de cada round ao longo da partida">
           <ResponsiveContainer>
             <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: 0 }}
-                           onClick={(s) => { const r = data[Number(s?.activeTooltipIndex)]?.round; if (r) setSel(r); }}>
+                           onClick={(s) => { const r = data[Number(s?.activeTooltipIndex)]?.round; if (r) pick(r); }}>
               <XAxis dataKey="x" type="number" domain={[0, match.rounds.length]} ticks={match.rounds.map((r) => r.n - 0.5)}
                      tickFormatter={(v) => String(Math.round(v + 0.5))} tick={{ fill: "var(--muted)", fontSize: 11 }} tickLine={false} axisLine={{ stroke: "var(--axis)" }} interval="preserveStartEnd" />
               <YAxis domain={[0, 1]} ticks={[0, 0.5, 1]} tickFormatter={(v) => (v === 0.5 ? "50%" : "100%")}
@@ -104,7 +118,7 @@ export default function MatchView({ match }: { match: Match }) {
 
         <div className="mt-4 flex flex-wrap gap-1.5" role="tablist" aria-label="Rounds">
           {match.rounds.map((r) => (
-            <button key={r.n} role="tab" aria-selected={r.n === sel} onClick={() => setSel(r.n)}
+            <button key={r.n} role="tab" aria-selected={r.n === sel} onClick={() => pick(r.n)}
                     title={`Round ${r.n}: ${teamName(r.winner)} (${RESULT_PT[r.result]})`}
                     className={`flex h-9 w-9 flex-col items-center justify-center rounded-md border text-xs tabular transition ${r.n === sel ? "border-ink bg-surface-2" : "border-line hover:border-ink-2"}`}>
               <span className="text-ink">{r.n}</span>
@@ -117,23 +131,22 @@ export default function MatchView({ match }: { match: Match }) {
 
       {/* scroll-mt: margem para o cabeçalho fixo do site não cobrir o topo do round */}
       <div ref={detailRef} id={`round-${sel}`} className="scroll-mt-24">
-        <RoundDetail match={match} round={round} describe={describe} onPrev={() => setSel(Math.max(1, sel - 1))} onNext={() => setSel(Math.min(match.rounds.length, sel + 1))} />
+        <RoundDetail match={match} round={round} startT={startT} onPrev={() => pick(Math.max(1, sel - 1))} onNext={() => pick(Math.min(match.rounds.length, sel + 1))} />
       </div>
     </div>
   );
 }
 
-function RoundDetail({ match, round, describe, onPrev, onNext }: {
-  match: Match; round: Round; describe: (e: RoundEvent) => string; onPrev: () => void; onNext: () => void;
+function RoundDetail({ match, round, startT, onPrev, onNext }: {
+  match: Match; round: Round; startT?: number; onPrev: () => void; onNext: () => void;
 }) {
   const atk = round.attacker, def: Color = atk === "Red" ? "Blue" : "Red";
   const tn = (c: Color) => match.teams[c].name;
-  const actorColor = (e: RoundEvent) => match.players.find((p) => p.puuid === e.actor)?.color;
   return (
     <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
-      <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
+      <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-ink">Round {round.n} <span className="text-sm font-normal text-muted">· {round.half}</span></h2>
+          <h2 className="text-2xl tracking-wide text-ink">Round {round.n} <span className="text-base text-muted">· {round.half}</span></h2>
           <p className="mt-1 text-sm text-ink-2">
             <span className="text-atk">●</span> Ataque: {tn(atk)} ({round.buy[atk]}) · <span className="text-def">●</span> Defesa: {tn(def)} ({round.buy[def]})
           </p>
@@ -148,38 +161,7 @@ function RoundDetail({ match, round, describe, onPrev, onNext }: {
           <button onClick={onNext} className="rounded-md border border-line px-3 py-1.5 text-sm text-ink-2 hover:border-ink-2">próximo →</button>
         </div>
       </header>
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div>
-          <p className="mb-2 text-xs text-muted">Chance de vitória antes da primeira kill: {tn("Red")} {pct(round.wp_red_start)} · {tn("Blue")} {pct(1 - round.wp_red_start)} (só pela economia)</p>
-          <ol className="divide-y divide-line/50">
-            {round.events.map((e, i) => {
-              const c = actorColor(e);
-              const mine = c === "Blue" ? [1 - e.wp_red_before, 1 - e.wp_red_after] : [e.wp_red_before, e.wp_red_after];
-              return (
-                <li key={i} className={`grid grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-3 py-2 text-sm ${e.after_round_end ? "opacity-40" : ""}`}>
-                  <span className="tabular text-muted">{clock(e.t)}</span>
-                  <span className="text-ink">
-                    <span className={c === "Red" ? "text-team-red" : c === "Blue" ? "text-team-blue" : "text-muted"}>●</span>{" "}
-                    {describe(e)}
-                    {e.first_blood && <span className="ml-2 rounded bg-surface-2 px-1.5 py-0.5 text-xs text-ink-2">first blood</span>}
-                    {e.is_trade && <span className="ml-2 rounded bg-surface-2 px-1.5 py-0.5 text-xs text-ink-2">trade</span>}
-                    {e.after_round_end && <span className="ml-2 text-xs text-muted">(após o fim do round)</span>}
-                  </span>
-                  <span className="tabular text-right text-xs">
-                    <span className="text-ink-2">{pct(mine[0])} → {pct(mine[1])}</span>
-                    <span className={`block ${e.wpa >= 0 ? "text-good" : "text-bad"}`}>{e.after_round_end ? "" : pp(e.wpa)}</span>
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
-          <p className="mt-2 text-xs text-muted">Porcentagens: chance de vitória do time de quem agiu, antes → depois.</p>
-        </div>
-        <div className="min-w-0">
-          <Minimap match={match} round={round} />
-        </div>
-      </div>
+      <RoundReplay match={match} round={round} initialT={startT} />
     </section>
   );
 }

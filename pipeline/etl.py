@@ -230,7 +230,8 @@ def parse_match(path: Path, data_root: Path, T):
                 "match_id": mid, "round_num": rn, "puuid": pu, "team_color": c, "side": side_of(c, atk),
                 "won_round": c == win_color,
                 "loadout": e.get("loadoutValue", 0), "spent": e.get("spent", 0), "bank": e.get("remaining", 0),
-                "weapon": weapon_name(e.get("weapon")), "weapon_cat": weapon_cat(e.get("weapon")),
+                # empty = no weapon recorded (the "" key in the catalog is only for kills, see meta.py)
+                "weapon": weapon_name(e["weapon"]) if e.get("weapon") else None, "weapon_cat": weapon_cat(e["weapon"]) if e.get("weapon") else None,
                 "armor": LOOKUP["gear"].get((e.get("armor") or "").lower(), {}).get("name"),
                 "kills": kills_by[pu], "assists": assists_by[pu], "died": bool(my_deaths),
                 "survived": final_death is None,

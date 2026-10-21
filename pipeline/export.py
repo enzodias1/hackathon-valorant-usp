@@ -2,7 +2,7 @@
 
   index.json                 matches, teams and players lists for navigation/search
   league.json                league-wide references
-  matches/<match_id>.json    one match: players, rounds, events with win probability, positions for the minimap
+  matches/<match_id>.json    one match: players, rounds, events with win probability, everyone's positions/view for the replay
   teams/<slug>.json          one team: metrics vs league + insights, maps, economy, roster, synergy graph, decisive rounds
   players/<puuid>.json       one player: impact, role, percentiles, agents, maps, matches, best/worst moments, partners, insights
 
@@ -25,6 +25,10 @@ LOOKUP = json.loads((ROOT / "data" / "meta" / "lookup.json").read_text(encoding=
 SHEET = ROOT / "para_equipe" / "nomes_dos_times.xlsx"
 AXES = ["Entry", "Support", "Lurker", "Clutch", "Impacto"]
 PERCENTILE_COLS = ["kd", "kpr", "adr", "acs", "kast", "hs_pct", "wpa_per_round", "opening_rate", "clutch_rate"]
+# finishingDamage.damageItem of ability kills (lowercased in kills.weapon_id) -> slot in the agent metadata
+ABILITY_SLOT = {"ability1": "Ability1", "ability2": "Ability2", "grenadeability": "Grenade", "ultimate": "Ultimate"}
+# kills that are neither a weapon nor an ability: (label, kind)
+OTHER_KILL = {"Bomb": ("Spike", "spike"), "Fall": ("Queda", "fall"), "Melee": ("Faca", "melee"), "Crush": ("Esmagamento", "other")}
 
 
 def team_names():
@@ -71,6 +75,7 @@ def load():
     t["team_rounds"] = t["team_rounds"][t["team_rounds"].team.notna()]
     t["player_name"] = t["player_match"].sort_values("match_id").groupby("puuid").name.last().to_dict()
     t["agents_by_name"] = {a["name"]: a for a in LOOKUP["agents"].values()}
+    add_kill_labels(t)
     for n in ("team_strength", "team_stage", "team_changes", "player_stage", "economy_team"):
         t[n] = pd.read_parquet(P / f"{n}.parquet")
     t["economy"] = json.loads((P / "economy.json").read_text(encoding="utf-8"))
@@ -78,10 +83,36 @@ def load():
     return t
 
 
+def add_kill_labels(t):
+    """kills.weapon_label / weapon_icon / kill_kind: what killed, readable (weapon, the agent's ability in PT, spike, fall...)."""
+    k = t["kills"]
+    agent = t["player_match"].set_index(["match_id", "puuid"]).agent
+    labels = []
+    for r in k[["match_id", "killer", "damage_type", "weapon_id"]].itertuples(index=False):
+        if r.damage_type == "Weapon":
+            w = LOOKUP["weapons"].get(r.weapon_id)
+            kind = "weapon" if not w or w["category"] not in ("Ability", "Melee") else w["category"].lower()
+            labels.append((w["name"], w["icon"], kind) if w else (None, None, "weapon"))
+        elif r.damage_type == "Ability":
+            a = t["agents_by_name"].get(agent.get((r.match_id, r.killer)), {})
+            ab = a.get("abilities", {}).get(ABILITY_SLOT.get(r.weapon_id), {})
+            labels.append((ab.get("name"), ab.get("icon"), "ability"))
+        else:
+            label, kind = OTHER_KILL.get(r.damage_type, (None, "other"))
+            labels.append((label, None, kind))
+    k["weapon_label"], k["weapon_icon"], k["kill_kind"] = zip(*labels)
+
+
 # ----------------------------------------------------------------------------------------------- matches
 def export_matches(t, names):
     m, pm, rd, kl, ev, st, pr = (t[k] for k in ("matches", "player_match", "rounds", "kills", "wp_events", "wp_states", "player_round"))
     adr = pr.groupby(["match_id", "puuid"]).damage.mean()
+    # replay: everyone alive at each kill/plant/defuse (the victim of a kill comes in victim_xy); view in radians, game axes
+    pos = pd.read_parquet(P / "positions.parquet")
+    pos["view"] = pos["view"].round(2)
+    pos_by = {k: g for k, g in pos.groupby("match_id")}
+    gear_by = {k: g.set_index(["round_num", "puuid"]) for k, g in pr.groupby("match_id")}
+    weapon_icon = {w["name"]: w["icon"] for w in LOOKUP["weapons"].values() if w.get("icon")}
     p0 = st[st.kind == "start"].set_index(["match_id", "round_num"]).p_atk
     ev_by = {k: g for k, g in ev.groupby(["match_id", "round_num"])}
     kl_by = {k: g.set_index("kill_idx") for k, g in kl.groupby(["match_id", "round_num"])}
@@ -96,10 +127,17 @@ def export_matches(t, names):
         for p in pm_by[mid].itertuples(index=False):
             a = t["agents_by_name"].get(p.agent, {})
             players.append({
-                "puuid": p.puuid, "name": p.name, "color": p.team_color, "agent": p.agent, "agent_icon": a.get("icon"), "role": p.role,
+                "puuid": p.puuid, "name": p.name, "color": p.team_color, "agent": p.agent, "agent_icon": a.get("icon"),
+                "minimap_icon": a.get("minimap_icon"), "role": p.role,
                 "kills": p.kills, "deaths": p.deaths, "assists": p.assists, "acs": p.score / max(p.rounds, 1),
                 "adr": adr.get((mid, p.puuid)), "wpa": t["wpa_pm"].get((mid, p.puuid), 0.0),
             })
+        pidx = {p["puuid"]: i for i, p in enumerate(players)}
+        # (round, event, event_idx) -> [[player index, x, y, view], ...]
+        frames = {k: [[pidx[u], int(x), int(y), v] for u, x, y, v in zip(g.puuid, g.x, g.y, g.view) if u in pidx]
+                  for k, g in pos_by[mid].groupby(["round_num", "event", "event_idx"])}
+        gear = gear_by[mid]
+        used_weapons = set()
         rounds = []
         for r in rd_by[mid].sort_values("round_num").itertuples(index=False):
             key = (mid, r.round_num)
@@ -112,11 +150,21 @@ def export_matches(t, names):
                         "wp_red_after": to_red(e.p_atk_after), "wpa": e.wpa * 100, "after_round_end": bool(e.post_end)}
                 if e.event == "kill":
                     k = kg.loc[int(e.kill_idx)]
-                    item.update({"victim": e.victim, "weapon": k.weapon, "first_blood": bool(k.first_blood),
+                    item.update({"victim": e.victim, "weapon": k.weapon_label, "weapon_icon": k.weapon_icon, "kill_kind": k.kill_kind,
+                                 "first_blood": bool(k.first_blood),
                                  "traded": bool(k.traded), "is_trade": bool(k.is_trade), "teamkill": bool(k.teamkill),
                                  "victim_xy": [k.victim_x, k.victim_y], "killer_xy": None if pd.isna(k.killer_x) else [k.killer_x, k.killer_y],
                                  "assistants": [a for a in k.assistants.split(",") if a]})
+                item["pos"] = frames.get((r.round_num, e.event, int(e.kill_idx) if e.event == "kill" else -1), [])
                 events.append(item)
+            # what each player carried (aligned with `players`): [weapon, armor, loadout value]
+            round_gear = []
+            for p in players:
+                g = gear.loc[(r.round_num, p["puuid"])] if (r.round_num, p["puuid"]) in gear.index else None
+                round_gear.append(None if g is None else [g.weapon if isinstance(g.weapon, str) else None,
+                                                          g.armor if isinstance(g.armor, str) else None, int(g.loadout)])
+                if g is not None and isinstance(g.weapon, str):
+                    used_weapons.add(g.weapon)
             rounds.append({
                 "n": r.round_num + 1, "half": r.half, "attacker": r.attacker_color, "winner": r.winner_color, "result": r.result_code,
                 "score_before": {r.attacker_color: r.score_atk_before, r.defender_color: r.score_def_before},
@@ -125,7 +173,7 @@ def export_matches(t, names):
                 "wp_red_start": to_red(p0[key]),
                 "plant": {"t": r.plant_time_ms, "site": r.plant_site, "by": r.planter, "xy": [r.plant_x, r.plant_y]} if r.planted else None,
                 "defuse": {"t": r.defuse_time_ms, "by": r.defuser} if r.defused else None,
-                "anomalous": bool(r.anomalous), "events": events,
+                "anomalous": bool(r.anomalous), "events": events, "gear": round_gear,
             })
         teams = {c: {"slug": s, **names.get(s, {"name": s, "tag": s})} for c, s in (("Red", mt.team_red), ("Blue", mt.team_blue))}
         doc = {
@@ -136,6 +184,7 @@ def export_matches(t, names):
             "teams": teams, "score": {"Red": mt.rounds_red, "Blue": mt.rounds_blue},
             "winner": "Red" if mt.winner == mt.team_red else "Blue",
             "players": players, "rounds": rounds,
+            "weapon_icons": {w: weapon_icon[w] for w in sorted(used_weapons) if w in weapon_icon},
         }
         write(OUT / "matches" / f"{mid}.json", doc)
         index.append({"id": mid, "date": doc["date"], "competition": mt.competition, "stage": mt.stage, "map": mt.map,
@@ -374,7 +423,8 @@ def export_players(t, names):
     prw = pr[["match_id", "round_num", "puuid", "team", "side"]].join(rw, on=["match_id", "round_num", "puuid"]).fillna({"wpa": 0.0})
 
     # moments: events where the player acted (kills/plants/defuses) or died
-    ev = ev.merge(kl[["match_id", "round_num", "kill_idx", "weapon", "victim_side"]], on=["match_id", "round_num", "kill_idx"], how="left")
+    ev = ev.merge(kl[["match_id", "round_num", "kill_idx", "weapon_label", "victim_side"]].rename(columns={"weapon_label": "weapon"}),
+                  on=["match_id", "round_num", "kill_idx"], how="left")
     ev["mine_before_actor"] = np.where(ev.actor_side == "Ataque", ev.p_atk_before, 1 - ev.p_atk_before)
     ev["mine_after_actor"] = np.where(ev.actor_side == "Ataque", ev.p_atk_after, 1 - ev.p_atk_after)
     ev["mine_before_victim"] = np.where(ev.victim_side == "Ataque", ev.p_atk_before, 1 - ev.p_atk_before)

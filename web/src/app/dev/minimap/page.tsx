@@ -1,8 +1,8 @@
-// Página de TESTE do minimapa (só em desenvolvimento; em produção dá 404).
+// Página de TESTE do replay do round (só em desenvolvimento; em produção dá 404).
 // Uso: /dev/minimap?partida=<id>&round=<n>
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import Minimap from "@/components/Minimap";
+import RoundReplay from "@/components/analise/RoundReplay";
 import { getIndex, getMatch } from "@/lib/data";
 import { date } from "@/lib/format";
 
@@ -24,8 +24,8 @@ export default async function MinimapDevPage({
   const teamName = (slug: string) => index.teams[slug]?.name ?? slug;
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-6">
-      <h1 className="text-lg font-semibold">Teste do minimapa</h1>
+    <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6">
+      <h1 className="text-lg font-semibold">Teste do replay</h1>
 
       <form className="flex flex-wrap gap-2 text-sm">
         <select name="partida" defaultValue={id} className="min-w-0 flex-1 rounded-md border border-line bg-surface-2 px-2 py-1">
@@ -50,7 +50,7 @@ export default async function MinimapDevPage({
         ))}
       </nav>
 
-      <Minimap match={match} round={r} />
+      <RoundReplay match={match} round={r} />
     </main>
   );
 }

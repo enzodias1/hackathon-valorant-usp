@@ -55,7 +55,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
               const what = e.type === "plant" ? "plantou a spike" : e.type === "defuse" ? "desarmou a spike" : `matou ${nick(name[e.victim ?? ""]?.name)}${e.weapon ? ` (${e.weapon})` : ""}`;
               return (
                 <li key={i}>
-                  <a href={`#round-${r.n}`} className="flex items-center justify-between gap-3 py-2 text-sm hover:bg-surface-2">
+                  <a href={`#round-${r.n}@${(e.t / 1000).toFixed(1)}`} className="flex items-center justify-between gap-3 py-2 text-sm hover:bg-surface-2">
                     <span>
                       <span className={p?.color === "Red" ? "text-team-red" : "text-team-blue"}>●</span>{" "}
                       <span className="text-ink">{nick(p?.name)} {what}</span>

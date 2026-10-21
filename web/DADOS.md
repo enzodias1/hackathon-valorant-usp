@@ -115,7 +115,7 @@ quem vence de quem perde (1 = perfeito, 0,5 = moeda); **ECE / calibração** = q
 ## `league.json`
 Referências da liga inteira (taxas médias dos times, vitória por tipo de compra, ataque por mapa, médias de jogador).
 
-## `matches/<id>.json` (uma partida, ~80 KB)
+## `matches/<id>.json` (uma partida, ~130 KB)
 ```jsonc
 {
   "id", "competition", "stage", "date", "length_min",
@@ -123,7 +123,9 @@ Referências da liga inteira (taxas médias dos times, vitória por tipo de comp
            "transform": { "xMultiplier", "yMultiplier", "xScalarToAdd", "yScalarToAdd" } },
   "teams": { "Red": { "slug", "name", "tag" }, "Blue": { ... } },
   "score": { "Red": 13, "Blue": 2 }, "winner": "Red",
-  "players": [ { "puuid", "name": "Nick#TAG", "color": "Red", "agent": "Jett", "agent_icon": "<url>", "role": "Duelista",
+  "players": [ { "puuid", "name": "Nick#TAG", "color": "Red", "agent": "Jett", "agent_icon": "<url>",
+                 "minimap_icon": "<url>",   // ícone redondo do agente no minimapa do jogo (replay)
+                 "role": "Duelista",
                  "kills", "deaths", "assists", "acs", "adr",
                  "wpa" } ],          // impacto total na partida, em pontos percentuais de prob. de vitória
   "rounds": [ {
@@ -136,6 +138,7 @@ Referências da liga inteira (taxas médias dos times, vitória por tipo de comp
       "plant":  { "t": 43125, "site": "B", "by": "<puuid>", "xy": [x, y] } | null,
       "defuse": { "t": 80000, "by": "<puuid>" } | null,
       "anomalous": false,            // round com erro na base (ignorar nas análises)
+      "gear": [ ["Vandal", "Armadura Pesada", 3900], null, ... ],   // por jogador, na ordem de `players`: arma, colete, valor do equipamento
       "events": [ {
           "t": 21227,                // ms desde o início do round (fim da fase de compra)
           "type": "kill | plant | defuse",
@@ -145,11 +148,21 @@ Referências da liga inteira (taxas médias dos times, vitória por tipo de comp
           "after_round_end": false,  // true = aconteceu depois do desarme/explosão (não muda nada; mostre esmaecido)
           // só em kills:
           "victim": "<puuid>", "weapon": "Ghost", "first_blood": true, "traded": false, "is_trade": false,
-          "teamkill": false, "victim_xy": [x, y], "killer_xy": [x, y] | null, "assistants": ["<puuid>"]
+          "teamkill": false, "victim_xy": [x, y], "killer_xy": [x, y] | null, "assistants": ["<puuid>"],
+          // o que matou, legível: arma, habilidade do agente (nome em português), "Spike", "Queda" ou "Faca"
+          "weapon_icon": "<url killfeed>" | null, "kill_kind": "weapon | ability | melee | spike | fall | other",
+          // em todo evento: todos os vivos naquele instante (a vítima de uma kill vem em victim_xy)
+          "pos": [ [i, x, y, view] ]   // i = índice em `players`; view = direção da mira em radianos, atan2(dy, dx) nos eixos do jogo
       } ]
-  } ]
+  } ],
+  "weapon_icons": { "Vandal": "<url killfeed>" }   // ícones das armas que aparecem em `gear`
 }
 ```
+
+**Replay:** as posições existem só nos instantes de kill, plant e desarme (é o que a Riot registra). Entre eles o site interpola em
+linha reta e avisa isso na tela. A direção da mira foi validada pelo significado: em 99% das kills, quem mata está olhando para a
+vítima (mediana de 0,3°; `checks.py`). Para desenhar o cone no minimapa, lembre que os eixos são trocados:
+`ângulo na tela = atan2(cos(view) * yMultiplier, sin(view) * xMultiplier)`. O uso de utilitárias não vem nos dados; kills por habilidade, sim.
 
 ## Coordenadas → minimapa (fórmula validada)
 As posições `[x, y]` estão em unidades do jogo (~1 cm). Para desenhar sobre a imagem do minimapa

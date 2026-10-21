@@ -3,147 +3,698 @@
   "e370fa57-4757-3604-3648-499e1f642d3f": {
    "name": "Gekko",
    "role": "Iniciador",
-   "icon": "https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Wingman",
+     "icon": "https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Dizzy",
+     "icon": "https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Mosh Pit",
+     "icon": "https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Thrash",
+     "icon": "https://media.valorant-api.com/agents/e370fa57-4757-3604-3648-499e1f642d3f/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "dade69b4-4f5a-8528-247b-219e5a1facd6": {
    "name": "Fade",
    "role": "Iniciador",
-   "icon": "https://media.valorant-api.com/agents/dade69b4-4f5a-8528-247b-219e5a1facd6/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/dade69b4-4f5a-8528-247b-219e5a1facd6/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/dade69b4-4f5a-8528-247b-219e5a1facd6/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Clausura",
+     "icon": "https://media.valorant-api.com/agents/dade69b4-4f5a-8528-247b-219e5a1facd6/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Assombrar",
+     "icon": "https://media.valorant-api.com/agents/dade69b4-4f5a-8528-247b-219e5a1facd6/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Espreitador",
+     "icon": "https://media.valorant-api.com/agents/dade69b4-4f5a-8528-247b-219e5a1facd6/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Véu da Noite",
+     "icon": "https://media.valorant-api.com/agents/dade69b4-4f5a-8528-247b-219e5a1facd6/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "5f8d3a7f-467b-97f3-062c-13acf203c006": {
    "name": "Breach",
    "role": "Iniciador",
-   "icon": "https://media.valorant-api.com/agents/5f8d3a7f-467b-97f3-062c-13acf203c006/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/5f8d3a7f-467b-97f3-062c-13acf203c006/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/5f8d3a7f-467b-97f3-062c-13acf203c006/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Estopim",
+     "icon": "https://media.valorant-api.com/agents/5f8d3a7f-467b-97f3-062c-13acf203c006/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Falha Tectônica",
+     "icon": "https://media.valorant-api.com/agents/5f8d3a7f-467b-97f3-062c-13acf203c006/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Pós-choque",
+     "icon": "https://media.valorant-api.com/agents/5f8d3a7f-467b-97f3-062c-13acf203c006/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Onda Trovejante",
+     "icon": "https://media.valorant-api.com/agents/5f8d3a7f-467b-97f3-062c-13acf203c006/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "cc8b64c8-4b25-4ff9-6e7f-37b4da43d235": {
    "name": "Deadlock",
    "role": "Sentinela",
-   "icon": "https://media.valorant-api.com/agents/cc8b64c8-4b25-4ff9-6e7f-37b4da43d235/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/cc8b64c8-4b25-4ff9-6e7f-37b4da43d235/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/cc8b64c8-4b25-4ff9-6e7f-37b4da43d235/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Sensor Sônico",
+     "icon": "https://media.valorant-api.com/agents/cc8b64c8-4b25-4ff9-6e7f-37b4da43d235/abilities/ability1/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Barreira de Contenção",
+     "icon": "https://media.valorant-api.com/agents/cc8b64c8-4b25-4ff9-6e7f-37b4da43d235/abilities/grenade/displayicon.png"
+    },
+    "Ability2": {
+     "name": "GravNet",
+     "icon": "https://media.valorant-api.com/agents/cc8b64c8-4b25-4ff9-6e7f-37b4da43d235/abilities/ability2/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Aniquilação",
+     "icon": "https://media.valorant-api.com/agents/cc8b64c8-4b25-4ff9-6e7f-37b4da43d235/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "b444168c-4e35-8076-db47-ef9bf368f384": {
    "name": "Tejo",
    "role": "Iniciador",
-   "icon": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/minimapportrait.png",
+   "abilities": {
+    "Ability2": {
+     "name": "Rajada Guiada",
+     "icon": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/abilities/ability2/displayicon.png"
+    },
+    "Ability1": {
+     "name": "Entrega Especial",
+     "icon": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/abilities/ability1/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Armagedom",
+     "icon": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/abilities/ultimate/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Drone Furtivo",
+     "icon": "https://media.valorant-api.com/agents/b444168c-4e35-8076-db47-ef9bf368f384/abilities/grenade/displayicon.png"
+    }
+   }
   },
   "f94c3b30-42be-e959-889c-5aa313dba261": {
    "name": "Raze",
    "role": "Duelista",
-   "icon": "https://media.valorant-api.com/agents/f94c3b30-42be-e959-889c-5aa313dba261/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/f94c3b30-42be-e959-889c-5aa313dba261/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/f94c3b30-42be-e959-889c-5aa313dba261/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Carga de Explosivos",
+     "icon": "https://media.valorant-api.com/agents/f94c3b30-42be-e959-889c-5aa313dba261/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Cartuchos de Tinta",
+     "icon": "https://media.valorant-api.com/agents/f94c3b30-42be-e959-889c-5aa313dba261/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Bumba",
+     "icon": "https://media.valorant-api.com/agents/f94c3b30-42be-e959-889c-5aa313dba261/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Estraga-prazeres",
+     "icon": "https://media.valorant-api.com/agents/f94c3b30-42be-e959-889c-5aa313dba261/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "22697a3d-45bf-8dd7-4fec-84a9e28c69d7": {
    "name": "Chamber",
    "role": "Sentinela",
-   "icon": "https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/minimapportrait.png",
+   "abilities": {
+    "Ability2": {
+     "name": "Rendezvous",
+     "icon": "https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Marca Registrada",
+     "icon": "https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/abilities/grenade/displayicon.png"
+    },
+    "Ability1": {
+     "name": "Caçador de Cabeças",
+     "icon": "https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/abilities/ability1/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Tour de Force",
+     "icon": "https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "601dbbe7-43ce-be57-2a40-4abd24953621": {
    "name": "KAY/O",
    "role": "Iniciador",
-   "icon": "https://media.valorant-api.com/agents/601dbbe7-43ce-be57-2a40-4abd24953621/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/601dbbe7-43ce-be57-2a40-4abd24953621/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/601dbbe7-43ce-be57-2a40-4abd24953621/minimapportrait.png",
+   "abilities": {
+    "Grenade": {
+     "name": "FRAG/mento",
+     "icon": "https://media.valorant-api.com/agents/601dbbe7-43ce-be57-2a40-4abd24953621/abilities/grenade/displayicon.png"
+    },
+    "Ability1": {
+     "name": "GRANADA/clarão",
+     "icon": "https://media.valorant-api.com/agents/601dbbe7-43ce-be57-2a40-4abd24953621/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "PONTO/zero",
+     "icon": "https://media.valorant-api.com/agents/601dbbe7-43ce-be57-2a40-4abd24953621/abilities/ability2/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "ANULAR/cmd",
+     "icon": "https://media.valorant-api.com/agents/601dbbe7-43ce-be57-2a40-4abd24953621/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "6f2a04ca-43e0-be17-7f36-b3908627744d": {
    "name": "Skye",
    "role": "Iniciador",
-   "icon": "https://media.valorant-api.com/agents/6f2a04ca-43e0-be17-7f36-b3908627744d/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/6f2a04ca-43e0-be17-7f36-b3908627744d/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/6f2a04ca-43e0-be17-7f36-b3908627744d/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Predador Explosivo",
+     "icon": "https://media.valorant-api.com/agents/6f2a04ca-43e0-be17-7f36-b3908627744d/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Luz Desbravadora",
+     "icon": "https://media.valorant-api.com/agents/6f2a04ca-43e0-be17-7f36-b3908627744d/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Reflorescer",
+     "icon": "https://media.valorant-api.com/agents/6f2a04ca-43e0-be17-7f36-b3908627744d/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Rastreadores",
+     "icon": "https://media.valorant-api.com/agents/6f2a04ca-43e0-be17-7f36-b3908627744d/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "117ed9e3-49f3-6512-3ccf-0cada7e3823b": {
    "name": "Cypher",
    "role": "Sentinela",
-   "icon": "https://media.valorant-api.com/agents/117ed9e3-49f3-6512-3ccf-0cada7e3823b/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/117ed9e3-49f3-6512-3ccf-0cada7e3823b/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/117ed9e3-49f3-6512-3ccf-0cada7e3823b/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Jaula Cibernética",
+     "icon": "https://media.valorant-api.com/agents/117ed9e3-49f3-6512-3ccf-0cada7e3823b/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Câmera de Vigilância",
+     "icon": "https://media.valorant-api.com/agents/117ed9e3-49f3-6512-3ccf-0cada7e3823b/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Fio-armadilha",
+     "icon": "https://media.valorant-api.com/agents/117ed9e3-49f3-6512-3ccf-0cada7e3823b/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Assalto Neural",
+     "icon": "https://media.valorant-api.com/agents/117ed9e3-49f3-6512-3ccf-0cada7e3823b/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "320b2a48-4d9b-a075-30f1-1f93a9b638fa": {
    "name": "Sova",
    "role": "Iniciador",
-   "icon": "https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Flecha de Choque",
+     "icon": "https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Flecha Rastreadora",
+     "icon": "https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Drone Coruja",
+     "icon": "https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Fúria do Caçador",
+     "icon": "https://media.valorant-api.com/agents/320b2a48-4d9b-a075-30f1-1f93a9b638fa/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "7c8a4701-4de6-9355-b254-e09bc2a34b72": {
    "name": "Miks",
    "role": "Controlador",
-   "icon": "https://media.valorant-api.com/agents/7c8a4701-4de6-9355-b254-e09bc2a34b72/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/7c8a4701-4de6-9355-b254-e09bc2a34b72/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/7c8a4701-4de6-9355-b254-e09bc2a34b72/minimapportrait.png",
+   "abilities": {
+    "Grenade": {
+     "name": "Pulso M",
+     "icon": "https://media.valorant-api.com/agents/7c8a4701-4de6-9355-b254-e09bc2a34b72/abilities/grenade/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Ressonância",
+     "icon": "https://media.valorant-api.com/agents/7c8a4701-4de6-9355-b254-e09bc2a34b72/abilities/ability2/displayicon.png"
+    },
+    "Ability1": {
+     "name": "Harmonia",
+     "icon": "https://media.valorant-api.com/agents/7c8a4701-4de6-9355-b254-e09bc2a34b72/abilities/ability1/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Melodia Sísmica",
+     "icon": "https://media.valorant-api.com/agents/7c8a4701-4de6-9355-b254-e09bc2a34b72/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "1e58de9c-4950-5125-93e9-a0aee9f98746": {
    "name": "Killjoy",
    "role": "Sentinela",
-   "icon": "https://media.valorant-api.com/agents/1e58de9c-4950-5125-93e9-a0aee9f98746/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/1e58de9c-4950-5125-93e9-a0aee9f98746/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/1e58de9c-4950-5125-93e9-a0aee9f98746/minimapportrait.png",
+   "abilities": {
+    "Grenade": {
+     "name": "Nanoenxame",
+     "icon": "https://media.valorant-api.com/agents/1e58de9c-4950-5125-93e9-a0aee9f98746/abilities/grenade/displayicon.png"
+    },
+    "Ability1": {
+     "name": "Robô de Alarme",
+     "icon": "https://media.valorant-api.com/agents/1e58de9c-4950-5125-93e9-a0aee9f98746/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Torreta",
+     "icon": "https://media.valorant-api.com/agents/1e58de9c-4950-5125-93e9-a0aee9f98746/abilities/ability2/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Confinamento",
+     "icon": "https://media.valorant-api.com/agents/1e58de9c-4950-5125-93e9-a0aee9f98746/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "95b78ed7-4637-86d9-7e41-71ba8c293152": {
    "name": "Harbor",
    "role": "Controlador",
-   "icon": "https://media.valorant-api.com/agents/95b78ed7-4637-86d9-7e41-71ba8c293152/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/95b78ed7-4637-86d9-7e41-71ba8c293152/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/95b78ed7-4637-86d9-7e41-71ba8c293152/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Maré Alta",
+     "icon": "https://media.valorant-api.com/agents/95b78ed7-4637-86d9-7e41-71ba8c293152/abilities/ability1/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Temporal",
+     "icon": "https://media.valorant-api.com/agents/95b78ed7-4637-86d9-7e41-71ba8c293152/abilities/grenade/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Enseada",
+     "icon": "https://media.valorant-api.com/agents/95b78ed7-4637-86d9-7e41-71ba8c293152/abilities/ability2/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Acerto de Contas",
+     "icon": "https://media.valorant-api.com/agents/95b78ed7-4637-86d9-7e41-71ba8c293152/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "efba5359-4016-a1e5-7626-b1ae76895940": {
    "name": "Vyse",
    "role": "Sentinela",
-   "icon": "https://media.valorant-api.com/agents/efba5359-4016-a1e5-7626-b1ae76895940/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/efba5359-4016-a1e5-7626-b1ae76895940/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/efba5359-4016-a1e5-7626-b1ae76895940/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Cerca-Viva",
+     "icon": "https://media.valorant-api.com/agents/efba5359-4016-a1e5-7626-b1ae76895940/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Rosa Arcana",
+     "icon": "https://media.valorant-api.com/agents/efba5359-4016-a1e5-7626-b1ae76895940/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Espinheiro Cortante",
+     "icon": "https://media.valorant-api.com/agents/efba5359-4016-a1e5-7626-b1ae76895940/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Jardim de Aço",
+     "icon": "https://media.valorant-api.com/agents/efba5359-4016-a1e5-7626-b1ae76895940/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "707eab51-4836-f488-046a-cda6bf494859": {
    "name": "Viper",
    "role": "Controlador",
-   "icon": "https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Nuvem Venenosa",
+     "icon": "https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Cortina Tóxica",
+     "icon": "https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Veneno de Cobra",
+     "icon": "https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Poço Peçonhento",
+     "icon": "https://media.valorant-api.com/agents/707eab51-4836-f488-046a-cda6bf494859/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "eb93336a-449b-9c1b-0a54-a891f7921d69": {
    "name": "Phoenix",
    "role": "Duelista",
-   "icon": "https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/minimapportrait.png",
+   "abilities": {
+    "Grenade": {
+     "name": "Labareda",
+     "icon": "https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/abilities/grenade/displayicon.png"
+    },
+    "Ability1": {
+     "name": "Mãos Quentes",
+     "icon": "https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Bola Curva",
+     "icon": "https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/abilities/ability2/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Renascimento",
+     "icon": "https://media.valorant-api.com/agents/eb93336a-449b-9c1b-0a54-a891f7921d69/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "92eeef5d-43b5-1d4a-8d03-b3927a09034b": {
    "name": "Veto",
    "role": "Sentinela",
-   "icon": "https://media.valorant-api.com/agents/92eeef5d-43b5-1d4a-8d03-b3927a09034b/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/92eeef5d-43b5-1d4a-8d03-b3927a09034b/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/92eeef5d-43b5-1d4a-8d03-b3927a09034b/minimapportrait.png",
+   "abilities": {
+    "Ability2": {
+     "name": "Interceptador",
+     "icon": "https://media.valorant-api.com/agents/92eeef5d-43b5-1d4a-8d03-b3927a09034b/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Travessia",
+     "icon": "https://media.valorant-api.com/agents/92eeef5d-43b5-1d4a-8d03-b3927a09034b/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Evolução",
+     "icon": "https://media.valorant-api.com/agents/92eeef5d-43b5-1d4a-8d03-b3927a09034b/abilities/ultimate/displayicon.png"
+    },
+    "Ability1": {
+     "name": "Imobilidade",
+     "icon": "https://media.valorant-api.com/agents/92eeef5d-43b5-1d4a-8d03-b3927a09034b/abilities/ability1/displayicon.png"
+    }
+   }
   },
   "41fb69c1-4189-7b37-f117-bcaf1e96f1bf": {
    "name": "Astra",
    "role": "Controlador",
-   "icon": "https://media.valorant-api.com/agents/41fb69c1-4189-7b37-f117-bcaf1e96f1bf/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/41fb69c1-4189-7b37-f117-bcaf1e96f1bf/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/41fb69c1-4189-7b37-f117-bcaf1e96f1bf/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Pulso Nova",
+     "icon": "https://media.valorant-api.com/agents/41fb69c1-4189-7b37-f117-bcaf1e96f1bf/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Nebulosa / Dissipar",
+     "icon": "https://media.valorant-api.com/agents/41fb69c1-4189-7b37-f117-bcaf1e96f1bf/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Poço Gravitacional",
+     "icon": "https://media.valorant-api.com/agents/41fb69c1-4189-7b37-f117-bcaf1e96f1bf/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Forma Astral / Divisa\nCósmica",
+     "icon": "https://media.valorant-api.com/agents/41fb69c1-4189-7b37-f117-bcaf1e96f1bf/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "9f0d8ba9-4140-b941-57d3-a7ad57c6b417": {
    "name": "Brimstone",
    "role": "Controlador",
-   "icon": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/minimapportrait.png",
+   "abilities": {
+    "Grenade": {
+     "name": "Sinalizador Estimulante",
+     "icon": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/abilities/grenade/displayicon.png"
+    },
+    "Ability1": {
+     "name": "Incendiário",
+     "icon": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Fumaça Celeste",
+     "icon": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/abilities/ability2/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Ataque Orbital",
+     "icon": "https://media.valorant-api.com/agents/9f0d8ba9-4140-b941-57d3-a7ad57c6b417/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "0e38b510-41a8-5780-5e8f-568b2a4f2d6c": {
    "name": "Iso",
    "role": "Duelista",
-   "icon": "https://media.valorant-api.com/agents/0e38b510-41a8-5780-5e8f-568b2a4f2d6c/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/0e38b510-41a8-5780-5e8f-568b2a4f2d6c/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/0e38b510-41a8-5780-5e8f-568b2a4f2d6c/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Centelha Debilitante",
+     "icon": "https://media.valorant-api.com/agents/0e38b510-41a8-5780-5e8f-568b2a4f2d6c/abilities/ability1/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Contrato de Abate",
+     "icon": "https://media.valorant-api.com/agents/0e38b510-41a8-5780-5e8f-568b2a4f2d6c/abilities/ultimate/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Fluxo Protetor",
+     "icon": "https://media.valorant-api.com/agents/0e38b510-41a8-5780-5e8f-568b2a4f2d6c/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Contingência",
+     "icon": "https://media.valorant-api.com/agents/0e38b510-41a8-5780-5e8f-568b2a4f2d6c/abilities/grenade/displayicon.png"
+    }
+   }
   },
   "1dbf2edd-4729-0984-3115-daa5eed44993": {
    "name": "Clove",
    "role": "Controlador",
-   "icon": "https://media.valorant-api.com/agents/1dbf2edd-4729-0984-3115-daa5eed44993/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/1dbf2edd-4729-0984-3115-daa5eed44993/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/1dbf2edd-4729-0984-3115-daa5eed44993/minimapportrait.png",
+   "abilities": {
+    "Grenade": {
+     "name": "Revitalizar",
+     "icon": "https://media.valorant-api.com/agents/1dbf2edd-4729-0984-3115-daa5eed44993/abilities/grenade/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Artimanha",
+     "icon": "https://media.valorant-api.com/agents/1dbf2edd-4729-0984-3115-daa5eed44993/abilities/ability2/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Ainda Não Morri",
+     "icon": "https://media.valorant-api.com/agents/1dbf2edd-4729-0984-3115-daa5eed44993/abilities/ultimate/displayicon.png"
+    },
+    "Ability1": {
+     "name": "Desvitalização",
+     "icon": "https://media.valorant-api.com/agents/1dbf2edd-4729-0984-3115-daa5eed44993/abilities/ability1/displayicon.png"
+    }
+   }
   },
   "bb2a4828-46eb-8cd1-e765-15848195d751": {
    "name": "Neon",
    "role": "Duelista",
-   "icon": "https://media.valorant-api.com/agents/bb2a4828-46eb-8cd1-e765-15848195d751/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/bb2a4828-46eb-8cd1-e765-15848195d751/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/bb2a4828-46eb-8cd1-e765-15848195d751/minimapportrait.png",
+   "abilities": {
+    "Ability2": {
+     "name": "Equipamento Voltaico",
+     "icon": "https://media.valorant-api.com/agents/bb2a4828-46eb-8cd1-e765-15848195d751/abilities/ability2/displayicon.png"
+    },
+    "Ability1": {
+     "name": "Ricochete Elétrico",
+     "icon": "https://media.valorant-api.com/agents/bb2a4828-46eb-8cd1-e765-15848195d751/abilities/ability1/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Via Expressa",
+     "icon": "https://media.valorant-api.com/agents/bb2a4828-46eb-8cd1-e765-15848195d751/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Sobrecarga",
+     "icon": "https://media.valorant-api.com/agents/bb2a4828-46eb-8cd1-e765-15848195d751/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "7f94d92c-4234-0a36-9646-3a87eb8b5c89": {
    "name": "Yoru",
    "role": "Duelista",
-   "icon": "https://media.valorant-api.com/agents/7f94d92c-4234-0a36-9646-3a87eb8b5c89/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/7f94d92c-4234-0a36-9646-3a87eb8b5c89/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/7f94d92c-4234-0a36-9646-3a87eb8b5c89/minimapportrait.png",
+   "abilities": {
+    "Grenade": {
+     "name": "Distração",
+     "icon": "https://media.valorant-api.com/agents/7f94d92c-4234-0a36-9646-3a87eb8b5c89/abilities/grenade/displayicon.png"
+    },
+    "Ability1": {
+     "name": "Ponto Cego",
+     "icon": "https://media.valorant-api.com/agents/7f94d92c-4234-0a36-9646-3a87eb8b5c89/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Passagem Dimensional",
+     "icon": "https://media.valorant-api.com/agents/7f94d92c-4234-0a36-9646-3a87eb8b5c89/abilities/ability2/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Espionagem Dimensional",
+     "icon": "https://media.valorant-api.com/agents/7f94d92c-4234-0a36-9646-3a87eb8b5c89/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "df1cb487-4902-002e-5c17-d28e83e78588": {
    "name": "Waylay",
    "role": "Duelista",
-   "icon": "https://media.valorant-api.com/agents/df1cb487-4902-002e-5c17-d28e83e78588/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/df1cb487-4902-002e-5c17-d28e83e78588/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/df1cb487-4902-002e-5c17-d28e83e78588/minimapportrait.png",
+   "abilities": {
+    "Ability2": {
+     "name": "Refração",
+     "icon": "https://media.valorant-api.com/agents/df1cb487-4902-002e-5c17-d28e83e78588/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Saturação",
+     "icon": "https://media.valorant-api.com/agents/df1cb487-4902-002e-5c17-d28e83e78588/abilities/grenade/displayicon.png"
+    },
+    "Ability1": {
+     "name": "Velocidade da Luz",
+     "icon": "https://media.valorant-api.com/agents/df1cb487-4902-002e-5c17-d28e83e78588/abilities/ability1/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Caminhos Convergentes",
+     "icon": "https://media.valorant-api.com/agents/df1cb487-4902-002e-5c17-d28e83e78588/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "569fdd95-4d10-43ab-ca70-79becc718b46": {
    "name": "Sage",
    "role": "Sentinela",
-   "icon": "https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Orbe de Lentidão",
+     "icon": "https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Orbe Curativo",
+     "icon": "https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Orbe de Barreira",
+     "icon": "https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Ressurreição",
+     "icon": "https://media.valorant-api.com/agents/569fdd95-4d10-43ab-ca70-79becc718b46/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "a3bfb853-43b2-7238-a4f1-ad90e9e46bcc": {
    "name": "Reyna",
    "role": "Duelista",
-   "icon": "https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Devorar",
+     "icon": "https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Dispensar",
+     "icon": "https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Olhar Voraz",
+     "icon": "https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Imperatriz",
+     "icon": "https://media.valorant-api.com/agents/a3bfb853-43b2-7238-a4f1-ad90e9e46bcc/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "8e253930-4c05-31dd-1b6c-968525494517": {
    "name": "Omen",
    "role": "Controlador",
-   "icon": "https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Paranoia",
+     "icon": "https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Manto Sombrio",
+     "icon": "https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Passos Tenebrosos",
+     "icon": "https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Salto das Sombras",
+     "icon": "https://media.valorant-api.com/agents/8e253930-4c05-31dd-1b6c-968525494517/abilities/ultimate/displayicon.png"
+    }
+   }
   },
   "add6443a-41bd-e414-f6ad-e58d267f4e95": {
    "name": "Jett",
    "role": "Duelista",
-   "icon": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png"
+   "icon": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png",
+   "minimap_icon": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/minimapportrait.png",
+   "abilities": {
+    "Ability1": {
+     "name": "Corrente Ascendente",
+     "icon": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/abilities/ability1/displayicon.png"
+    },
+    "Ability2": {
+     "name": "Brisa de Impulso",
+     "icon": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/abilities/ability2/displayicon.png"
+    },
+    "Grenade": {
+     "name": "Erupção das Brumas",
+     "icon": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/abilities/grenade/displayicon.png"
+    },
+    "Ultimate": {
+     "name": "Tormenta de Aço",
+     "icon": "https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/abilities/ultimate/displayicon.png"
+    }
+   }
   }
  },
  "weapons": {
@@ -274,28 +825,36 @@
    "icon": "https://media.valorant-api.com/weapons/2f59173c-4bed-b6c3-2191-dea9b58be9c7/killstreamicon.png"
   },
   "856d9a7e-4b06-dc37-15dc-9d809c37cb90": {
-   "name": "Caçadora (Chamber)",
+   "name": "Caçador de Cabeças",
    "category": "Ability",
    "cost": 0,
-   "icon": null
+   "icon": "https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/abilities/ability1/displayicon.png",
+   "agent": "Chamber",
+   "slot": "Ability1"
   },
   "39099fb5-4293-def4-1e09-2e9080ce7456": {
-   "name": "Marca Registrada (Chamber)",
+   "name": "Tour de Force",
    "category": "Ability",
    "cost": 0,
-   "icon": null
+   "icon": "https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/abilities/ultimate/displayicon.png",
+   "agent": "Chamber",
+   "slot": "Ultimate"
   },
   "": {
-   "name": "Marca Registrada (Chamber)",
+   "name": "Tour de Force",
    "category": "Ability",
    "cost": 0,
-   "icon": null
+   "icon": "https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/abilities/ultimate/displayicon.png",
+   "agent": "Chamber",
+   "slot": "Ultimate"
   },
   "95336ae4-45d4-1032-cfaf-6bad01910607": {
-   "name": "Sobrecarga (Neon)",
+   "name": "Sobrecarga",
    "category": "Ability",
    "cost": 0,
-   "icon": null
+   "icon": "https://media.valorant-api.com/agents/bb2a4828-46eb-8cd1-e765-15848195d751/abilities/ultimate/displayicon.png",
+   "agent": "Neon",
+   "slot": "Ultimate"
   }
  },
  "gear": {

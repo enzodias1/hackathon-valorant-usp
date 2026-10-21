@@ -63,6 +63,8 @@ export interface MatchPlayer {
   color: Color;
   agent: string;
   agent_icon: string | null;
+  /** ícone redondo do agente usado no minimapa do jogo (replay) */
+  minimap_icon?: string | null;
   role: AgentRole;
   kills: number;
   deaths: number;
@@ -89,7 +91,18 @@ export interface RoundEvent {
   victim_xy?: [number, number];
   killer_xy?: [number, number] | null;
   assistants?: string[];
+  /** ícone da arma (killfeed) ou da habilidade que matou */
+  weapon_icon?: string | null;
+  kill_kind?: KillKind;
+  /** todos os vivos no instante do evento (a vítima de uma kill vem em victim_xy) */
+  pos?: PosEntry[];
 }
+
+export type KillKind = "weapon" | "ability" | "melee" | "spike" | "fall" | "other";
+/** [índice em match.players, x, y, direção da visão em radianos (eixos do jogo: atan2(dy, dx))] */
+export type PosEntry = [number, number, number, number];
+/** o que o jogador levou no round: [arma, colete, valor do equipamento] */
+export type GearEntry = [string | null, string | null, number];
 
 export interface Round {
   n: number;
@@ -105,6 +118,8 @@ export interface Round {
   defuse: { t: number; by: string | null } | null;
   anomalous: boolean;
   events: RoundEvent[];
+  /** alinhado com match.players */
+  gear?: (GearEntry | null)[];
 }
 
 export interface MapTransform {
@@ -129,6 +144,8 @@ export interface Match {
   winner: Color;
   players: MatchPlayer[];
   rounds: Round[];
+  /** arma -> ícone de killfeed, para as armas que aparecem em `gear` */
+  weapon_icons?: Record<string, string>;
 }
 
 // ---------------------------------------------------------------- comparações e insights

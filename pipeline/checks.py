@@ -4,6 +4,7 @@ Run after export.py:  .venv/Scripts/python pipeline/checks.py
 Prints PASS/FAIL per check and exits with code 1 if anything fails.
 """
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -145,6 +146,37 @@ def main():
         if any(abs(mp["transform"][k] / ref[k] - 1) > 1e-3 for k in ("xMultiplier", "yMultiplier")):  # relative error > 0.1%
             bad_tf.append(i)
     check("coordenadas do minimapa exportadas sem perda de precisão", not bad_tf, f"{len(bad_tf)} partidas com transform distorcido")
+
+    # replay: everyone's position + view at each event. The view convention (radians, game axes) is checked by what it means:
+    # whoever kills is looking at the victim. Positions must land on the minimap, and every kill must say what killed.
+    raw_names = {"Ability1", "Ability2", "GrenadeAbility", "Ultimate", "Bomb", "Fall", "Melee", "Crush"}
+    ang, n_ev, n_pos_ev, n_pos, inside, unlabeled = [], 0, 0, 0, 0, []
+    for i in match_ids:
+        d = json.loads((WEB / "matches" / f"{i}.json").read_text(encoding="utf-8"))
+        tf = d["map"]["transform"]
+        pidx = {p["puuid"]: k for k, p in enumerate(d["players"])}
+        for r in d["rounds"]:
+            for e in r["events"]:
+                if e["type"] == "kill" and (e["weapon"] is None or e["weapon"] in raw_names):
+                    unlabeled.append(e["weapon"])
+                n_ev += 1
+                n_pos_ev += bool(e.get("pos"))
+                for _, x, y, _view in e.get("pos") or []:
+                    u, v = y * tf["xMultiplier"] + tf["xScalarToAdd"], x * tf["yMultiplier"] + tf["yScalarToAdd"]
+                    inside += 0 <= u <= 1 and 0 <= v <= 1
+                    n_pos += 1
+                if e["type"] == "kill" and e["actor"] != e["victim"] and e.get("victim_xy"):
+                    me = next((p for p in e.get("pos") or [] if p[0] == pidx.get(e["actor"])), None)
+                    if me:
+                        dx, dy = e["victim_xy"][0] - me[1], e["victim_xy"][1] - me[2]
+                        if math.hypot(dx, dy) >= 300:  # at point-blank range the direction is unstable
+                            ang.append(abs((me[3] - math.atan2(dy, dx) + math.pi) % (2 * math.pi) - math.pi))
+    ang = np.degrees(np.array(ang))
+    check("replay: posição de todos em cada kill, plant e desarme", n_pos_ev / n_ev > 0.99, f"{n_pos_ev} de {n_ev} eventos")
+    check("replay: quem mata está olhando para a vítima (cone de visão)", np.median(ang) < 5 and (ang < 20).mean() > 0.9,
+          f"mediana {np.median(ang):.1f}° · {(ang < 20).mean():.0%} a menos de 20° (n = {len(ang)})")
+    check("replay: posições dentro do minimapa", inside / n_pos > 0.99, f"{inside / n_pos:.2%} de {n_pos}")
+    check("toda kill diz o que matou (arma, habilidade, spike, queda)", not unlabeled, f"{len(unlabeled)} sem rótulo: {sorted(set(map(str, unlabeled)))[:4]}")
 
     # metrics declared as "no between-team signal" must still look like noise, and must never become a claim
     from insights import NOISE_METRICS

@@ -219,7 +219,7 @@ function MomentList({ items, kind }: { items: Moment[]; kind: "play" | "death" }
     <ul className="divide-y divide-line/50">
       {items.map((m) => (
         <li key={`${m.match_id}-${m.round}-${m.t}`}>
-          <Link href={`/partidas/${m.match_id}#round-${m.round}`} className="flex items-center justify-between gap-3 py-2 text-sm hover:bg-surface-2">
+          <Link href={`/partidas/${m.match_id}#round-${m.round}@${(m.t / 1000).toFixed(1)}`} className="flex items-center justify-between gap-3 py-2 text-sm hover:bg-surface-2">
             <span>
               <span className="text-ink">{verb(m)}</span>
               <span className="block text-xs text-muted">{m.map} · round {m.round} · {clock(m.t)}</span>
