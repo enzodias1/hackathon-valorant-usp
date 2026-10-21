@@ -51,7 +51,7 @@ def clean(o):
     if hasattr(o, "item"):
         o = o.item()
     if isinstance(o, float):
-        return None if math.isnan(o) or math.isinf(o) else round(o, 4)
+        return None if math.isnan(o) or math.isinf(o) else (round(o, 4) if abs(o) >= 1e-3 else float(f"{o:.4g}"))
     return o
 
 

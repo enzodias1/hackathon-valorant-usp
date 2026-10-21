@@ -136,6 +136,16 @@ def main():
                     bad_text.append(i["text"])
     check("nenhum link quebrado entre páginas", not broken, f"{len(broken)} quebrados: {broken[:3]}")
 
+    # minimap transforms must survive the export intact (rounding 7e-05 to 4 decimals once broke the minimap by 43%)
+    lookup = json.loads((ROOT / "data" / "meta" / "lookup.json").read_text(encoding="utf-8"))["maps"]
+    bad_tf = []
+    for i in match_ids:
+        mp = json.loads((WEB / "matches" / f"{i}.json").read_text(encoding="utf-8"))["map"]
+        ref = lookup[mp["code"]]
+        if any(abs(mp["transform"][k] / ref[k] - 1) > 1e-3 for k in ("xMultiplier", "yMultiplier")):  # relative error > 0.1%
+            bad_tf.append(i)
+    check("coordenadas do minimapa exportadas sem perda de precisão", not bad_tf, f"{len(bad_tf)} partidas com transform distorcido")
+
     # metrics declared as "no between-team signal" must still look like noise, and must never become a claim
     from insights import NOISE_METRICS
     claims = []

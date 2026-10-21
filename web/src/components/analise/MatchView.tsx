@@ -5,12 +5,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Area, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { Color, Match, Round, RoundEvent } from "@/lib/types";
 import { clock, nick, pct, pp, RESULT_PT } from "@/lib/format";
+import Minimap from "@/components/Minimap";
 
 const ROUND_SPAN_MS = 145_000; // ~100 s de round + 45 s de spike: posição do evento dentro do "slot" do round
 
 type Pt = { x: number; wp: number; up: number; down: number; round: number; label: string };
 
-export default function MatchView({ match, minimap }: { match: Match; minimap?: React.ReactNode }) {
+export default function MatchView({ match }: { match: Match }) {
   const [sel, setSel] = useState<number>(1);
   const detailRef = useRef<HTMLDivElement>(null);
   const players = useMemo(() => Object.fromEntries(match.players.map((p) => [p.puuid, p])), [match]);
@@ -116,14 +117,14 @@ export default function MatchView({ match, minimap }: { match: Match; minimap?: 
 
       {/* scroll-mt: margem para o cabeçalho fixo do site não cobrir o topo do round */}
       <div ref={detailRef} id={`round-${sel}`} className="scroll-mt-24">
-        <RoundDetail match={match} round={round} describe={describe} minimap={minimap} onPrev={() => setSel(Math.max(1, sel - 1))} onNext={() => setSel(Math.min(match.rounds.length, sel + 1))} />
+        <RoundDetail match={match} round={round} describe={describe} onPrev={() => setSel(Math.max(1, sel - 1))} onNext={() => setSel(Math.min(match.rounds.length, sel + 1))} />
       </div>
     </div>
   );
 }
 
-function RoundDetail({ match, round, describe, minimap, onPrev, onNext }: {
-  match: Match; round: Round; describe: (e: RoundEvent) => string; minimap?: React.ReactNode; onPrev: () => void; onNext: () => void;
+function RoundDetail({ match, round, describe, onPrev, onNext }: {
+  match: Match; round: Round; describe: (e: RoundEvent) => string; onPrev: () => void; onNext: () => void;
 }) {
   const atk = round.attacker, def: Color = atk === "Red" ? "Blue" : "Red";
   const tn = (c: Color) => match.teams[c].name;
@@ -175,12 +176,8 @@ function RoundDetail({ match, round, describe, minimap, onPrev, onNext }: {
           </ol>
           <p className="mt-2 text-xs text-muted">Porcentagens: chance de vitória do time de quem agiu, antes → depois.</p>
         </div>
-        <div>
-          {minimap ?? (
-            <div className="flex aspect-square w-full items-center justify-center rounded-lg border border-dashed border-line text-sm text-muted">
-              Minimapa do round (em construção)
-            </div>
-          )}
+        <div className="min-w-0">
+          <Minimap match={match} round={round} />
         </div>
       </div>
     </section>

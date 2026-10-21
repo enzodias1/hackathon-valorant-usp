@@ -4,6 +4,7 @@
 import { useState } from "react";
 import type { Side, TeamZones } from "@/lib/types";
 import { pct } from "@/lib/format";
+import MinimapBase from "@/components/MinimapBase";
 
 export default function ZonesPanel({ zones }: { zones: TeamZones }) {
   const [mi, setMi] = useState(0);
@@ -67,13 +68,49 @@ export default function ZonesPanel({ zones }: { zones: TeamZones }) {
             Cada morte é atribuída à região nomeada mais próxima do mapa. ▼: morre sem trade nessa região mais que a liga, com confirmação estatística.
           </p>
         </div>
-        <div>
-          {(
-            <div className="flex aspect-square w-full items-center justify-center rounded-lg border border-dashed border-line text-sm text-muted">
-              Mapa de calor das mortes (em construção)
-            </div>
-          )}
+        <div className="min-w-0">
+          <Heatmap map={mp} grid={s?.grid ?? []} size={zones.grid_size} />
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** Mapa de calor: grade sobre o minimapa; quanto mais forte a célula, mais mortes do time ali (todas ou só as sem trade). */
+function Heatmap({ map, grid, size }: { map: TeamZones["maps"][number]; grid: [number, number, number, number][]; size: number }) {
+  const [onlyUntraded, setOnlyUntraded] = useState(false);
+  const value = (c: [number, number, number, number]) => (onlyUntraded ? c[3] : c[2]);
+  const cells = grid.filter((c) => value(c) > 0);
+  const max = Math.max(1, ...cells.map(value));
+  const total = cells.reduce((s, c) => s + value(c), 0);
+  const cell = 1 / size;
+  return (
+    <div className="flex flex-col gap-2">
+      <MinimapBase src={map.minimap} alt={`Mapa de calor das mortes em ${map.map}`}>
+        {cells.map((c) => {
+          const v = value(c);
+          return (
+            <rect key={`${c[0]}-${c[1]}`} x={c[0] * cell} y={c[1] * cell} width={cell} height={cell}
+                  fill="var(--accent)" fillOpacity={0.15 + 0.75 * Math.sqrt(v / max)}>
+              <title>{`${v} ${v === 1 ? "morte" : "mortes"}${onlyUntraded ? " sem trade" : ""} nesta área`}</title>
+            </rect>
+          );
+        })}
+      </MinimapBase>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-2">
+        <div className="flex gap-1" role="group" aria-label="Quais mortes mostrar">
+          {[false, true].map((u) => (
+            <button key={String(u)} onClick={() => setOnlyUntraded(u)} aria-pressed={onlyUntraded === u}
+                    className={`rounded-md border px-2 py-1 ${onlyUntraded === u ? "border-ink bg-surface-2 text-ink" : "border-line hover:border-ink-2"}`}>
+              {u ? "Só mortes sem trade" : "Todas as mortes"}
+            </button>
+          ))}
+        </div>
+        <span className="flex items-center gap-1.5">
+          menos
+          <span className="h-2.5 w-20 rounded-sm" style={{ background: "linear-gradient(to right, color-mix(in srgb, var(--accent) 15%, transparent), var(--accent))" }} />
+          mais · {total} mortes
+        </span>
       </div>
     </div>
   );
