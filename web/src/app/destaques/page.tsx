@@ -5,6 +5,7 @@ import { computeHighlights } from "@/lib/highlights";
 import { PageBand, SectionHead } from "@/components/analise/ui";
 import HighlightPlayCard from "@/components/destaques/HighlightPlayCard";
 import ComebackCard from "@/components/destaques/ComebackCard";
+import ChanceInfo from "@/components/analise/ChanceInfo";
 
 export const metadata: Metadata = pageMeta(
   `Destaques do campeonato · ${PRODUCT_NAME}`,
@@ -26,9 +27,9 @@ export default async function HighlightsPage() {
 
       <div className="mx-auto max-w-6xl space-y-12 px-4 py-8 sm:px-8">
         <section>
-          <SectionHead n="01" title="Jogadas de maior impacto" />
+          <SectionHead n="01" title="Jogadas de maior impacto" info={<ChanceInfo />} />
           <p className="-mt-2 mb-4 text-sm text-ink-2">
-            Abates, plants e desarmes que mais aumentaram a chance de vitória do time de quem agiu, antes → depois.
+            Kills, plants e desarmes que mais aumentaram a chance de vitória do time de quem agiu, antes → depois, com a situação na hora.
           </p>
           <ol className="grid gap-4 md:grid-cols-2">
             {plays.map((p, i) => (
@@ -38,9 +39,10 @@ export default async function HighlightsPage() {
         </section>
 
         <section>
-          <SectionHead n="02" title="Maiores viradas" />
+          <SectionHead n="02" title="Maiores viradas" info={<ChanceInfo />} />
           <p className="-mt-2 mb-4 text-sm text-ink-2">
-            Rounds em que o vencedor chegou à menor chance de vitória e mesmo assim ganhou. O replay abre no momento mais difícil.
+            Rounds em que o vencedor chegou à menor chance de vitória e mesmo assim ganhou, fora os que já aparecem nas jogadas acima.
+            O replay abre no momento mais difícil.
           </p>
           <ol className="grid gap-4 md:grid-cols-2">
             {comebacks.map((c, i) => (

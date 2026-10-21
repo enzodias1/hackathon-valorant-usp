@@ -102,12 +102,19 @@ export function BandButton({ href, children, primary }: { href: string; children
 }
 
 /** Título numerado no estilo da página inicial ("// 01" + título grande), com link opcional à direita. */
-export function SectionHead({ n, title, link }: { n: string; title: string; link?: { href: string; label: string } }) {
+export function SectionHead({ n, title, link, info }: {
+  n: string; title: string; link?: { href: string; label: string };
+  /** botão "i" ao lado do título (ex.: <ChanceInfo />) */
+  info?: React.ReactNode;
+}) {
   return (
     <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
       <div>
         <p className="label-caps text-[10px] text-lime">{`// ${n}`}</p>
-        <h2 className="mt-1 text-[clamp(2rem,4vw,3rem)] leading-[1.1] text-ink">{title}</h2>
+        <div className="mt-1 flex items-center gap-3">
+          <h2 className="text-[clamp(2rem,4vw,3rem)] leading-[1.1] text-ink">{title}</h2>
+          {info}
+        </div>
       </div>
       {link && (
         <Link href={link.href} className="label-caps text-[11px] text-ink underline decoration-lime underline-offset-4 hover:text-lime">{link.label} →</Link>

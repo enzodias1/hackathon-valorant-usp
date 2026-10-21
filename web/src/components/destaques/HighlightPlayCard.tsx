@@ -22,6 +22,7 @@ export default function HighlightPlayCard({ item, rank }: { item: PlayHighlight;
       <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
         <p className="text-sm text-ink-2">
           Chance do time: <span className="tabular text-ink">{chance(item.wpBefore)} → {chance(item.wpAfter)}</span>
+          <span className="block text-xs text-muted">{item.context}</span>
         </p>
         <p className="font-display tabular text-2xl leading-none text-good">{pp(item.wpa)}</p>
       </div>

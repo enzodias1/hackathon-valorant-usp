@@ -2,6 +2,10 @@
 // Lógica pura (sem leitura de arquivo): recebe as partidas já carregadas e devolve tudo pronto para os cards.
 import type { Color, Match, MatchPlayer, Round, RoundEvent } from "@/lib/types";
 import { competitionLabel, nick, RESULT_PT } from "@/lib/format";
+import { ROUND_TIMER_MS } from "@/lib/minimap";
+import { dur, roundStory } from "@/lib/roundStory";
+
+const SPIKE_MS = 45_000;
 
 /** Chance de vitória do time `color`, a partir da chance do Red. */
 export const teamWp = (wpRed: number, color: Color): number => (color === "Blue" ? 1 - wpRed : wpRed);
@@ -33,8 +37,10 @@ export interface PlayHighlight {
   /** chance de vitória do time de quem agiu, antes e depois (0–1) */
   wpBefore: number;
   wpAfter: number;
-  /** impacto, em pontos percentuais */
+  /** impacto, em pontos de chance */
   wpa: number;
+  /** a situação na hora: "1 contra 2 · faltando 0,4 segundo para a explosão" */
+  context: string;
 }
 
 export interface ComebackHighlight {
@@ -49,6 +55,10 @@ export interface ComebackHighlight {
   minWp: number;
   /** resultado em português ("Eliminação", "Desarme"...) */
   result: string;
+  /** vivos do vencedor contra os do perdedor no pior momento */
+  aliveThen: [number, number];
+  /** o que decidiu o round (as frases do resumo do replay, sem a da virada, que o card já mostra) */
+  story: string[];
 }
 
 const matchInfo = (m: Match): MatchInfo => ({
@@ -68,12 +78,47 @@ const describe = (e: RoundEvent, players: Map<string, MatchPlayer>): string => {
   return e.weapon ? `matou ${victim} com ${e.weapon}` : `matou ${victim}`;
 };
 
+/** Vivos de cada time antes e depois de cada evento do round (ressurreições incluídas). */
+function aliveCounts(m: Match, r: Round) {
+  const color = new Map(m.players.map((p) => [p.puuid, p.color]));
+  const alive: Record<Color, Set<string>> = {
+    Red: new Set(m.players.filter((p) => p.color === "Red").map((p) => p.puuid)),
+    Blue: new Set(m.players.filter((p) => p.color === "Blue").map((p) => p.puuid)),
+  };
+  const count = () => ({ Red: alive.Red.size, Blue: alive.Blue.size });
+  const before: Record<Color, number>[] = [];
+  const after: Record<Color, number>[] = [];
+  for (const e of r.events) {
+    for (const id of e.revived ?? []) {
+      const c = color.get(id);
+      if (c) alive[c].add(id);
+    }
+    before.push(count());
+    if (e.type === "kill" && e.victim) {
+      const c = color.get(e.victim);
+      if (c) alive[c].delete(e.victim);
+    }
+    after.push(count());
+  }
+  return { before, after };
+}
+
+/** "1 contra 2 · faltando 0,4 segundo para a explosão": quantos de cada lado e quanto tempo restava, do ponto de vista de `side`. */
+function situation(r: Round, e: RoundEvent, side: Color, n: Record<Color, number>) {
+  const bits = [`${n[side]} contra ${n[side === "Red" ? "Blue" : "Red"]}`];
+  if (e.type === "defuse" && r.plant) bits.push(`faltando ${dur(r.plant.t + SPIKE_MS - e.t)} para a explosão`);
+  else if (r.plant && r.plant.t < e.t) bits.push(`spike plantada, faltando ${dur(r.plant.t + SPIKE_MS - e.t)} para explodir`);
+  else if (ROUND_TIMER_MS - e.t <= 20_000) bits.push(`faltando ${dur(Math.max(0, ROUND_TIMER_MS - e.t))} de round`);
+  return bits.join(" · ");
+}
+
 /** Ordem estável para desempates: partida, depois round, depois instante. */
 const byPlace = (a: { match: MatchInfo; round: number; t: number }, b: { match: MatchInfo; round: number; t: number }) =>
   a.match.id.localeCompare(b.match.id) || a.round - b.round || a.t - b.t;
 
 /** Jogada candidata: evento válido de um round válido, com ator conhecido. */
-function playOf(m: Match, info: MatchInfo, r: Round, e: RoundEvent, players: Map<string, MatchPlayer>): PlayHighlight | null {
+function playOf(m: Match, info: MatchInfo, r: Round, e: RoundEvent, players: Map<string, MatchPlayer>,
+                aliveBefore: Record<Color, number>): PlayHighlight | null {
   if (e.after_round_end || e.teamkill || !e.actor) return null;
   const p = players.get(e.actor);
   if (!p || !Number.isFinite(e.wpa)) return null;
@@ -87,21 +132,26 @@ function playOf(m: Match, info: MatchInfo, r: Round, e: RoundEvent, players: Map
     wpBefore: teamWp(e.wp_red_before, p.color),
     wpAfter: teamWp(e.wp_red_after, p.color),
     wpa: e.wpa,
+    context: situation(r, e, p.color, aliveBefore),
   };
 }
 
 /** Menor chance do vencedor ao longo do round (início + depois de cada evento), com o instante em que ocorreu. */
-function comebackOf(m: Match, info: MatchInfo, r: Round): ComebackHighlight {
+function comebackOf(m: Match, info: MatchInfo, r: Round, after: Record<Color, number>[]): ComebackHighlight {
   let minWp = teamWp(r.wp_red_start, r.winner);
   let t = 0;
-  for (const e of r.events) {
-    if (e.after_round_end) continue;
+  let worst = -1;
+  r.events.forEach((e, i) => {
+    if (e.after_round_end) return;
     const wp = teamWp(e.wp_red_after, r.winner);
     if (wp < minWp) {
       minWp = wp;
       t = e.t;
+      worst = i;
     }
-  }
+  });
+  const loser: Color = r.winner === "Red" ? "Blue" : "Red";
+  const n = worst >= 0 ? after[worst] : { Red: 5, Blue: 5 };
   return {
     match: info,
     round: r.n,
@@ -111,10 +161,12 @@ function comebackOf(m: Match, info: MatchInfo, r: Round): ComebackHighlight {
     scoreBefore: r.score_before,
     minWp,
     result: RESULT_PT[r.result] ?? r.result,
+    aliveThen: [n[r.winner], n[loser]],
+    story: roundStory(m, r).slice(1),
   };
 }
 
-/** Os dois rankings numa única passada pelas partidas. */
+/** Os dois rankings numa única passada pelas partidas. As viradas pulam os rounds que já estão nas jogadas, para não repetir. */
 export function computeHighlights(matches: Match[], n = 10): { plays: PlayHighlight[]; comebacks: ComebackHighlight[] } {
   const plays: PlayHighlight[] = [];
   const comebacks: ComebackHighlight[] = [];
@@ -123,17 +175,20 @@ export function computeHighlights(matches: Match[], n = 10): { plays: PlayHighli
     const players = new Map(m.players.map((p) => [p.puuid, p]));
     for (const r of m.rounds) {
       if (r.anomalous) continue;
-      const c = comebackOf(m, info, r);
+      const { before, after } = aliveCounts(m, r);
+      const c = comebackOf(m, info, r, after);
       if (Number.isFinite(c.minWp)) comebacks.push(c);
-      for (const e of r.events) {
-        const p = playOf(m, info, r, e, players);
+      r.events.forEach((e, i) => {
+        const p = playOf(m, info, r, e, players, before[i]);
         if (p) plays.push(p);
-      }
+      });
     }
   }
   plays.sort((a, b) => b.wpa - a.wpa || byPlace(a, b));
   comebacks.sort((a, b) => a.minWp - b.minWp || byPlace(a, b));
-  return { plays: plays.slice(0, n), comebacks: comebacks.slice(0, n) };
+  const top = plays.slice(0, n);
+  const shown = new Set(top.map((p) => `${p.match.id}:${p.round}`));
+  return { plays: top, comebacks: comebacks.filter((c) => !shown.has(`${c.match.id}:${c.round}`)).slice(0, n) };
 }
 
 /** Top `n` jogadas por impacto (kill, plant ou desarme). */
