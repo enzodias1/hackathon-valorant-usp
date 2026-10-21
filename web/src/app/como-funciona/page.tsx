@@ -39,6 +39,8 @@ export default async function HowToUsePage() {
     { q: "Como joga o próximo adversário?", where: "Comparar", href: `/comparar?a=${team.slug}` },
     { q: `K/D abaixo de 1 quer dizer que o jogador não ajuda? (${nick(player.name)}: K/D ${num(player.kd, 2)}, impacto ${pp(player.wpa_per_round)} por round)`, where: "Jogador › De onde vem o impacto", href: `${pl}#impacto` },
     { q: "Que papel cada um realmente exerce em jogo?", where: "Jogador › Perfil de jogo", href: `${pl}#perfil` },
+    { q: "Contra quem e contra quais agentes o jogador mais ganha e perde duelos?", where: "Jogador › Duelos", href: `${pl}#duelos` },
+    { q: "Em que momento do round o jogador costuma morrer?", where: "Jogador › Quando morre", href: `${pl}#quando-morre` },
     { q: "Como foi aquele round, kill por kill?", where: "Partida › replay no minimapa", href: `/partidas/${match.id}` },
   ];
 

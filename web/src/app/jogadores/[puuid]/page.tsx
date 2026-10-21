@@ -7,6 +7,7 @@ import type { Moment, Player } from "@/lib/types";
 import { MatchImpactChart, RoleRadar } from "@/components/analise/PlayerCharts";
 import { BandButton, CompareRow, InsightPanel, PageBand, PercentileRow, PlayerLink, Section, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
 import { agentArt } from "@/lib/art";
+import { DeathTimingPanel, DuelsPanel, referenceLabel } from "@/components/analise/PlayerDuels";
 
 // só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
 export const dynamicParams = false;
@@ -38,6 +39,14 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
   const topPartner = p.partners[0];
   const best = p.best_plays[0];
   const posMatches = p.matches.filter((m) => m.wpa > 0).length;
+
+  const du = p.duels;
+  const mostKilled = [...du.opponents].sort((a, b) => b.kills - a.kills)[0];
+  const mostKilledBy = [...du.opponents].sort((a, b) => b.deaths - a.deaths)[0];
+  const duelsTeaser = du.win_rate == null ? "Sem duelos registrados"
+    : [`Vence ${pct(du.win_rate)} dos duelos`,
+       mostKilled?.kills ? `mais elimina ${nick(mostKilled.name)} (${mostKilled.kills}×)` : null,
+       mostKilledBy?.deaths ? `mais é eliminado por ${nick(mostKilledBy.name)} (${mostKilledBy.deaths}×)` : null].filter(Boolean).join(" · ");
 
   return (
     <main>
@@ -112,6 +121,17 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
               {p.comparisons.clutch_win && <CompareRow label="Clutches vencidos" c={p.comparisons.clutch_win} />}
             </div>
           </div>
+        </Section>
+
+        <Section id="duelos" title="Duelos" collapsible teaser={duelsTeaser}
+                 info="Duelo é quando um dos dois elimina o outro (sem contar team kill), somando todas as partidas da base. À esquerda, o placar contra cada adversário; à direita, os duelos vencidos contra cada agente, comparados com a média do próprio jogador.">
+          <DuelsPanel duels={p.duels} />
+        </Section>
+
+        <Section id="quando-morre" title="Quando morre no round" collapsible
+                 teaser={p.death_timing ? `Metade das mortes até ${clock(p.death_timing.median * 1000)} (${referenceLabel(p.death_timing)}: ${clock(p.death_timing.league_median * 1000)})` : "Disponível a partir de 25 mortes"}
+                 info="Em que momento do round o jogador morre, contado desde a queda da barreira. A referência é a liga na mesma função de agente, porque duelistas morrem mais cedo por definição. É uma comparação descritiva: mostra o padrão, sem afirmar que é melhor ou pior.">
+          {p.death_timing ? <DeathTimingPanel timing={p.death_timing} /> : <p className="text-sm text-ink-2">Disponível a partir de 25 mortes.</p>}
         </Section>
 
         <Section id="partidas" title="Impacto partida a partida" collapsible

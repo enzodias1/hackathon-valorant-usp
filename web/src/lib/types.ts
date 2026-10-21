@@ -367,6 +367,33 @@ export interface Player {
   costliest_deaths: Moment[];
   partners: { puuid: string; name: string; rounds_together: number; they_traded_you: number; your_deaths_with_them_alive: number; you_traded_them: number; their_assists_on_your_kills: number }[];
   stages: { etapa: string; team: string; rounds: number; wpa_per_round: number; kd: number }[];
+  duels: PlayerDuels;
+  /** null com menos de 25 mortes */
+  death_timing: DeathTiming | null;
+}
+
+/** Duelos: quem matou quem (sem team kill), somado em todas as partidas da base. */
+export interface PlayerDuels {
+  kills: number;
+  deaths: number;
+  win_rate: number | null;
+  /** adversários com 3+ duelos, do mais frequente ao menos (até 8) */
+  opponents: { puuid: string; name: string | null; team: string | null; team_name: string | null; kills: number; deaths: number }[];
+  /** agentes adversários com 10+ duelos; `significant` = diferente da média do próprio jogador (teste + controle de falsos positivos) */
+  by_agent: { agent: string; icon: string | null; kills: number; deaths: number; win: number | null; z: number | null; significant: boolean; good: boolean | null }[];
+}
+
+/** Quando o jogador morre no round (segundos desde a queda da barreira), comparado à liga na mesma mistura de funções. */
+export interface DeathTiming {
+  n: number;
+  early_s: number;
+  roles: Record<string, number>;
+  bins: { from: number; to: number; share: number; league: number }[];
+  median: number;
+  league_median: number;
+  early: number;
+  league_early: number;
+  by_agent: { agent: string; role: string; n: number; median: number; early: number; league_median: number | null; league_early: number | null }[];
 }
 
 // ---------------------------------------------------------------- modelo (página "Metodologia")

@@ -78,7 +78,15 @@ No código, carregue com `fetch("/data/index.json")` e `fetch(\`/data/matches/${
   "best_plays":       [ { "match_id", "round", "t", "event", "map", "weapon", "other", "wpa", "wp_before", "wp_after" } ],
   "costliest_deaths": [ { ... mesmo formato; wpa negativo; wp_* do ponto de vista do time do jogador } ],
   "partners": [ { "puuid", "name", "rounds_together", "they_traded_you", "your_deaths_with_them_alive",
-                  "you_traded_them", "their_assists_on_your_kills" } ]
+                  "you_traded_them", "their_assists_on_your_kills" } ],
+  // duelos = quem matou quem (sem team kill), somando todas as partidas
+  "duels": { "kills", "deaths", "win_rate",
+             "opponents": [ { "puuid", "name", "team", "team_name", "kills", "deaths" } ],   // 3+ duelos, até 8
+             "by_agent":  [ { "agent", "icon", "kills", "deaths", "win", "z", "significant", "good" } ] },  // 10+ duelos; vs. a média do jogador, com BH
+  // quando morre no round (s desde a queda da barreira); referência = liga na mesma mistura de funções; null com < 25 mortes
+  "death_timing": { "n", "early_s": 20, "roles": { "Duelista": 41 }, "median", "league_median", "early", "league_early",
+                    "bins": [ { "from": 0, "to": 15, "share", "league" } ],
+                    "by_agent": [ { "agent", "role", "n", "median", "early", "league_median", "league_early" } ] } | null
 }
 ```
 

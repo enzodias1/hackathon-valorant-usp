@@ -137,6 +137,14 @@ def main():
                     bad_text.append(i["text"])
     check("nenhum link quebrado entre páginas", not broken, f"{len(broken)} quebrados: {broken[:3]}")
 
+    # duels on player pages: every duel is one player's kill and another player's death
+    dk = dd = 0
+    for f in (WEB / "players").glob("*.json"):
+        du = json.loads(f.read_text(encoding="utf-8"))["duels"]
+        dk += du["kills"]
+        dd += du["deaths"]
+    check("duelos: eliminações = mortes somando todos os jogadores", dk == dd, f"{dk} = {dd}")
+
     # minimap transforms must survive the export intact (rounding 7e-05 to 4 decimals once broke the minimap by 43%)
     lookup = json.loads((ROOT / "data" / "meta" / "lookup.json").read_text(encoding="utf-8"))["maps"]
     bad_tf = []

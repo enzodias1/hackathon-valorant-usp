@@ -31,6 +31,12 @@ PERCENTILE_COLS = ["kd", "kpr", "adr", "acs", "kast", "hs_pct", "wpa_per_round",
 ABILITY_SLOT = {"ability1": "Ability1", "ability2": "Ability2", "grenadeability": "Grenade", "ultimate": "Ultimate"}
 # kills that are neither a weapon nor an ability: (label, kind)
 OTHER_KILL = {"Bomb": ("Spike", "spike"), "Fall": ("Queda", "fall"), "Melee": ("Faca", "melee"), "Crush": ("Esmagamento", "other")}
+# player page: duels (who killed whom) and when in the round the player dies (asked for in the player interviews)
+MIN_H2H = 3  # duels with the same opponent to list them
+MIN_DUELS_AGENT = 10  # duels against an enemy agent to compare it
+DEATH_BINS = [0, 15, 30, 45, 60, 75, 90, 1000]  # seconds since the barrier dropped
+EARLY_DEATH_S = 20
+MIN_DEATHS_TIMING = 25
 
 
 def team_names():
@@ -447,6 +453,75 @@ def export_players(t, names):
     cr_by = {k: g for k, g in cr.groupby("puuid")}
     dc_by = {k: g for k, g in dc.groupby("victim")}
 
+    # duels: who killed whom (no team kills or self kills), with each side's agent in that match
+    agent_of = pm.set_index(["match_id", "puuid"]).agent
+    duel = kl[~kl.teamkill.astype(bool) & ~kl.self_kill.astype(bool) & kl.killer.notna()][["match_id", "killer", "victim"]].copy()
+    duel["killer_agent"] = agent_of.reindex(pd.MultiIndex.from_frame(duel[["match_id", "killer"]])).to_numpy()
+    duel["victim_agent"] = agent_of.reindex(pd.MultiIndex.from_frame(duel[["match_id", "victim"]])).to_numpy()
+    won_by = {k: g for k, g in duel.groupby("killer")}
+    lost_by = {k: g for k, g in duel.groupby("victim")}
+    main_team = pf.sort_values("rounds").groupby("puuid").team.last()
+    # when each death happens, and the agent role in that match: duelists die early by design, so the reference is the
+    # league in the same role mix as the player
+    role_of = pm.set_index(["match_id", "puuid"]).role
+    dth_t = dc[["match_id", "victim", "t_round_ms"]].copy()
+    dth_t["role"] = role_of.reindex(pd.MultiIndex.from_frame(dth_t[["match_id", "victim"]])).to_numpy()
+    dth_t["agent"] = agent_of.reindex(pd.MultiIndex.from_frame(dth_t[["match_id", "victim"]])).to_numpy()
+    dth_t["s"] = dth_t.t_round_ms / 1000
+    role_bins = {r: np.histogram(g.s, bins=DEATH_BINS)[0] / len(g) for r, g in dth_t.groupby("role")}
+    role_early = dth_t.groupby("role").s.apply(lambda x: float((x < EARLY_DEATH_S).mean())).to_dict()
+    role_median = dth_t.groupby("role").s.median().to_dict()
+    dth_t_by = {k: g for k, g in dth_t.groupby("victim")}
+
+    def duels_of(puuid):
+        w_, l_ = won_by.get(puuid), lost_by.get(puuid)
+        kc = w_.victim.value_counts() if w_ is not None else pd.Series(dtype=int)
+        dcnt = l_.killer.value_counts() if l_ is not None else pd.Series(dtype=int)
+        opponents = []
+        for o in set(kc.index) | set(dcnt.index):
+            k_, d_ = int(kc.get(o, 0)), int(dcnt.get(o, 0))
+            if k_ + d_ >= MIN_H2H:
+                team = main_team.get(o)
+                opponents.append({"puuid": o, "name": t["player_name"].get(o), "team": team,
+                                  "team_name": names.get(team, {}).get("name", team), "kills": k_, "deaths": d_})
+        opponents.sort(key=lambda x: (-(x["kills"] + x["deaths"]), -x["kills"]))
+        K, D = int(kc.sum()), int(dcnt.sum())
+        rate = K / (K + D) if K + D else None
+        ka = w_.victim_agent.value_counts() if w_ is not None else pd.Series(dtype=int)
+        da = l_.killer_agent.value_counts() if l_ is not None else pd.Series(dtype=int)
+        by_agent = {}
+        for ag in set(ka.index) | set(da.index):
+            k_, d_ = int(ka.get(ag, 0)), int(da.get(ag, 0))
+            if rate is not None and k_ + d_ >= MIN_DUELS_AGENT:
+                by_agent[ag] = {"agent": ag, "icon": t["agents_by_name"].get(ag, {}).get("icon"), "kills": k_, "deaths": d_,
+                                **binom(k_, k_ + d_, rate, True)}  # vs. the player's own duel rate
+        bh_adjust(by_agent)  # its own family on the page: the list of enemy agents
+        agents_out = [{"agent": c["agent"], "icon": c["icon"], "kills": c["kills"], "deaths": c["deaths"], "win": c["value"],
+                       "z": c["z"], "significant": c["significant"], "good": c["good"]}
+                      for c in sorted(by_agent.values(), key=lambda c: -(c["kills"] + c["deaths"]))]
+        return {"kills": K, "deaths": D, "win_rate": rate, "opponents": opponents[:8], "by_agent": agents_out}
+
+    def death_timing_of(puuid):
+        tt = dth_t_by.get(puuid)
+        if tt is None or len(tt) < MIN_DEATHS_TIMING:
+            return None
+        n = len(tt)
+        counts = np.histogram(tt.s, bins=DEATH_BINS)[0]
+        mix = tt.role.value_counts()
+        ref = sum(role_bins[r] * c for r, c in mix.items() if r in role_bins) / mix.sum()
+        by_agent = []
+        for ag, g in tt.groupby("agent"):
+            if len(g) >= MIN_DEATHS_TIMING:
+                r_ = g.role.iloc[0]
+                by_agent.append({"agent": ag, "role": r_, "n": len(g), "median": float(g.s.median()), "early": float((g.s < EARLY_DEATH_S).mean()),
+                                 "league_median": role_median.get(r_), "league_early": role_early.get(r_)})
+        by_agent.sort(key=lambda x: -x["n"])
+        return {"n": n, "early_s": EARLY_DEATH_S, "roles": {k: int(v) for k, v in mix.items()},
+                "bins": [{"from": a, "to": b, "share": c / n, "league": float(rb)} for a, b, c, rb in zip(DEATH_BINS[:-1], DEATH_BINS[1:], counts, ref)],
+                "median": float(tt.s.median()), "league_median": float(tt.role.map(role_median).mean()),
+                "early": float((tt.s < EARLY_DEATH_S).mean()), "league_early": float(tt.role.map(role_early).mean()),
+                "by_agent": by_agent}
+
     def moment(e, who):
         mt = mmeta.loc[e.match_id]
         before, after = (e.mine_before_actor, e.mine_after_actor) if who == "actor" else (e.mine_before_victim, e.mine_after_victim)
@@ -572,6 +647,7 @@ def export_players(t, names):
                      "axes": {a: p[f"axis_{a}"] for a in AXES} if p.role_eligible else None},
             "comparisons": comps, "insights": ins,
             "agents": agents, "maps": maps, "matches": matches, "best_plays": best, "costliest_deaths": worst, "partners": partners,
+            "duels": duels_of(puuid), "death_timing": death_timing_of(puuid),
             "stages": [{"etapa": r.etapa, "team": r.team, "rounds": int(r.rounds), "wpa_per_round": r.wpa_per_round,
                         "kd": r.kills / max(r.deaths, 1)}
                        for r in t["player_stage"][t["player_stage"].puuid == puuid].sort_values("etapa_idx").itertuples(index=False)],

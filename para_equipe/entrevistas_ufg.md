@@ -50,8 +50,8 @@ convivência no lobby, não da análise da partida.
 | Mapa de calor de abates | Mapa de calor das mortes na página do time ("Onde o time morre") | — |
 | Melhores e piores jogadas de cada time | "Jogadas que mais mudaram rounds" na partida; "Rounds para revisar no VOD" no time; "Jogadas para revisar" no jogador | — |
 | Desempenho por agente comparado | Impacto, K/D e percentis na liga; agentes e mapas de cada jogador | Comparar com a média do mesmo agente |
-| Histórico de duelos | — | Possível com os dados (quem matou quem em cada kill) |
-| "Morre muito aos X minutos" | — | Possível com os dados (instante de cada morte no round) |
+| Histórico de duelos | **Feito (21/10):** "Duelos" na página do jogador: placar contra cada adversário e duelos vencidos contra cada agente | — |
+| "Morre muito aos X minutos" | **Feito (21/10):** "Quando morre no round", comparado à liga na mesma função e separado por agente | — |
 | Momento de uso de cada habilidade | Kills por habilidade aparecem com o nome e o ícone | **Não está nos dados da Riot fornecidos** (o campo de uso vem vazio nos 66.180 registros); só o total por partida |
 | Lobby e "evitar" jogador | — | Fora do escopo (pós-partida analítico; denúncia é função do jogo) |
 

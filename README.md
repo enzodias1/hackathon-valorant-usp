@@ -39,7 +39,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 .venv/Scripts/python pipeline/zones.py                        # onde cada time morre (regiões do mapa + grade de calor)
 .venv/Scripts/python pipeline/navgrid.py                      # chão caminhável de cada mapa + spawns (movimento do replay)
 .venv/Scripts/python pipeline/export.py                       # JSON do site em web/public/data (formato em web/DADOS.md)
-.venv/Scripts/python pipeline/checks.py                       # 37 checagens de consistência (falha se algum número não fechar)
+.venv/Scripts/python pipeline/checks.py                       # 38 checagens de consistência (falha se algum número não fechar)
 .venv/Scripts/python pipeline/teams_sheet.py                  # planilha de nomes dos times (para_equipe/)
 ```
 
@@ -55,6 +55,14 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
   por ser rara e ~100% com mira (`meta.py`).
 - O relógio do round começa na queda da barreira (o round seguinte começa sempre 37 s depois da última kill: 7 s de fim de round + 30 s
   de compra). Kills nos primeiros segundos são duelos de abertura, comuns perto do spawn da defesa.
+
+## Página do jogador: duelos e quando morre (pedidos das entrevistas)
+Das entrevistas com 8 jogadores do UFG Eagles ([`para_equipe/entrevistas_ufg.md`](para_equipe/entrevistas_ufg.md)), dois pedidos viraram seções:
+- **Duelos:** placar contra cada adversário (3+ duelos) e duelos vencidos contra cada agente (10+), comparados com a média do próprio
+  jogador. "Confirmado" só quando passa no teste, com Benjamini-Hochberg na lista de agentes da página (34 de 2.812 comparações).
+- **Quando morre no round:** distribuição das mortes ao longo do round, mediana e parcela nos primeiros 20 s, contra a liga **na mesma
+  função** (duelistas morrem mais cedo: 25% das mortes nos primeiros 20 s, contra ~16% de iniciadores e controladores). Descritivo: na liga,
+  o time vence ~31% dos rounds em que o jogador morre, seja antes ou depois dos 20 s, então não afirmamos que morrer cedo é pior.
 
 ## Replay 2D (movimento estimado)
 As posições existem só nos instantes de kill, plant e desarme; o primeiro registro do round sai, em mediana, aos 15,7 s (metade dos
@@ -105,4 +113,4 @@ Propriedades que precisam valer se os números estiverem certos, por exemplo: qu
 após first death = 100%; o impacto de cada kill soma zero entre os times; depois da última kill de um round de eliminação o vencedor está
 com ~100%; ADR, KAST e K/D da liga em faixas plausíveis; coordenadas do minimapa exportadas sem perda de precisão; nenhum link quebrado entre as páginas;
 no replay, quem mata está olhando para a vítima (valida a direção da mira), as posições caem no chão da grade do mapa e toda kill diz o
-que matou. Hoje: **37/37 ok**.
+que matou; somando todos os jogadores, os duelos vencidos são iguais aos perdidos. Hoje: **38/38 ok**.
