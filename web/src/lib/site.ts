@@ -13,11 +13,12 @@ export const SITE_DESCRIPTION =
  */
 const OG_IMAGE = { url: "/opengraph-image", width: 1200, height: 630, alt: `${PRODUCT_NAME}: ${TAGLINE.toLowerCase()}` };
 
-export function pageMeta(title: string, description = SITE_DESCRIPTION): Metadata {
+export function pageMeta(title: string, description = SITE_DESCRIPTION, image: { url: string; alt: string } = OG_IMAGE): Metadata {
+  const img = { ...OG_IMAGE, ...image };
   return {
     title,
     description,
-    openGraph: { type: "website", locale: "pt_BR", siteName: PRODUCT_NAME, title, description, images: [OG_IMAGE] },
-    twitter: { card: "summary_large_image", title, description, images: [OG_IMAGE] },
+    openGraph: { type: "website", locale: "pt_BR", siteName: PRODUCT_NAME, title, description, images: [img] },
+    twitter: { card: "summary_large_image", title, description, images: [img] },
   };
 }

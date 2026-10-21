@@ -17,8 +17,10 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const m = await getMatch((await params).id);
-  return pageMeta(`${m.teams.Red.name} ${m.score.Red}–${m.score.Blue} ${m.teams.Blue.name} · ${m.map.name}`,
-    `${competitionLabel(m.competition, m.stage)} · ${date(m.date)}. Chance de vitória round a round e as jogadas que decidiram o mapa.`);
+  const title = `${m.teams.Red.name} ${m.score.Red}–${m.score.Blue} ${m.teams.Blue.name} · ${m.map.name}`;
+  return pageMeta(title,
+    `${competitionLabel(m.competition, m.stage)} · ${date(m.date)}. Chance de vitória round a round e as jogadas que decidiram o mapa.`,
+    { url: `/partidas/${m.id}/opengraph-image`, alt: title });
 }
 
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {
