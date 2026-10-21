@@ -178,8 +178,10 @@ def main():
     check("replay: posições dentro do minimapa", inside / n_pos > 0.99, f"{inside / n_pos:.2%} de {n_pos}")
     check("toda kill diz o que matou (arma, habilidade, spike, queda)", not unlabeled, f"{len(unlabeled)} sem rótulo: {sorted(set(map(str, unlabeled)))[:4]}")
 
-    # walkable grid of each map (replay moves players along it): recorded positions must land on the floor
+    # walkable grid of each map (replay moves players along it): recorded positions must be on the floor or right next to it
+    # (players hug walls and stand on boxes; the replay snaps those to the nearest floor cell)
     import base64
+    from scipy.ndimage import distance_transform_edt
     on, tot, no_grid = 0, 0, []
     pos_map = pd.read_parquet(P / "positions.parquet", columns=["match_id", "x", "y"]).merge(m[["match_id", "map_code"]], on="match_id")
     for code, g in pos_map.groupby("map_code"):
@@ -189,13 +191,14 @@ def main():
             continue
         nav = json.loads(f.read_text(encoding="utf-8"))
         n = nav["n"]
-        walk = np.unpackbits(np.frombuffer(base64.b64decode(nav["walk"]), dtype=np.uint8))[: n * n].reshape(n, n)
+        walk = np.unpackbits(np.frombuffer(base64.b64decode(nav["walk"]), dtype=np.uint8))[: n * n].reshape(n, n).astype(bool)
+        to_floor = distance_transform_edt(~walk)  # cells to the nearest floor cell
         tf = lookup[code]
         u = g.y.to_numpy() * tf["xMultiplier"] + tf["xScalarToAdd"]
         v = g.x.to_numpy() * tf["yMultiplier"] + tf["yScalarToAdd"]
-        on += walk[np.clip((v * n).astype(int), 0, n - 1), np.clip((u * n).astype(int), 0, n - 1)].sum()
+        on += (to_floor[np.clip((v * n).astype(int), 0, n - 1), np.clip((u * n).astype(int), 0, n - 1)] <= 2).sum()
         tot += len(g)
-    check("replay: posições registradas caem no chão da grade do mapa", not no_grid and on / tot > 0.99,
+    check("replay: posições registradas no chão da grade do mapa (ou a até ~1,4 m)", not no_grid and on / tot > 0.995,
           f"{on / tot:.2%} de {tot}" + (f" · sem grade: {no_grid}" if no_grid else ""))
 
     # metrics declared as "no between-team signal" must still look like noise, and must never become a claim

@@ -57,8 +57,10 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
   de compra). Kills nos primeiros segundos são duelos de abertura, comuns perto do spawn da defesa.
 
 ## Replay 2D (movimento estimado)
-As posições existem só nos instantes de kill, plant e desarme. Entre eles, cada jogador anda pelo **chão do mapa** (grade de ~0,7 m tirada
-do minimapa oficial; 99,9% das posições registradas caem nela) pelo caminho mais curto (A*), no ritmo de corrida, e espera no destino.
+As posições existem só nos instantes de kill, plant e desarme; o primeiro registro do round sai, em mediana, aos 15,7 s (metade dos
+rounds entre 8,5 s e 26,9 s). Entre os registros, cada jogador anda pelo **chão do mapa** (grade de ~0,7 m tirada do minimapa oficial,
+em que as linhas brancas finas são paredes; 99,97% das posições registradas ficam no chão ou a até 1,4 m dele) pelo caminho mais curto
+(A*), no ritmo de corrida, e espera no destino.
 No começo do round, sai do spawn do seu lado. Se o caminho exigir mais de 7,5 m/s (correndo não passa de ~6,75 m/s), o trecho é um
 **salto** (habilidade de movimento ou teleporte): o jogador some e reaparece, com o trajeto tracejado (↯). Isso ocorre em 0,9% dos
 trechos e se concentra em Iso (6,3%: arena da ultimate), Neon, Yoru, Waylay, Jett, Chamber e Omen; em agentes sem mobilidade fica em ~0,2%.

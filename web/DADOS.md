@@ -170,7 +170,8 @@ vítima (mediana de 0,3°; `checks.py`). Para desenhar o cone no minimapa, lembr
   "walk": "<base64>",            // bits (numpy packbits, bit mais alto primeiro), linha a linha (v) e depois coluna (u); 1 = chão
   "spawn": { "atk": [u, v], "def": [u, v] } }   // callout "Surgimento"; sem callout (Lotus, Summit): mediana dos primeiros 4 s
 ```
-Gerado por `pipeline/navgrid.py` a partir do minimapa oficial; usado pelo replay (`web/src/lib/navgrid.ts`, busca A*).
+Gerado por `pipeline/navgrid.py` a partir do minimapa oficial (cinza = chão; as linhas brancas finas são paredes); usado pelo replay
+(`web/src/lib/navgrid.ts`, busca A*).
 
 ## Coordenadas → minimapa (fórmula validada)
 As posições `[x, y]` estão em unidades do jogo (~1 cm). Para desenhar sobre a imagem do minimapa

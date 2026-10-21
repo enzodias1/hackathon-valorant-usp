@@ -1,6 +1,7 @@
 """Walkable grid of each map (for the round replay to move players along corridors instead of through walls).
 
-The official minimap image is the floor plan: opaque pixels = floor, transparent = outside/walls. Each map becomes an
+The official minimap image is the floor plan: gray pixels = floor, transparent = outside, and the thin WHITE lines are the
+walls between neighboring areas (counting them as floor let paths cut through walls). Each map becomes an
 N x N grid in minimap uv space (same space as toMinimap in the site), plus the attacker/defender spawn points (callouts
 "Surgimento"). Validated against the recorded positions: they must land on walkable cells.
 
@@ -16,13 +17,16 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from PIL import Image
+from scipy.ndimage import binary_dilation
 
 ROOT = Path(__file__).resolve().parents[1]
 P = ROOT / "data" / "processed"
 OUT = ROOT / "web" / "public" / "data" / "maps"
 LOOKUP = json.loads((ROOT / "data" / "meta" / "lookup.json").read_text(encoding="utf-8"))
 N = 160  # ~0.7 m per cell: corridors and doors are several cells wide
-MIN_FLOOR = 0.5  # share of opaque pixels for a cell to count as floor
+MIN_FLOOR = 0.5  # share of floor pixels for a cell to count as floor
+WALL_LUM = 220  # white lines (walls); the floor is ~118-134 gray and ramps/platforms a lighter gray (< 220)
+WALL_GROW = 1  # px (of 1024): thicken the wall lines a bit; 2+ starts closing real passages (non-mobility agents start "jumping")
 EARLY_MS = 4000  # positions this early are still next to the spawn
 
 
@@ -51,10 +55,12 @@ def empirical_spawns(early, mp):
 
 
 def build(code):
-    img = minimap(code)
-    alpha = (np.asarray(img)[:, :, 3] > 0).astype(np.uint8) * 255
+    rgba = np.asarray(minimap(code))
+    opaque = rgba[:, :, 3] > 0
+    wall = binary_dilation(opaque & (rgba[:, :, :3].mean(axis=2) >= WALL_LUM), iterations=WALL_GROW)
+    floor_px = (opaque & ~wall).astype(np.uint8) * 255
     # share of floor pixels per cell: area average over the WHOLE image (1024 is not a multiple of N; cropping misaligns the grid)
-    share = np.asarray(Image.fromarray(alpha).resize((N, N), Image.Resampling.BOX)) / 255
+    share = np.asarray(Image.fromarray(floor_px).resize((N, N), Image.Resampling.BOX)) / 255
     floor = share >= MIN_FLOOR
     mp = LOOKUP["maps"][code]
     spawn = {}
