@@ -49,13 +49,12 @@ jogador/coach vale mais que qualquer número. Todos os números abaixo foram con
 > "E isso importa: morrer a menos de 5 metros de um aliado dá **41%** de chance de a morte ser trocada; a mais de 30 metros, **6%**."
 
 **2:40 · Jogador**: perfil de um jogador com impacto maior que o K/D (ex.: BRaim, Unicamp Tritons Black).
-> "O K/D engana. Este jogador está no percentil 32 em K/D, mas no **percentil 62 em impacto**: as jogadas dele acontecem quando o
-> round está em jogo. E o papel é descoberto pelo comportamento: ele joga de iniciador, mas age como **âncora**, segurando o fim do round."
+> "O K/D engana. Este jogador está no percentil 32 em K/D, mas no **percentil 62 em impacto**: as jogadas acontecem quando o
+> round está em jogo. E o papel é descoberto pelo comportamento: joga de iniciador, mas age como **clutch**, decidindo o fim dos rounds."
 
-**3:05 · Economia**: página "Forçar ou economizar?" + seção de economia do UFMT.
-> "Analisamos mais de 2 mil situações sem dinheiro para full buy. Depois de perder o pistol, quem **força** vence em média
-> **0,7 round a mais** nos três rounds seguintes do que quem economiza, e o resultado se sustenta em todos os testes. O UFMT
-> economizou em 26 de 27 vezes."
+**3:05 · Onde o time morre**: seção "Onde o time morre" do UFMT (tabela de regiões + mapa de calor).
+> "Cada morte vira um ponto no mapa. Dá para ver onde o time morre mais que a média da liga e quantas dessas mortes ficaram
+> sem trade: é o mapa do que revisar no VOD."
 
 **3:25 · Comparar**: UFMT × Macklogic Red.
 > "E para o próximo jogo: o comparador mostra quem é favorito, quais mapas escolher e vetar, e como o adversário costuma jogar.
@@ -72,7 +71,7 @@ jogador/coach vale mais que qualquer número. Todos os números abaixo foram con
 **Tela:** página do time → página inicial com o link visível.
 
 > "Para o jogador: saber o que melhorar, além do K/D. Para o coach: os rounds para rever, as duplas que funcionam, as decisões de
-> economia que rendem. E o site é estático, sem servidor: roda com qualquer campeonato no formato oficial, a custo zero."
+> padrões de economia do time e do adversário. E o site é estático, sem servidor: roda com qualquer campeonato no formato oficial, a custo zero."
 >
 > **[ENTREVISTA]** *se possível, a reação de um entrevistado ao ver o site.*
 >
@@ -84,7 +83,7 @@ jogador/coach vale mais que qualquer número. Todos os números abaixo foram con
 - [ ] Testar todas as telas antes de gravar (link da Vercel, não o local).
 - [ ] Gravar a tela em 1080p; áudio com fone/microfone, ambiente sem eco.
 - [ ] Cortar tempos mortos de carregamento na edição.
-- [ ] Legendas nos números-chave (75% → 74%; 41% × 6%; +0,7 round).
+- [ ] Legendas nos números-chave (75% → 74%; 41% × 6%; 55% por round → 70% no mapa).
 - [ ] Conferir o tempo final: **até 5:00**.
 - [ ] Publicar no YouTube como **não listado** e testar o link em aba anônima.
 - [ ] Nome da equipe e dos integrantes na tela final (o formulário também pede).
@@ -92,6 +91,6 @@ jogador/coach vale mais que qualquer número. Todos os números abaixo foram con
 ## Números de reserva (se precisar trocar algum exemplo)
 - Modelo: AUC 0,887; erro de calibração 1,4%; validado com 5 grupos de partidas.
 - Uma vantagem de 55% por round vira ~70% de chance de vencer o mapa.
-- Papéis pelo comportamento: 72% dos duelistas caem em "Entrada" e 71% dos sentinelas em "Lurk", sem o modelo ver o agente.
+- Papéis pelo comportamento: 72% dos duelistas caem em "Entry" e 71% dos sentinelas em "Lurker", sem o modelo ver o agente.
 - Evolução: o Azure Bears Black melhorou o jogo de trade e a conversão do first blood mesmo enfrentando adversários mais fortes.
 - Rounds "jogados fora" acontecem em proporção parecida em todos os times: é mais azar que padrão (por isso não acusamos ninguém disso).

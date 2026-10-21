@@ -4,15 +4,15 @@ import type { Axes, Player } from "@/lib/types";
 import { date, num, pp } from "@/lib/format";
 
 const AXIS_HELP: Record<string, string> = {
-  Entrada: "abre os rounds: disputa os primeiros duelos",
-  Suporte: "assistências e trades: joga para o time",
-  Lurk: "joga longe do time, por flancos",
-  Âncora: "segura o fim do round: clutches e pós-plant",
+  Entry: "abre os rounds: disputa os primeiros duelos",
+  Support: "assistências e trades: joga para o time",
+  Lurker: "joga longe do time, por flancos",
+  Clutch: "decide o fim do round: clutches e pós-plant",
   Impacto: "muda a chance de vitória do round",
 };
 
 export function RoleRadar({ axes }: { axes: Axes }) {
-  const data = (["Entrada", "Suporte", "Lurk", "Âncora", "Impacto"] as const).map((k) => ({ axis: k, value: Math.round(axes[k]) }));
+  const data = (["Entry", "Support", "Lurker", "Clutch", "Impacto"] as const).map((k) => ({ axis: k, value: Math.round(axes[k]) }));
   return (
     <div className="h-72 w-full" role="img" aria-label={`Perfil em percentis: ${data.map((d) => `${d.axis} ${d.value}`).join(", ")}`}>
       <ResponsiveContainer>

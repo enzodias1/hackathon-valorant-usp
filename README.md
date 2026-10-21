@@ -35,7 +35,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 .venv/Scripts/python pipeline/winprob.py                      # modelo de prob. de vitória + impacto (WPA)
 .venv/Scripts/python pipeline/team.py                         # sinergia, papéis por comportamento, perfil dos times
 .venv/Scripts/python pipeline/evolution.py                    # força dos times (Bradley-Terry) e evolução no campeonato
-.venv/Scripts/python pipeline/economy.py                      # conselheiro de economia: forçar ou economizar?
+.venv/Scripts/python pipeline/economy.py                      # decisões de compra sem full buy (descritivo nos times)
 .venv/Scripts/python pipeline/zones.py                        # onde cada time morre (regiões do mapa + grade de calor)
 .venv/Scripts/python pipeline/export.py                       # JSON do site em web/public/data (formato em web/DADOS.md)
 .venv/Scripts/python pipeline/checks.py                       # 32 checagens de consistência (falha se algum número não fechar)
@@ -54,8 +54,8 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
   O impacto (WPA) de cada partida é calculado por um modelo que nunca viu aquela partida.
 - **Trade:** morte vingada por um aliado em até 5 s.
 - **Morte isolada:** aliado vivo mais próximo a mais de 3.000 unidades (~30 m). A chance de ser trocado cai de 41% (< 5 m) para 6% (> 30 m).
-- **Papéis por comportamento** (percentis na liga, mín. 60 rounds): Entrada, Suporte, Lurk, Âncora.
-  Validação: 72% dos duelistas → Entrada; 71% dos sentinelas → Lurk, sem o modelo ver o agente.
+- **Papéis por comportamento** (percentis na liga, mín. 60 rounds): Entry, Support, Lurker, Clutch.
+  Validação: 72% dos duelistas → Entry; 71% dos sentinelas → Lurker, sem o modelo ver o agente.
 - **Round "jogado fora":** o time chegou a ≥ 80% de probabilidade e perdeu. **Virada:** ≤ 20% e venceu.
 - **Controle de falsos positivos:** toda afirmação de "ponto forte/fraco" ou "mudou" passa por Benjamini-Hochberg (q = 10%) dentro
   da página (time ou jogador). Sem isso, com 15 métricas por time, ~1–2 insights por time seriam ruído.
@@ -66,7 +66,9 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
   dinheiro gasto (≤ 35% economizar, ≥ 65% forçar). Resultado: rounds vencidos neste e nos 2 seguintes, com controles (dinheiro, armas,
   adversário, força, lado, placar, round) e bootstrap por partida. Depois de perder o pistol, forçar: +0,74 round [+0,47; +1,00];
   depois de perder um round sem full buy: +0,63 [+0,45; +0,81]. Robusto a horizonte de 2/4 rounds e a confrontos equilibrados.
-  É evidência observacional, apresentada como tal.
+  É evidência observacional. **Removido da interface (20/10):** poucos casos de force (42 com horizonte completo), sinal de seleção
+  (quem força vence até o round 4 bem mais) e custo real ao perder o force (round 3: 47% × 58%). O site mostra só o descritivo
+  (o que o time fez e o que aconteceu depois), sem recomendação.
 - **Variação só pelo tempo:** entre um evento e outro, a chance de vitória muda só porque o relógio corre (ex.: defesa segurando até o
   tempo acabar). Essa parte não é creditada a ninguém; o impacto de cada jogada é a mudança no instante do evento.
 - **Métricas sem sinal entre times** (hoje: rounds jogados fora): a dispersão entre os times é a do acaso (dp(z) = 0,97), então elas

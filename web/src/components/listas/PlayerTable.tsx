@@ -10,7 +10,7 @@ import { ResultCount, SearchFilter, SelectFilter, fold, useUrlFilters } from "./
 export type PlayerRow = PlayerSummary & { team_name: string };
 
 const KEYS = ["busca", "time", "papel"] as const;
-const ROLES: BehaviorRole[] = ["Entrada", "Suporte", "Lurk", "Âncora"];
+const ROLES: BehaviorRole[] = ["Entry", "Support", "Lurker", "Clutch"];
 
 export default function PlayerTable({ players }: { players: PlayerRow[] }) {
   const router = useRouter();

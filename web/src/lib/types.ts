@@ -3,7 +3,7 @@
 export type Color = "Red" | "Blue";
 export type Side = "Ataque" | "Defesa";
 export type AgentRole = "Duelista" | "Iniciador" | "Controlador" | "Sentinela";
-export type BehaviorRole = "Entrada" | "Suporte" | "Lurk" | "Âncora";
+export type BehaviorRole = "Entry" | "Support" | "Lurker" | "Clutch";
 export type Axes = Record<BehaviorRole | "Impacto", number>;
 
 export interface TeamName {
@@ -266,7 +266,6 @@ export interface TeamEconomy {
   label: string;
   n: number;
   decisions: Partial<Record<EcoDecision, { n: number; win_now: number; rounds_next3: number | null }>>;
-  league_best: EcoDecision;
   insight: string | null;
 }
 

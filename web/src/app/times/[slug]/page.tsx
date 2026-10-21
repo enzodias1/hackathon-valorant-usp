@@ -71,7 +71,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
         <SynergyGraph synergy={team.synergy} />
       </Section>
 
-      <Section title="Onde vocês morrem" subtitle="As regiões do mapa com mais mortes do time, por lado, comparadas com a liga, e quantas dessas mortes ficaram sem trade.">
+      <Section title="Onde o time morre" subtitle="As regiões do mapa com mais mortes do time, por lado, comparadas com a liga, e quantas dessas mortes ficaram sem trade.">
         <ZonesPanel zones={zones} />
       </Section>
 
@@ -147,9 +147,8 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
         </Section>
       </div>
 
-      <Section title="Forçar ou economizar?"
-               subtitle="As decisões do time quando não havia dinheiro para full buy, comparadas com o que rendeu mais rounds na liga em situações parecidas."
-               aside={<Link href="/economia" className="text-sm text-accent hover:underline">Como chegamos nisso →</Link>}>
+      <Section title="Economia sem full buy"
+               subtitle="O que o time fez quando não tinha dinheiro para full buy (dinheiro + armas abaixo de 20 mil) e o que aconteceu nos rounds seguintes.">
         <div className="grid gap-4 md:grid-cols-2">
           {team.economy.map((e) => (
             <div key={e.context} className="rounded-lg bg-surface-2 p-4">
@@ -163,7 +162,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
                         const x = e.decisions[d];
                         return (
                           <tr key={d} className="border-t border-line/50">
-                            <td className="py-1.5 text-ink">{d}{e.league_best === d && <span className="ml-1.5 text-xs text-good">✓ melhor na liga</span>}</td>
+                            <td className="py-1.5 text-ink">{d}</td>
                             <td className="tabular py-1.5 text-right text-ink">{x?.n ?? 0}</td>
                             <td className="tabular py-1.5 text-right text-ink-2">{x ? pct(x.win_now) : "—"}</td>
                             <td className="tabular py-1.5 text-right text-ink-2">{x?.rounds_next3 != null ? num(x.rounds_next3, 1) : "—"}</td>
@@ -172,7 +171,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
                       })}
                     </tbody>
                   </table>
-                  {e.insight && <p className="mt-3 text-sm text-ink">💡 {e.insight}</p>}
+                  {e.insight && <p className="mt-3 text-sm text-ink">{e.insight}</p>}
                   {e.n < 5 && <p className="mt-2 text-xs text-muted">Poucas situações para tirar conclusões sobre o time.</p>}
                 </>
               )}

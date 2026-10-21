@@ -169,10 +169,10 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
         </Section>
       </div>
 
-      <Section title="Parceiros" subtitle="Quem cobre você (vinga suas mortes em até 5 s) e quem você cobre.">
+      <Section title="Parceiros" subtitle="Trades em até 5 s entre o jogador e cada parceiro, nos dois sentidos.">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px]">
-            <thead><tr><Th className="sticky left-0 z-10 bg-surface">Parceiro</Th><Th right>Rounds juntos</Th><Th right>Vingou você</Th><Th right>Você vingou</Th><Th right>Assistências nas suas kills</Th></tr></thead>
+            <thead><tr><Th className="sticky left-0 z-10 bg-surface">Parceiro</Th><Th right>Rounds juntos</Th><Th right>Parceiro vingou o jogador</Th><Th right>Jogador vingou o parceiro</Th><Th right>Assistências nas kills do jogador</Th></tr></thead>
             <tbody>
               {p.partners.map((x) => (
                 <tr key={x.puuid}>

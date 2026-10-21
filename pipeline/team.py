@@ -23,10 +23,10 @@ THROW_WP, COMEBACK_WP = 0.80, 0.20
 
 ROLE_AXES = {
     # axis -> features (higher = more of that axis); the score is the mean percentile of its features within the league
-    "Entrada": ["opening_rate", "first_contact_share"],
-    "Suporte": ["assist_ratio", "trades_per_round"],
-    "Lurk": ["dist_to_team", "isolated_death_rate"],
-    "Âncora": ["clutch_rate", "late_action_share"],
+    "Entry": ["opening_rate", "first_contact_share"],
+    "Support": ["assist_ratio", "trades_per_round"],
+    "Lurker": ["dist_to_team", "isolated_death_rate"],
+    "Clutch": ["clutch_rate", "late_action_share"],
 }
 
 

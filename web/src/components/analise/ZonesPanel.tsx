@@ -1,5 +1,5 @@
 "use client";
-// "Onde vocês morrem": regiões do mapa com mais mortes do time, comparadas com a liga, por mapa e lado.
+// "Onde o time morre": regiões do mapa com mais mortes do time, comparadas com a liga, por mapa e lado.
 // O desenho do mapa de calor entra no espaço reservado (reaproveitando o minimapa do Nukan).
 import { useState } from "react";
 import type { Side, TeamZones } from "@/lib/types";

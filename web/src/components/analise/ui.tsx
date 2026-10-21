@@ -8,7 +8,7 @@ export function Section({ title, subtitle, children, id, aside }: { title: strin
     <section id={id} className="min-w-0 scroll-mt-20 rounded-xl border border-line bg-surface p-5 sm:p-6">
       <header className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h2 className="text-lg font-semibold text-ink">{title}</h2>
+          <h2 className="text-2xl tracking-wide text-ink">{title}</h2>
           {subtitle && <p className="mt-1 max-w-3xl text-sm text-ink-2">{subtitle}</p>}
         </div>
         {aside}
@@ -22,7 +22,7 @@ export function StatTile({ label, value, sub, tone }: { label: string; value: Re
   return (
     <div className="rounded-xl border border-line bg-surface px-4 py-3">
       <div className="text-xs uppercase tracking-wide text-muted">{label}</div>
-      <div className={`mt-1 text-2xl font-semibold ${tone === "good" ? "text-good" : tone === "bad" ? "text-bad" : "text-ink"}`}>{value}</div>
+      <div className={`font-display mt-1 text-3xl tracking-wide ${tone === "good" ? "text-good" : tone === "bad" ? "text-bad" : "text-ink"}`}>{value}</div>
       {sub && <div className="mt-0.5 text-xs text-ink-2">{sub}</div>}
     </div>
   );

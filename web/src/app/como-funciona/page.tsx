@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getEconomy, getModel } from "@/lib/data";
+import { getModel } from "@/lib/data";
 import { num, pct, pp } from "@/lib/format";
 import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import type { ModelInfo } from "@/lib/types";
@@ -26,15 +26,13 @@ const TOC = [
 ] as const;
 
 export default async function HowItWorksPage() {
-  const [model, economy] = await Promise.all([getModel(), getEconomy()]);
+  const model = await getModel();
   const d = model.definitions;
   const chosen = model.models.gbm;
   // a faixa de calibração perto de 75%, para a frase-chave
   const c75 = model.calibration.reduce((a, b) => (Math.abs(b.p - 0.75) < Math.abs(a.p - 0.75) ? b : a));
   const near = model.trade_by_distance[0];
   const far = model.trade_by_distance.find((t) => t.distance.startsWith(`${d.isolated_distance_m}`)) ?? model.trade_by_distance.at(-1)!;
-  const forcePistol = economy.contexts["perdeu o pistol"]?.adjusted_vs_save["Forçar"];
-  const forceRound = economy.contexts["perdeu o round anterior"]?.adjusted_vs_save["Forçar"];
   const buyErr = model.buy_matchups.reduce((s, b) => s + Math.abs(b.model - b.real) * b.n, 0) / model.buy_matchups.reduce((s, b) => s + b.n, 0);
 
   return (
@@ -165,16 +163,9 @@ export default async function HowItWorksPage() {
             descontando a economia. Times com poucos mapas ficam perto da média até que haja dados suficientes. A evolução no campeonato
             também desconta a força dos adversários: sem isso, todo time “pioraria” na Fase de Grupos.
           </Method>
-          <Method title="Forçar ou economizar?">
-            Quando o time tem menos de {num(economy.definitions.full_buy_credits)} créditos somando dinheiro e armas (sem full buy), comparamos os rounds vencidos no round e nos {economy.definitions.horizon_rounds - 1} seguintes
-            para cada decisão, descontando {economy.definitions.controls.join(", ")}.
-            {forcePistol && <> Depois de perder o pistol, forçar rendeu <b className="text-ink">{forcePistol.effect >= 0 ? "+" : "−"}{num(Math.abs(forcePistol.effect), 2)} round</b> (intervalo de 90%: {num(forcePistol.ci90[0], 2)} a {num(forcePistol.ci90[1], 2)}).</>}
-            {forceRound && <> Depois de perder um round sem full buy: <b className="text-ink">{forceRound.effect >= 0 ? "+" : "−"}{num(Math.abs(forceRound.effect), 2)}</b>.</>}
-            {" "}É evidência observacional, e a apresentamos assim. <Link href="/economia" className="text-accent hover:underline">Ver o conselheiro</Link>.
-          </Method>
           <Method title="Papel real, pelo comportamento">
-            Entrada, Suporte, Lurk e Âncora saem do que o jogador faz (primeiros duelos, trades, distância do time, fim de round), em percentis
-            na liga, a partir de {d.min_rounds_role} rounds. O modelo não vê o agente, e mesmo assim 72% dos duelistas caem em Entrada e 71% dos sentinelas em Lurk.
+            Entry, Support, Lurker e Clutch saem do que o jogador faz (primeiros duelos, trades, distância do time, fim de round), em percentis
+            na liga, a partir de {d.min_rounds_role} rounds. O modelo não vê o agente, e mesmo assim 72% dos duelistas caem em Entry e 71% dos sentinelas em Lurker.
           </Method>
         </div>
       </Section>
@@ -185,7 +176,7 @@ export default async function HowItWorksPage() {
             ["Impacto (pp)", "Quanto uma jogada mudou a chance de o time vencer o round, em pontos percentuais. +20 pp = de 50% para 70%. O impacto por round é a média por round jogado."],
             ["Trade", `Vingar a morte de um aliado em até ${d.trade_window_s} segundos.`],
             ["Morte isolada", `Morrer com o aliado vivo mais próximo a mais de ${d.isolated_distance_m} m (≈ ${num(d.isolated_distance_m * 100)} unidades do jogo).`],
-            ["Papel em jogo", `Entrada (abre o round), Suporte (assistências e trades), Lurk (joga longe do time) ou Âncora (segura o fim do round). Calculado a partir de ${d.min_rounds_role} rounds.`],
+            ["Papel em jogo", `Entry (abre o round), Support (assistências e trades), Lurker (joga longe do time) ou Clutch (decide o fim do round). Calculado a partir de ${d.min_rounds_role} rounds.`],
             ["Round jogado fora", `O time chegou a ${pct(d.throw_wp)} ou mais de chance e perdeu.`],
             ["Virada", `O time esteve com ${pct(d.comeback_wp)} ou menos de chance e venceu.`],
             ["Significância", "Só mostramos ponto forte ou fraco quando a diferença para a liga é grande demais para ser sorte, já descontados os falsos positivos. Amostras pequenas são sinalizadas."],
@@ -204,7 +195,7 @@ export default async function HowItWorksPage() {
           <li>Só usamos o que está nos dados oficiais das partidas: posições, kills, compras, spike. Não há uso detalhado de utilitárias nem comunicação do time, então o site aponta <i>onde</i> olhar no VOD, sem substituí-lo.</li>
           <li>Amostras pequenas (poucos mapas ou menos de {d.min_rounds_role} rounds) são sinalizadas, e nelas a maioria das comparações fica como “não conclusiva”.</li>
           <li>Os números valem para o cenário universitário destes campeonatos ({num(model.data.matches)} mapas); o cenário profissional pode se comportar de outro jeito.</li>
-          <li>As análises de economia e evolução são observacionais: mostram associações controladas, não experimentos.</li>
+          <li>A análise de evolução é observacional: mostra associações controladas, não experimentos.</li>
           <li>
             Rounds “jogados fora” (chegar a {pct(d.throw_wp)} e perder) acontecem em proporção parecida em quase todos os times: a diferença entre eles
             é do tamanho do que o acaso produziria. Por isso esses rounds aparecem como material para revisar no VOD, não como defeito do time.

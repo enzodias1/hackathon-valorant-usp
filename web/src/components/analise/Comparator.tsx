@@ -58,7 +58,7 @@ export default function Comparator({ teams }: { teams: TeamSummary[] }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        {select(a, setA, "Meu time", b)}
+        {select(a, setA, "Time", b)}
         <span className="hidden pb-2 text-muted sm:block">×</span>
         {select(b, setB, "Adversário", a)}
       </div>
@@ -176,7 +176,7 @@ function Comparison({ A, B }: { A: Team; B: Team }) {
               </li>
             )}
             {[...B.insights.weaknesses, ...B.insights.attention].slice(0, 4).map((i) => (
-              <li key={i.key} className="rounded-lg bg-surface-2 p-3 text-ink"><span className="text-bad">✕</span> {i.text.replace(/de vocês/g, "deles").replace(/vocês/g, "eles").replace(/Vocês/g, "Eles")}</li>
+              <li key={i.key} className="rounded-lg bg-surface-2 p-3 text-ink"><span className="text-bad">✕</span> {i.text}</li>
             ))}
             {[...B.insights.strengths].slice(0, 3).map((i) => (
               <li key={i.key} className="rounded-lg bg-surface-2 p-3 text-ink"><span className="text-good">✓</span> {i.text}</li>

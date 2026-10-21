@@ -23,7 +23,7 @@ P = ROOT / "data" / "processed"
 OUT = ROOT / "web" / "public" / "data"
 LOOKUP = json.loads((ROOT / "data" / "meta" / "lookup.json").read_text(encoding="utf-8"))
 SHEET = ROOT / "para_equipe" / "nomes_dos_times.xlsx"
-AXES = ["Entrada", "Suporte", "Lurk", "Âncora", "Impacto"]
+AXES = ["Entry", "Support", "Lurker", "Clutch", "Impacto"]
 PERCENTILE_COLS = ["kd", "kpr", "adr", "acs", "kast", "hs_pct", "wpa_per_round", "opening_rate", "clutch_rate"]
 
 
@@ -297,30 +297,21 @@ ECON_TEXT = {
 
 
 def team_economy(t, slug):
-    """The team's own force/save decisions vs. what the league data suggests."""
+    """What the team did when it could not afford a full buy, and what happened next. Descriptive only:
+    the league-wide "force vs save" comparison is not shown as a recommendation (observational, few force cases)."""
     lg, et = t["economy"]["contexts"], t["economy_team"]
+    verb = {"Economizar": "economizou", "Meio-termo": "fez meia compra", "Forçar": "forçou"}
     out = []
-    for ctx, info in lg.items():
+    for ctx in lg:
         rows = et[(et.team == slug) & (et.context == ctx)]
         n = int(rows.n.sum())
         decisions = {r.decision: {"n": int(r.n), "win_now": r.wins / r.n, "rounds_next3": None if pd.isna(r.rounds_next3) else float(r.rounds_next3)}
                      for r in rows.itertuples(index=False)}
-        eff = info["adjusted_vs_save"]
-        sig = {k: v for k, v in eff.items() if v["significant"] and v["effect"] > 0}
-        best = max(sig, key=lambda k: sig[k]["effect"]) if sig else "Economizar"
         text = None
         if n >= 5:
             mine = max(decisions, key=lambda k: decisions[k]["n"])
-            share_best = decisions.get(best, {"n": 0})["n"] / n
-            verb = {"Economizar": "economizaram", "Meio-termo": "fizeram meia compra", "Forçar": "forçaram"}
-            if best != "Economizar" and share_best < 0.5:
-                e = eff[best]
-                text = (f"{ECON_TEXT[ctx]}, vocês {verb[mine]} em {decisions[mine]['n']} de {n} vezes. Na liga, em situações parecidas, "
-                        f"quem {'forçou' if best == 'Forçar' else 'fez meia compra'} venceu em média {br(e['effect'], '+.2f')} round nos 3 rounds seguintes "
-                        f"(intervalo de 90%: {br(e['ci90'][0], '+.2f')} a {br(e['ci90'][1], '+.2f')}).")
-            elif best != "Economizar":
-                text = f"{ECON_TEXT[ctx]}, vocês {verb[best]} em {decisions[best]['n']} de {n} vezes, como os dados da liga indicam."
-        out.append({"context": ctx, "label": ECON_TEXT[ctx], "n": n, "decisions": decisions, "league_best": best, "insight": text})
+            text = f"{ECON_TEXT[ctx]}, o time {verb[mine]} em {decisions[mine]['n']} de {n} vezes."
+        out.append({"context": ctx, "label": ECON_TEXT[ctx], "n": n, "decisions": decisions, "insight": text})
     return out
 
 
@@ -448,17 +439,17 @@ def export_players(t, names):
         if side_c["significant"]:
             better, worse = ("ataque", "defesa") if side_c["z"] > 0 else ("defesa", "ataque")
             notes.append({"key": "side", "z": round(side_c["z"], 2),
-                          "text": f"Você rende mais na {better}: {pp(max(a.mean(), d.mean()))} por round contra {pp(min(a.mean(), d.mean()))} na {worse}."})
+                          "text": f"Rende mais na {better}: {pp(max(a.mean(), d.mean()))} por round contra {pp(min(a.mean(), d.mean()))} na {worse}."})
         if p.role_eligible:
             p_kd, p_wpa = percentile("kd", p.kd), percentile("wpa_per_round", p.wpa_per_round)
             if p_kd is not None and p_wpa is not None and abs(p_wpa - p_kd) >= 25:
-                txt = (f"Seu impacto vale mais que seu K/D: você está no percentil {p_wpa:.0f} em impacto e {p_kd:.0f} em K/D. Suas jogadas acontecem nos momentos que decidem rounds."
+                txt = (f"O impacto vale mais que o K/D: percentil {p_wpa:.0f} em impacto e {p_kd:.0f} em K/D. As jogadas acontecem nos momentos que decidem rounds."
                        if p_wpa > p_kd else
-                       f"Seu K/D é melhor que seu impacto: percentil {p_kd:.0f} em K/D, mas {p_wpa:.0f} em impacto. Parte das kills acontece com o round já decidido, ou as mortes custam caro.")
+                       f"O K/D é melhor que o impacto: percentil {p_kd:.0f} em K/D, mas {p_wpa:.0f} em impacto. Parte das kills acontece com o round já decidido, ou as mortes custam caro.")
                 notes.append({"key": "impact_vs_kd", "z": None, "text": txt})
             if p.main_agent_role in ROLE_EXPECTED and p.behavior_role not in ROLE_EXPECTED[p.main_agent_role]:
                 notes.append({"key": "role_mismatch", "z": None,
-                              "text": f"Você joga principalmente de {p.main_agent_role}, mas seu comportamento em jogo é de {p.behavior_role}. Pode ser um estilo próprio ou um papel que o time precisa ajustar."})
+                              "text": f"Joga principalmente de {p.main_agent_role}, mas o comportamento em jogo é de {p.behavior_role}. Pode ser um estilo próprio ou um papel que o time precisa ajustar."})
         ins["notes"] = notes
 
         agents = []
