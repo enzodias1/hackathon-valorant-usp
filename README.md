@@ -37,8 +37,9 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 .venv/Scripts/python pipeline/evolution.py                    # força dos times (Bradley-Terry) e evolução no campeonato
 .venv/Scripts/python pipeline/economy.py                      # decisões de compra sem full buy (descritivo nos times)
 .venv/Scripts/python pipeline/zones.py                        # onde cada time morre (regiões do mapa + grade de calor)
+.venv/Scripts/python pipeline/navgrid.py                      # chão caminhável de cada mapa + spawns (movimento do replay)
 .venv/Scripts/python pipeline/export.py                       # JSON do site em web/public/data (formato em web/DADOS.md)
-.venv/Scripts/python pipeline/checks.py                       # 36 checagens de consistência (falha se algum número não fechar)
+.venv/Scripts/python pipeline/checks.py                       # 37 checagens de consistência (falha se algum número não fechar)
 .venv/Scripts/python pipeline/teams_sheet.py                  # planilha de nomes dos times (para_equipe/)
 ```
 
@@ -52,6 +53,15 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
   nos dados, mas as kills por habilidade sim (2,6% das kills: ultimate, Q/E e granada), com o slot da habilidade.
 - Armas de habilidade no catálogo de armas: a Tour de Force (ultimate do Chamber) vem **sem ID** a partir do patch 13.02; identificada
   por ser rara e ~100% com mira (`meta.py`).
+- O relógio do round começa na queda da barreira (o round seguinte começa sempre 37 s depois da última kill: 7 s de fim de round + 30 s
+  de compra). Kills nos primeiros segundos são duelos de abertura, comuns perto do spawn da defesa.
+
+## Replay 2D (movimento estimado)
+As posições existem só nos instantes de kill, plant e desarme. Entre eles, cada jogador anda pelo **chão do mapa** (grade de ~0,7 m tirada
+do minimapa oficial; 99,9% das posições registradas caem nela) pelo caminho mais curto (A*), no ritmo de corrida, e espera no destino.
+No começo do round, sai do spawn do seu lado. Se o caminho exigir mais de 7,5 m/s (correndo não passa de ~6,75 m/s), o trecho é um
+**salto** (habilidade de movimento ou teleporte): o jogador some e reaparece, com o trajeto tracejado (↯). Isso ocorre em 0,9% dos
+trechos e se concentra em Iso (6,3%: arena da ultimate), Neon, Yoru, Waylay, Jett, Chamber e Omen; em agentes sem mobilidade fica em ~0,2%.
 
 ## Decisões de métrica (validadas com os dados)
 - **Probabilidade de vitória do round:** gradient boosting com validação cruzada por partida (AUC 0,888; erro de calibração 1,3%).
@@ -82,4 +92,5 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 Propriedades que precisam valer se os números estiverem certos, por exemplo: quem planta é sempre do ataque; vitória após first blood +
 após first death = 100%; o impacto de cada kill soma zero entre os times; depois da última kill de um round de eliminação o vencedor está
 com ~100%; ADR, KAST e K/D da liga em faixas plausíveis; coordenadas do minimapa exportadas sem perda de precisão; nenhum link quebrado entre as páginas;
-no replay, quem mata está olhando para a vítima (valida a direção da mira) e toda kill diz o que matou. Hoje: **36/36 ok**.
+no replay, quem mata está olhando para a vítima (valida a direção da mira), as posições caem no chão da grade do mapa e toda kill diz o
+que matou. Hoje: **37/37 ok**.

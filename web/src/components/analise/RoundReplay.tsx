@@ -1,12 +1,14 @@
 "use client";
 // Replay 2D do round. Evolução do minimapa do Nukan: reaproveita MinimapBase e toMinimap.
 // A Riot registra a posição e a direção da mira de todos os vivos em cada kill, plant e desarme. O replay mostra esses
-// instantes e, entre eles, estima o movimento em linha reta (avisado na tela). Junto vêm a chance de vitória ao vivo,
+// instantes e, entre eles, estima o movimento pelos corredores do mapa (lib/navgrid; avisado na tela). Deslocamentos
+// rápidos demais para correr viram "salto" (habilidade de movimento ou teleporte). Junto vêm a chance de vitória ao vivo,
 // a sequência do round com o impacto de cada jogada e, em cada morte, a distância do aliado mais próximo.
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Color, MapTransform, Match, MatchPlayer, Round, RoundEvent } from "@/lib/types";
 import { clock, nick, pct, pp } from "@/lib/format";
 import { roundEndMs, SPIKE_TIMER_MS, toMinimap, type UV } from "@/lib/minimap";
+import { decodeNavGrid, findPath, type NavGrid, type NavGridRaw } from "@/lib/navgrid";
 import MinimapBase from "@/components/MinimapBase";
 
 const TEAM_VAR: Record<Color, string> = { Red: "var(--team-red)", Blue: "var(--team-blue)" };
@@ -20,13 +22,43 @@ const CONE_LEN = 0.075;
 const R = 0.019; // raio do ícone do jogador, em fração do mapa
 
 type Sample = { t: number; x: number; y: number; view: number | null };
-type Track = { p: MatchPlayer; samples: Sample[]; deathT: number | null; deathXY: [number, number] | null };
+/**
+ * Trecho entre dois registros. walk: anda pelos corredores no ritmo de corrida e espera no destino (ou, se não der
+ * tempo, anda mais rápido até chegar na hora). jump: rápido demais para correr (habilidade de movimento, teleporte):
+ * fica no ponto de partida e reaparece no destino no meio do intervalo, com o trajeto tracejado na tela.
+ */
+type Leg = {
+  t0: number; t1: number; kind: "walk" | "jump";
+  pts: UV[]; cum: number[]; len: number; // caminho (uv) e comprimento acumulado
+  start: number; arrive: number; // walk: distância já percorrida em t0 (spawn) e instante de chegada
+  view0: number | null; view1: number | null; // mira registrada (radianos, eixos do jogo)
+};
+type Track = { p: MatchPlayer; samples: Sample[]; legs: Leg[]; deathT: number | null; deathXY: [number, number] | null };
 type Pose = { at: UV; dir: number | null }; // dir: ângulo na tela, em radianos
 
-/** Amostras de posição de cada jogador no round: os vivos em cada evento + a vítima no lugar em que morreu. */
-function buildTracks(match: Match, round: Round): Track[] {
+const RUN_MPS = 5.5; // ritmo estimado de deslocamento (correndo com rifle)
+const JUMP_MPS = 7.5; // acima disso não dá correndo (VALORANT: ~6,75 m/s com a faca): habilidade ou teleporte
+
+/** Direção do jogo (radianos, atan2(dy, dx)) -> ângulo na tela. Os eixos do minimapa são trocados (ver lib/minimap). */
+const screenDir = (view: number, tf: MapTransform) => Math.atan2(Math.cos(view) * tf.yMultiplier, Math.sin(view) * tf.xMultiplier);
+
+function makeLeg(t0: number, t1: number, pts: UV[], view0: number | null, view1: number | null, mPerUv: number, fromSpawn: boolean): Leg {
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i].u - pts[i - 1].u, pts[i].v - pts[i - 1].v));
+  const len = cum[cum.length - 1];
+  const runMs = ((len * mPerUv) / RUN_MPS) * 1000;
+  const leg: Leg = { t0, t1, kind: "walk", pts, cum, len, start: 0, arrive: t0 + Math.min(runMs, t1 - t0), view0, view1 };
+  if (fromSpawn && runMs > t1 - t0) leg.start = len * (1 - (t1 - t0) / runMs); // na queda da barreira já estava adiantado no spawn
+  else if (!fromSpawn && (len * mPerUv) / Math.max((t1 - t0) / 1000, 0.001) > JUMP_MPS) leg.kind = "jump";
+  return leg;
+}
+
+/** Posições de cada jogador no round (os vivos em cada evento + a vítima onde morreu) e os trechos entre elas. */
+function buildTracks(match: Match, round: Round, nav: NavGrid | null): Track[] {
+  const tf = match.map.transform;
+  const mPerUv = 1 / Math.abs(tf.xMultiplier) / 100;
   const idx = new Map(match.players.map((p, i) => [p.puuid, i]));
-  const tracks: Track[] = match.players.map((p) => ({ p, samples: [], deathT: null, deathXY: null }));
+  const tracks: Track[] = match.players.map((p) => ({ p, samples: [], legs: [], deathT: null, deathXY: null }));
   for (const e of round.events) {
     for (const [i, x, y, view] of e.pos ?? []) tracks[i]?.samples.push({ t: e.t, x, y, view });
     const v = e.type === "kill" && e.victim ? idx.get(e.victim) : undefined;
@@ -36,36 +68,75 @@ function buildTracks(match: Match, round: Round): Track[] {
       tracks[v].deathXY = e.victim_xy;
     }
   }
-  for (const tr of tracks) tr.samples.sort((a, b) => a.t - b.t);
+  for (const tr of tracks) {
+    const s = tr.samples.sort((a, b) => a.t - b.t);
+    if (!s.length) continue;
+    const at = (x: Sample) => toMinimap([x.x, x.y], tf);
+    const path = (a: UV, b: UV) => (nav ? findPath(nav, a, b) : [a, b]);
+    // antes do primeiro registro: sai do spawn do seu lado na queda da barreira
+    const spawn = nav?.spawn[round.attacker === tr.p.color ? "atk" : "def"];
+    if (spawn && s[0].t > 0) {
+      const pts = path(spawn, at(s[0]));
+      if (pts) tr.legs.push(makeLeg(0, s[0].t, pts, null, s[0].view, mPerUv, true));
+    }
+    for (let k = 0; k + 1 < s.length; k++) {
+      const a = s[k], b = s[k + 1];
+      if (b.t <= a.t) continue;
+      const pts = path(at(a), at(b));
+      const leg = makeLeg(a.t, b.t, pts ?? [at(a), at(b)], a.view, b.view, mPerUv, false);
+      if (!pts) leg.kind = "jump"; // um dos pontos fora do chão (ex.: arena da ultimate da Iso)
+      tr.legs.push(leg);
+    }
+  }
   return tracks;
 }
 
 const isDead = (tr: Track, t: number) => tr.deathT !== null && t >= tr.deathT && !tr.samples.some((s) => s.t > tr.deathT!);
 
-/** Direção do jogo (radianos, atan2(dy, dx)) -> ângulo na tela. Os eixos do minimapa são trocados (ver lib/minimap). */
-const screenDir = (view: number, tf: MapTransform) => Math.atan2(Math.cos(view) * tf.yMultiplier, Math.sin(view) * tf.xMultiplier);
+/** Ponto do caminho a uma distância d do início, e a direção do trecho (ângulo na tela). */
+function along(leg: Leg, d: number): Pose {
+  let i = 1;
+  while (i < leg.pts.length - 1 && leg.cum[i] < d) i++;
+  const a = leg.pts[i - 1], b = leg.pts[i];
+  const seg = leg.cum[i] - leg.cum[i - 1];
+  const f = seg > 0 ? Math.min(1, Math.max(0, (d - leg.cum[i - 1]) / seg)) : 1;
+  return { at: { u: a.u + (b.u - a.u) * f, v: a.v + (b.v - a.v) * f }, dir: Math.atan2(b.v - a.v, b.u - a.u) };
+}
 
-function lerpAngle(a: number, b: number, f: number) {
-  let d = (b - a) % (2 * Math.PI);
-  if (d > Math.PI) d -= 2 * Math.PI;
-  if (d < -Math.PI) d += 2 * Math.PI;
-  return a + d * f;
+function lastView(s: Sample[], k: number) {
+  for (let j = k; j >= 0; j--) if (s[j].view !== null) return s[j].view;
+  return null;
 }
 
 function poseAt(tr: Track, t: number, smooth: boolean, tf: MapTransform): Pose | null {
   const s = tr.samples;
   if (!s.length) return null;
-  let k = 0;
-  while (k + 1 < s.length && s[k + 1].t <= t) k++;
-  const a = s[k];
-  let view = a.view;
-  for (let j = k - 1; view === null && j >= 0; j--) view = s[j].view; // a vítima não tem mira: usa a última conhecida
-  const b = smooth && t > a.t ? s[k + 1] : undefined;
-  if (!b) return { at: toMinimap([a.x, a.y], tf), dir: view === null ? null : screenDir(view, tf) };
-  const f = (t - a.t) / Math.max(b.t - a.t, 1);
-  const vb = b.view ?? view;
-  const v = view === null ? vb : vb === null ? view : lerpAngle(view, vb, f);
-  return { at: toMinimap([a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f], tf), dir: v === null ? null : screenDir(v, tf) };
+  const snap = (k: number): Pose => {
+    const v = lastView(s, k);
+    return { at: toMinimap([s[k].x, s[k].y], tf), dir: v === null ? null : screenDir(v, tf) };
+  };
+  if (!smooth) {
+    let k = 0;
+    while (k + 1 < s.length && s[k + 1].t <= t) k++;
+    return snap(k);
+  }
+  const leg = tr.legs.find((l) => t >= l.t0 && t < l.t1);
+  if (!leg) {
+    if (t < s[0].t) return snap(0);
+    let k = 0;
+    while (k + 1 < s.length && s[k + 1].t <= t) k++;
+    return snap(k);
+  }
+  const v0 = leg.view0 === null ? null : screenDir(leg.view0, tf);
+  const v1 = leg.view1 === null ? null : screenDir(leg.view1, tf);
+  if (leg.kind === "jump") {
+    const second = t >= (leg.t0 + leg.t1) / 2;
+    return { at: second ? leg.pts[leg.pts.length - 1] : leg.pts[0], dir: second ? v1 ?? v0 : v0 };
+  }
+  if (t >= leg.arrive) return { at: leg.pts[leg.pts.length - 1], dir: v1 ?? along(leg, leg.len).dir }; // chegou: espera mirando
+  const f = (t - leg.t0) / Math.max(leg.arrive - leg.t0, 1);
+  const pose = along(leg, leg.start + (leg.len - leg.start) * f); // andando: olha para onde vai
+  return t - leg.t0 < 250 && v0 !== null ? { ...pose, dir: v0 } : pose;
 }
 
 /** Chance de vitória do time vermelho no instante t: salto em cada evento e, entre eles, só o relógio (rampa). */
@@ -95,15 +166,16 @@ function nearestAlly(e: RoundEvent, match: Match, victim: MatchPlayer) {
   return best;
 }
 
-export default function RoundReplay({ match, round, initialT }: { match: Match; round: Round; initialT?: number }) {
+export default function RoundReplay({ match, round, initialT, nav }: { match: Match; round: Round; initialT?: number; nav?: NavGridRaw | null }) {
+  const grid = useMemo(() => (nav ? decodeNavGrid(nav) : null), [nav]);
   // a key reinicia o estado (tempo, play) quando o round muda
-  return <Replay key={`${match.id}:${round.n}:${initialT ?? ""}`} match={match} round={round} initialT={initialT} />;
+  return <Replay key={`${match.id}:${round.n}:${initialT ?? ""}`} match={match} round={round} initialT={initialT} nav={grid} />;
 }
 
-function Replay({ match, round, initialT }: { match: Match; round: Round; initialT?: number }) {
+function Replay({ match, round, initialT, nav }: { match: Match; round: Round; initialT?: number; nav: NavGrid | null }) {
   const tf = match.map.transform;
   const byId = useMemo(() => new Map(match.players.map((p) => [p.puuid, p])), [match]);
-  const tracks = useMemo(() => buildTracks(match, round), [match, round]);
+  const tracks = useMemo(() => buildTracks(match, round, nav), [match, round, nav]);
   const end = useMemo(() => roundEndMs(round), [round]);
   const maxT = useMemo(() => Math.ceil(Math.max(end, 1000, ...round.events.map((e) => e.t)) / 1000) * 1000, [end, round]);
   const decisive = useMemo(() => {
@@ -165,6 +237,8 @@ function Replay({ match, round, initialT }: { match: Match; round: Round; initia
 
   const wp = wpAt(round, t, end);
   const poses = tracks.map((tr) => ({ tr, dead: isDead(tr, t), pose: poseAt(tr, t, smooth, tf) }));
+  // saltos em andamento (habilidade de movimento / teleporte): trajeto tracejado
+  const jumps = smooth ? poses.flatMap(({ tr, dead }) => (dead ? [] : tr.legs.filter((l) => l.kind === "jump" && t >= l.t0 && t < l.t1))) : [];
   const kills = round.events.filter((e) => e.type === "kill" && e.t <= t);
   const shots = kills.filter((e) => t - e.t < SHOT_MS && e.killer_xy && e.victim_xy);
   const focusEvent = [...kills].reverse().find((e) => t - e.t < FOCUS_MS && !e.after_round_end && e.victim);
@@ -237,7 +311,19 @@ function Replay({ match, round, initialT }: { match: Match; round: Round; initia
                     strokeWidth={1.5} strokeDasharray="4 4" strokeOpacity={0.9} vectorEffect="non-scaling-stroke" />
             )}
 
-            {poses.map(({ dead, pose }, i) => (!dead && pose?.dir != null ? <Cone key={`c${i}`} pose={pose} fill={`url(#${clipId}-g${i})`} /> : null))}
+            {jumps.map((l, i) => {
+            const a = l.pts[0], b = l.pts[l.pts.length - 1];
+            return (
+              <g key={`j${i}`}>
+                <line x1={a.u} y1={a.v} x2={b.u} y2={b.v} stroke="var(--lime)" strokeWidth={1.5} strokeDasharray="1 5" strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke" />
+                <text x={(a.u + b.u) / 2} y={(a.v + b.v) / 2} textAnchor="middle" dominantBaseline="middle" fontSize={0.03} fill="var(--lime)"
+                      stroke="#0b0918" strokeWidth={0.006} paintOrder="stroke">↯</text>
+              </g>
+            );
+          })}
+
+          {poses.map(({ dead, pose }, i) => (!dead && pose?.dir != null ? <Cone key={`c${i}`} pose={pose} fill={`url(#${clipId}-g${i})`} /> : null))}
             {poses.map(({ tr, dead, pose }, i) => (!dead && pose ? <Token key={`p${i}`} p={tr.p} at={pose.at} clip={clipId} /> : null))}
           </MinimapBase>
 
@@ -247,9 +333,10 @@ function Replay({ match, round, initialT }: { match: Match; round: Round; initia
           <label className="flex items-start gap-2 text-xs text-muted">
             <input type="checkbox" checked={smooth} onChange={(e) => setSmooth(e.target.checked)} className="mt-0.5 accent-[var(--brand-2)]" />
             <span>
-              Movimento estimado. A Riot registra a posição e a mira de todos a cada kill, plant e desarme; entre esses instantes o movimento
-              é uma linha reta. Desmarque para ver só os instantes registrados. O uso de utilitárias não vem nos dados; kills por habilidade,
-              sim, com o ícone da habilidade.
+              Movimento estimado. A Riot registra a posição e a mira de todos a cada kill, plant e desarme. Entre esses instantes, cada
+              jogador sai do spawn e anda pelos corredores até o próximo registro; <b className="text-lime">↯</b> marca um deslocamento rápido
+              demais para correr (habilidade de movimento ou teleporte, como a ultimate do Omen). Desmarque para ver só os instantes
+              registrados. O uso de utilitárias não vem nos dados; kills por habilidade, sim, com o ícone da habilidade.
             </span>
           </label>
         </div>
@@ -444,14 +531,14 @@ function SequenceRow({ i, e, byId, past, current, decisive, onSeek }: {
             ) : (
               <span className="label-caps whitespace-nowrap text-[10px] text-warn">◆ {e.type === "plant" ? "plant" : "desarme"}</span>
             )}
-            {decisive && <span className="label-caps ml-1 whitespace-nowrap rounded-sm bg-lime px-1 py-0.5 text-[9px] text-bg">maior impacto</span>}
           </span>
-          <span className="mt-1 block truncate text-xs text-ink-2">
+          <span className="mt-1 block break-words text-xs text-ink-2">
             {nick(actor?.name)}
             {e.type === "kill" ? <> → {nick(victim?.name)}</> : e.type === "plant" ? " plantou" : " desarmou"}
             {e.first_blood && <span className="text-muted"> · first blood</span>}
             {e.is_trade && <span className="text-muted"> · trade</span>}
             {e.after_round_end && <span className="text-muted"> · após o fim</span>}
+            {decisive && <span className="font-semibold text-lime"> · maior impacto</span>}
           </span>
         </span>
         <span className="tabular text-right text-xs">
@@ -472,7 +559,8 @@ function SequenceRow({ i, e, byId, past, current, decisive, onSeek }: {
 function KillIcon({ e }: { e: RoundEvent }) {
   if (e.weapon_icon) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={e.weapon_icon} alt={e.weapon ?? ""} title={e.weapon ?? ""} className={`shrink-0 object-contain ${e.kill_kind === "ability" ? "h-5 w-5" : "h-4 w-12"}`} />;
+    return <img src={e.weapon_icon} alt={e.weapon ?? ""} title={e.weapon ?? ""}
+                className={`shrink-0 object-contain ${e.kill_kind === "ability" ? "h-5 w-5" : "h-4 w-12 -scale-x-100"}`} />;
   }
   return <span className="label-caps shrink-0 rounded-sm bg-surface-2 px-1 py-0.5 text-[9px] text-ink-2">{e.weapon ?? "?"}</span>;
 }

@@ -159,10 +159,18 @@ Referências da liga inteira (taxas médias dos times, vitória por tipo de comp
 }
 ```
 
-**Replay:** as posições existem só nos instantes de kill, plant e desarme (é o que a Riot registra). Entre eles o site interpola em
-linha reta e avisa isso na tela. A direção da mira foi validada pelo significado: em 99% das kills, quem mata está olhando para a
+**Replay:** as posições existem só nos instantes de kill, plant e desarme (é o que a Riot registra). Entre eles o site estima o
+movimento pelo chão do mapa (`maps/<code>.json`) e avisa isso na tela. A direção da mira foi validada pelo significado: em 99% das kills, quem mata está olhando para a
 vítima (mediana de 0,3°; `checks.py`). Para desenhar o cone no minimapa, lembre que os eixos são trocados:
 `ângulo na tela = atan2(cos(view) * yMultiplier, sin(view) * xMultiplier)`. O uso de utilitárias não vem nos dados; kills por habilidade, sim.
+
+## `maps/<code>.json` (chão caminhável do mapa, ~4 KB)
+```jsonc
+{ "n": 160,                      // grade n × n no espaço do minimapa (uv 0–1)
+  "walk": "<base64>",            // bits (numpy packbits, bit mais alto primeiro), linha a linha (v) e depois coluna (u); 1 = chão
+  "spawn": { "atk": [u, v], "def": [u, v] } }   // callout "Surgimento"; sem callout (Lotus, Summit): mediana dos primeiros 4 s
+```
+Gerado por `pipeline/navgrid.py` a partir do minimapa oficial; usado pelo replay (`web/src/lib/navgrid.ts`, busca A*).
 
 ## Coordenadas → minimapa (fórmula validada)
 As posições `[x, y]` estão em unidades do jogo (~1 cm). Para desenhar sobre a imagem do minimapa

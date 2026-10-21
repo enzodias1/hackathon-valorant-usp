@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/site";
-import { getIndex, getMatch } from "@/lib/data";
+import { getIndex, getMatch, getNavGrid } from "@/lib/data";
 import { clock, competitionLabel, date, nick, num, pct, pp } from "@/lib/format";
 import type { Color, Match } from "@/lib/types";
 import MatchView from "@/components/analise/MatchView";
@@ -23,6 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {
   const match: Match = await getMatch((await params).id);
+  const nav = await getNavGrid(match.map.code);
   const maxWpa = Math.max(...match.players.map((p) => Math.abs(p.wpa)));
   const name = Object.fromEntries(match.players.map((p) => [p.puuid, p]));
   // jogadas que mais mudaram rounds na partida
@@ -45,7 +46,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       </PageBand>
 
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
-        <MatchView match={match} />
+        <MatchView match={match} nav={nav} />
 
         <Section title="Jogadas que mais mudaram rounds" subtitle="Chance de vitória do time de quem agiu, antes → depois.">
           <ul className="divide-y divide-line/50">

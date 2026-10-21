@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Area, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { Color, Match, Round, RoundEvent } from "@/lib/types";
+import type { NavGridRaw } from "@/lib/navgrid";
 import { clock, nick, pct, RESULT_PT } from "@/lib/format";
 import RoundReplay from "@/components/analise/RoundReplay";
 
@@ -17,7 +18,7 @@ function parseHash(rounds: number) {
   return m && n >= 1 && n <= rounds ? { n, t: m[2] ? Number(m[2]) * 1000 : undefined } : null;
 }
 
-export default function MatchView({ match }: { match: Match }) {
+export default function MatchView({ match, nav }: { match: Match; nav: NavGridRaw | null }) {
   const [sel, setSel] = useState<number>(1);
   const [startT, setStartT] = useState<number | undefined>(undefined);
   const detailRef = useRef<HTMLDivElement>(null);
@@ -131,14 +132,14 @@ export default function MatchView({ match }: { match: Match }) {
 
       {/* scroll-mt: margem para o cabeçalho fixo do site não cobrir o topo do round */}
       <div ref={detailRef} id={`round-${sel}`} className="scroll-mt-24">
-        <RoundDetail match={match} round={round} startT={startT} onPrev={() => pick(Math.max(1, sel - 1))} onNext={() => pick(Math.min(match.rounds.length, sel + 1))} />
+        <RoundDetail match={match} round={round} nav={nav} startT={startT} onPrev={() => pick(Math.max(1, sel - 1))} onNext={() => pick(Math.min(match.rounds.length, sel + 1))} />
       </div>
     </div>
   );
 }
 
-function RoundDetail({ match, round, startT, onPrev, onNext }: {
-  match: Match; round: Round; startT?: number; onPrev: () => void; onNext: () => void;
+function RoundDetail({ match, round, nav, startT, onPrev, onNext }: {
+  match: Match; round: Round; nav: NavGridRaw | null; startT?: number; onPrev: () => void; onNext: () => void;
 }) {
   const atk = round.attacker, def: Color = atk === "Red" ? "Blue" : "Red";
   const tn = (c: Color) => match.teams[c].name;
@@ -161,7 +162,7 @@ function RoundDetail({ match, round, startT, onPrev, onNext }: {
           <button onClick={onNext} className="rounded-md border border-line px-3 py-1.5 text-sm text-ink-2 hover:border-ink-2">próximo →</button>
         </div>
       </header>
-      <RoundReplay match={match} round={round} initialT={startT} />
+      <RoundReplay match={match} round={round} initialT={startT} nav={nav} />
     </section>
   );
 }

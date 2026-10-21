@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { cache } from "react";
 import type { DataIndex, Match, ModelInfo, Player, Team, TeamZones } from "./types";
+import type { NavGridRaw } from "./navgrid";
 
 const DATA_DIR = path.join(process.cwd(), "public", "data");
 
@@ -17,3 +18,5 @@ export const getTeam = cache((slug: string) => readJson<Team>("teams", `${slug}.
 export const getZones = cache((slug: string) => readJson<TeamZones>("zones", `${slug}.json`));
 export const getModel = cache(() => readJson<ModelInfo>("model.json"));
 export const getPlayer = cache((puuid: string) => readJson<Player>("players", `${decodeURIComponent(puuid)}.json`));
+/** Grade caminhável do mapa (pipeline/navgrid.py); null se o mapa não tiver grade. */
+export const getNavGrid = cache((code: string) => readJson<NavGridRaw>("maps", `${code}.json`).catch(() => null));

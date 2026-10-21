@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import RoundReplay from "@/components/analise/RoundReplay";
-import { getIndex, getMatch } from "@/lib/data";
+import { getIndex, getMatch, getNavGrid } from "@/lib/data";
 import { date } from "@/lib/format";
 
 const DEFAULT_MATCH = "02e4c729-6b8e-4341-bf35-6678ffad6dad"; // Ascent · FEI Whiteowls × IME Wolves Red
@@ -50,7 +50,7 @@ export default async function MinimapDevPage({
         ))}
       </nav>
 
-      <RoundReplay match={match} round={r} />
+      <RoundReplay match={match} round={r} nav={await getNavGrid(match.map.code)} />
     </main>
   );
 }
