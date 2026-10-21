@@ -51,7 +51,8 @@ export function ReplayButton({ href }: { href: string }) {
   return (
     <Link href={href}
           className="label-caps mt-auto inline-flex w-fit items-center gap-2 bg-lime px-4 py-2.5 text-[11px] text-bg transition-opacity [clip-path:polygon(0_0,calc(100%-8px)_0,100%_8px,100%_100%,0_100%)] hover:opacity-90">
-      ▶ Ver no replay
+      <svg aria-hidden viewBox="0 0 10 12" className="h-2.5 w-2.5 fill-current"><path d="M0 0l10 6-10 6z" /></svg>
+      Ver no replay
     </Link>
   );
 }
