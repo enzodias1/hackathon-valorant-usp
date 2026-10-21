@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site";
 import { getIndex } from "@/lib/data";
 import Comparator from "@/components/analise/Comparator";
 
-export const metadata: Metadata = { title: "Comparar times · Analista UNIVAVÁ" };
+export const metadata: Metadata = pageMeta("Comparar times · Analista UNIVAVÁ", "Meu time × adversário: quem é favorito, em quais mapas cada um rende mais e como o adversário joga e decide a economia.");
 
 export default async function ComparePage() {
   const index = await getIndex();

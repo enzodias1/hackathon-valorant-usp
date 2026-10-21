@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { pageMeta } from "@/lib/site";
 import { getEconomy } from "@/lib/data";
 import { num } from "@/lib/format";
 import EconomyAdvisor from "@/components/analise/EconomyAdvisor";
 
-export const metadata: Metadata = { title: "Forçar ou economizar? · Analista UNIVAVÁ" };
+export const metadata: Metadata = pageMeta("Forçar ou economizar? · Analista UNIVAVÁ", "Sem dinheiro para full buy, qual decisão rende mais rounds? A resposta tirada de situações reais do UNIVAVÁ e da Rush Series.");
 
 export default async function EconomyPage() {
   const economy = await getEconomy();
