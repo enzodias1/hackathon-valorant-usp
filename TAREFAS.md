@@ -8,13 +8,29 @@ Ele é atualizado a cada entrega. Na dúvida, chame o Enzo.
 > ⚠️ **(19/10) O Next.js foi atualizado por segurança (15.5.4 → 15.5.28).** Depois de `git merge main` na sua branch,
 > rode **`npm install`** dentro de `web/`, senão o site roda com a versão antiga.
 
+## Cronograma até a entrega
+| Quando | O quê |
+|---|---|
+| **Qui 22/10, 14h** | PR da Azi (revisão no celular + prévia do link das partidas) |
+| **Qui 22/10, 15h** | PR do Nukan (página de destaques) |
+| **Qui 22/10, 18h** | **Front congelado**: depois disso, só correção de erro |
+| **Qui 22/10, noite** | Gravações de tela, seguindo o roteiro do Jodão |
+| **Sex 23/10** | Edição do vídeo e slides; **envio até 20h** (folga até 23h59) |
+
+**Novidade (21/10): replay 2D do round.** Na página de cada partida, o round agora toca como um replay: cada jogador com o agente e
+a mira, a chance de vitória ao vivo, a sequência de eliminações com o impacto de cada uma e "Copiar link do momento". Abra o round 12
+de [UFMT Turuna × Macklogic Red](https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@84.1)
+para ver. Ele é o centro da demonstração do vídeo.
+
 ## Quadro
 
 | Membro | Tarefa | Status | Entrega |
 |---|---|---|---|
 | Camila | [Nomes dos 68 times](#camila--nomes-dos-68-times) | 🟡 Em andamento | Planilha preenchida → Enzo |
 | Nukan | [Minimapa "replay" do round](#nukan--minimapa-replay-do-round) | ✅ Concluída (PR #3, no ar: partida + mapa de calor) | — |
-| — | [Gravações de tela para o vídeo](#gravações-de-tela-para-o-vídeo-adiada) | ⏸️ Adiada: o front ainda vai mudar | Arquivos de vídeo → Jodão |
+| Nukan | [Página "Destaques do campeonato"](#nukan--página-destaques-do-campeonato) | 🟡 A fazer | PR `destaques` até qui 22/10, 15h |
+| Azi | [Revisão no celular das telas novas + prévia do link das partidas](#azi--revisão-no-celular-das-telas-novas--prévia-do-link-das-partidas) | 🟡 A fazer | PR `revisao-celular` até qui 22/10, 14h |
+| — | [Gravações de tela para o vídeo](#gravações-de-tela-para-o-vídeo) | ⏳ Qui 22/10, depois das 18h (front congelado) | Arquivos de vídeo → Jodão |
 | Azi | [Estrutura do site + deploy](#azi--estrutura-do-site--deploy) | ✅ Concluída (PR #1, no ar) | — |
 | Azi | [Página "Como funciona" + revisão no celular](#azi--página-como-funciona--revisão-no-celular) | ✅ Concluída (PR #2, no ar) | — |
 | Azi | [Polimento para compartilhar e apresentar](#azi--polimento-para-compartilhar-e-apresentar) | ✅ Concluída (PR #4, no ar) | — |
@@ -160,12 +176,11 @@ gente da Riot: se algo soar errado para um jogador, eles vão perceber.
 
 ---
 
-## Gravações de tela para o vídeo (adiada)
-> ⏸️ **Adiada (20/10):** o site ainda vai mudar bastante (principalmente o front e a página de economia). Gravar só depois que as telas
-> estiverem fechadas; o responsável será definido nessa hora.
+## Gravações de tela para o vídeo
+> ⏳ **Quinta 22/10, depois das 18h**, quando o front congelar. O responsável será definido na quinta, conforme quem estiver livre.
 
 **O que fazer:** quando o Jodão fechar o roteiro ([`para_equipe/roteiro_pitch.md`](para_equipe/roteiro_pitch.md)), gravar **um clipe por trecho
-da demonstração** (partida + round 12 com o replay do minimapa tocando, página do time, jogador, comparar, como usar, metodologia),
+da demonstração** (partida + round 12 com o replay tocando, página do time, jogador, comparar, destaques, como usar, metodologia),
 seguindo o que o roteiro pede na coluna "Tela". Use o link da Vercel, em 1080p, com zoom do navegador em 110–125%, movimentos de mouse
 lentos e sem notificações na tela. Grave cada clipe com alguns segundos de folga no começo e no fim, para facilitar a edição.
 
@@ -205,6 +220,57 @@ como "Blocked" (limite do plano gratuito com repositório privado). É esperado;
 
 ---
 
+## Nukan — Página "Destaques do campeonato"
+**O que fazer:** criar a página `/destaques` (`web/src/app/destaques/page.tsx`, Server Component gerado no build) com dois rankings
+tirados das 336 partidas, cada item com um botão **"Ver no replay"** que abre o instante exato da jogada:
+1. **Jogadas de maior impacto (10):** os eventos (kill, plant, desarme) com maior `wpa`, ignorando os que têm `after_round_end: true`.
+   Em cada card: ícone do agente (`players[i].agent_icon`), nick, o que fez ("matou X com Vandal", "desarmou a spike"), a chance do time
+   de quem agiu antes → depois (`wp_red_before`/`wp_red_after`; se o time for Blue, use `1 − valor`), o `+pp` e a partida (times, mapa, data).
+2. **Maiores viradas (10):** rounds em que o vencedor chegou à menor chance de vitória e mesmo assim ganhou. Para cada round, ache a menor
+   chance do vencedor ao longo dos eventos e guarde o instante dela, que é para onde o botão do replay leva.
+
+O link do replay é `/partidas/<id>#round-<n>@<segundos>` (ex.: `#round-12@84.1`; `t` dos eventos está em milissegundos).
+
+Por onde começar:
+- **Dados no servidor:** `getIndex()` e `getMatch(id)` de `@/lib/data` (já leem `public/data` com cache). Tipos em `@/lib/types`
+  (`Match`, `Round`, `RoundEvent`); formatação em `@/lib/format` (`pct`, `pp`, `nick`, `clock`, `date`, `competitionLabel`).
+- **Visual:** no padrão das páginas novas, com a faixa roxa `PageBand` e os títulos numerados `SectionHead` (`@/components/analise/ui`). Se quiser
+  um fundo nos cards, use o splash do mapa: `mapSplash(match.map.code)` de `@/lib/art`.
+- **Menu:** inclua "Destaques" na lista `NAV` de `web/src/components/site/Sidebar.tsx`, depois de "Comparar".
+- **Antes de entregar:** confira que cada link abre o replay no momento certo e que nenhum texto mostra `NaN`/`undefined`.
+
+**Por quê:** a AcadArena, que está na banca, organiza o UNIVAVÁ. Destaques automáticos que abrem no replay viram conteúdo para redes
+sociais e transmissão sem trabalho manual, o que mostra impacto além dos times. Também rendem um trecho forte do vídeo.
+
+**Como entregar:** PR da branch `destaques` até **quinta 22/10, 15h** (o front congela às 18h). Antes de começar, `git pull origin main` e
+`npm install` dentro de `web/`. No PR: prints no computador e no celular, e `npm run build` passando. Se travar, avise o Enzo cedo.
+
+---
+
+## Azi — Revisão no celular das telas novas + prévia do link das partidas
+**O que fazer:**
+1. **Revisão no celular** pelo link da Vercel, de tudo que mudou desde a sua última revisão:
+   - as faixas roxas no topo (início, listas, time, jogador e partida);
+   - as páginas **Como usar** e **Metodologia**;
+   - o menu lateral (☰ no celular);
+   - principalmente o **replay do round** na página da partida: tocar e pausar, arrastar a linha do tempo, tocar num jogador (mostra o
+     caminho dele), a lista "Sequência do round", os elencos e "Copiar link do momento".
+
+   Corrija o que for de layout nas páginas (Tailwind). **No replay não mexa** (`RoundReplay.tsx`, `lib/replay.ts`, `lib/navgrid.ts`), porque o
+   Enzo está alterando esses arquivos: anote o problema com print e mande para ele.
+2. **Prévia do link de cada partida (Open Graph):** hoje quem cola o link de uma partida, ou de um momento do replay, no Discord/WhatsApp vê o
+   cartão genérico do site. Crie `web/src/app/partidas/[id]/opengraph-image.tsx`, no mesmo esquema do `src/app/opengraph-image.tsx` que você
+   fez: faixa roxa, os dois times com o placar (verde-limão no vencedor), mapa, competição e data. Os dados vêm de `getMatch(id)` (`@/lib/data`).
+   Se der, use o splash do mapa (`public/art/maps/<código>.webp`) esmaecido ao fundo; se o `ImageResponse` não aceitar WebP, deixe só o roxo.
+
+**Por quê:** o replay virou o centro da demonstração, e a maioria das pessoas vai abrir o site pelo celular, a partir de um link no grupo do
+time. O botão "Copiar link do momento" existe para compartilhar jogadas, e um cartão com placar e mapa convida a clicar.
+
+**Como entregar:** PR da branch `revisao-celular` até **quinta 22/10, 14h**, com prints de antes e depois e a lista do que você achou no
+replay. Antes de começar, `git pull origin main` e `npm install` dentro de `web/`.
+
+---
+
 # Próximas tarefas (começar quando terminar a atual)
 
 | Membro | Tarefa | Status | Entrega |
@@ -214,6 +280,9 @@ como "Blocked" (limite do plano gratuito com repositório privado). É esperado;
 | Camila | [Apresentação (slides)](#camila--apresentação-slides) | ⏳ Depois da validação | Link da apresentação → Enzo |
 
 ## Jodão — Roteiro do vídeo pitch
+> **Atualização (21/10):** a demonstração agora gira em torno do **replay do round 12** (UFMT Turuna × Macklogic Red): a chance de vitória ao
+> vivo cai de 99% enquanto a Jett (kim) faz o triplo, e a spike é desarmada 0,05 s antes da morte do Cypher (sick). Os números do roteiro
+> foram conferidos no replay. O Enzo atualiza o roteiro-base na quinta de manhã com esse trecho; adapte a partir dele.
 > **Atualização (20/10):** já existe um **roteiro-base pronto** em [`para_equipe/roteiro_pitch.md`](para_equipe/roteiro_pitch.md), com falas,
 > telas, tempos e números conferidos. Sua tarefa agora é **adaptar**: encaixar as frases das entrevistas nos trechos **[ENTREVISTA]**,
 > ajustar as falas ao seu jeito de falar, ler em voz alta cronometrando (até 5:00) e sugerir cortes ou trocas de exemplo.
