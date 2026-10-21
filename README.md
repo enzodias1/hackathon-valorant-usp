@@ -94,7 +94,7 @@ Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela veloc
 (`data/meta/replay_notes.json`, com o motivo), mostradas no replay como "anotação da equipe", separadas do que vem dos dados.
 
 ## Decisões de métrica (validadas com os dados)
-- **Probabilidade de vitória do round:** gradient boosting com validação cruzada por partida (AUC 0,888; erro de calibração 1,3%).
+- **Probabilidade de vitória do round:** gradient boosting com validação cruzada por partida (AUC 0,887; erro de calibração 1,4%).
   O impacto (WPA) de cada partida é calculado por um modelo que nunca viu aquela partida.
 - **Trade:** morte vingada por um aliado em até 5 s.
 - **Morte isolada:** aliado vivo mais próximo a mais de 3.000 unidades (~30 m). A chance de ser trocado cai de 41% (< 5 m) para 6% (> 30 m).

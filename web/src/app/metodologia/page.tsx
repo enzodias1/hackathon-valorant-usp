@@ -20,6 +20,7 @@ const TOC = [
   ["confiavel", "O modelo é confiável?"],
   ["economia", "Compras"],
   ["distancia", "Jogar perto"],
+  ["replay", "Replay"],
   ["comparacoes", "Comparações justas"],
   ["termos", "Termos técnicos"],
   ["limites", "Limites"],
@@ -148,6 +149,31 @@ export default async function MethodologyPage() {
             quase nunca alguém consegue trocar. E a taxa de <b className="text-ink">mortes trocadas</b> é, depois da própria taxa de vitória, a métrica
             que mais separa os times da liga: é onde o jogo coletivo aparece nos números.
           </p>
+        </Section>
+
+        <Section id="replay" title="O replay: o que é registrado e o que é estimado"
+                 subtitle="A Riot registra a posição e a direção da mira de todos os jogadores vivos em cada kill, plant e desarme. Entre esses instantes, o movimento é estimado, e o replay sempre avisa qual dos dois está na tela.">
+          <div className="grid gap-3 md:grid-cols-2">
+            <Method title="Registrado pela Riot">
+              Posição e mira de todos os vivos em cada evento (cerca de 8 registros por round; o primeiro sai, na mediana, aos 15,7 s), a vítima de cada kill, a arma ou a habilidade que matou, o plant, o desarme e o que cada um comprou.
+              <b className="text-ink"> A direção da mira foi validada:</b> em 99% das 45.440 kills, quem mata está olhando para a vítima (diferença mediana de 0,3°).
+            </Method>
+            <Method title="Estimado entre os registros">
+              Cada jogador anda pelo <b className="text-ink">chão do mapa</b> (grade de ~0,7 m tirada do minimapa oficial; as linhas brancas são paredes;
+              99,97% das posições registradas ficam no chão ou a até 1,4 m dele), pelo caminho mais curto que <b className="text-ink">evita a visão dos
+              inimigos</b> quando dá tempo, no ritmo de corrida, e se move no momento mais seguro. No começo do round, sai do spawn.
+            </Method>
+            <Method title="Habilidades de movimento">
+              Se o caminho exige mais de 7,5 m/s (correndo não passa de ~6,75 m/s), o trecho vira um salto (↯): o jogador some e reaparece.
+              Isso acontece em 0,9% dos trechos e se concentra em quem tem mobilidade (Iso 6,6%, Neon 5,3%, Yoru 2,6%) contra ~0,3% nos demais.
+              Casos que os dados não revelam, como uma ultimate dentro de um intervalo longo, entram como <b className="text-ink">anotação da equipe</b>, sempre identificada.
+            </Method>
+            <Method title="O que os dados não têm">
+              O momento de uso de cada habilidade (smokes, flashes, drones): a Riot informa só o total por partida, que mostramos por agente.
+              Por isso a análise de &ldquo;quem podia trocar&rdquo; considera só as paredes do mapa, sem smokes nem diferença de altura, e o replay
+              mostra onde olhar no VOD, sem substituí-lo.
+            </Method>
+          </div>
         </Section>
 
         <Section id="comparacoes" title="Comparações justas"

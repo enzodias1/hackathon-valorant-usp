@@ -95,7 +95,8 @@ Antes de começar, `git pull origin main` e `npm install` dentro de `web/`. Quan
 >
 > **Atualização (21/10):** a demonstração agora gira em torno do **replay do round 12** (UFMT Turuna × Macklogic Red): a chance de vitória ao
 > vivo cai de 99% enquanto a Jett (kim) faz o triplo, e a spike é desarmada 55 milissegundos antes da morte do Cypher (sick). Os números do roteiro
-> foram conferidos no replay. O Enzo vai atualizar o roteiro-base com esse trecho; adapte a partir dele.
+> foram conferidos no replay. **O roteiro-base já foi atualizado (21/10)** com o replay em tela cheia, as entrevistas e as seções novas do
+> jogador (duelos, quando morre, habilidades); está em ~4:20, então adapte cortando, se precisar.
 >
 > **Atualização (20/10):** já existe um **roteiro-base pronto** em [`para_equipe/roteiro_pitch.md`](para_equipe/roteiro_pitch.md), com falas,
 > telas, tempos e números conferidos. Sua tarefa agora é **adaptar**: encaixar as frases das entrevistas nos trechos **[ENTREVISTA]**,
