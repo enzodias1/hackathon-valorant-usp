@@ -99,6 +99,9 @@ export interface RoundEvent {
   kill_kind?: KillKind;
   /** todos os vivos no instante do evento (a vítima de uma kill vem em victim_xy) */
   pos?: PosEntry[];
+  /** só na kill do último atacante com a spike plantada: segundos de sobra para desarmar (tempo de spike − corrida do defensor
+   *  mais perto até ela − 7 s de desarme); negativo = não dava tempo */
+  defuse_margin?: number;
   /** só em revive: quem voltou ao round e o registro anterior (a volta aconteceu entre `from` e `t`) */
   target?: string;
   from?: number;

@@ -126,6 +126,7 @@ def export_matches(t, names):
     gear_by = {k: g.set_index(["round_num", "puuid"]) for k, g in pr.groupby("match_id")}
     weapon_icon = {w["name"]: w["icon"] for w in LOOKUP["weapons"].values() if w.get("icon")}
     p0 = st[st.kind == "start"].set_index(["match_id", "round_num"]).p_atk
+    margin_after = st.dropna(subset=["elim_margin"]).set_index(["match_id", "round_num", "seq"]).elim_margin.to_dict()
     ev_by = {k: g for k, g in ev.groupby(["match_id", "round_num"])}
     kl_by = {k: g.set_index("kill_idx") for k, g in kl.groupby(["match_id", "round_num"])}
     rd_by = {k: g for k, g in rd.groupby("match_id")}
@@ -178,6 +179,10 @@ def export_matches(t, names):
                         "wp_red_after": to_red(e.p_atk_after), "wpa": e.wpa * 100, "after_round_end": bool(e.post_end)}
                 if e.event == "kill":
                     k = kg.loc[int(e.kill_idx)]
+                    margin = margin_after.get((mid, r.round_num, e.post_seq), np.nan)
+                    if k.victim_side == "Ataque" and not e.post_end and not pd.isna(margin):
+                        # último atacante morto com a spike plantada: folga para desarmar (tempo − corrida até a spike − 7 s)
+                        item["defuse_margin"] = round(float(margin), 1)
                     item.update({"victim": e.victim, "weapon": k.weapon_label, "weapon_icon": k.weapon_icon, "kill_kind": k.kill_kind,
                                  "first_blood": bool(k.first_blood),
                                  "traded": bool(k.traded), "is_trade": bool(k.is_trade), "teamkill": bool(k.teamkill),

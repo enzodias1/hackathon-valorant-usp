@@ -4,7 +4,7 @@
 // fica em lib/replay; aqui é o desenho: mapa, chance de vitória ao vivo, sequência do round e elencos.
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Color, Match, MatchPlayer, Round, RoundEvent } from "@/lib/types";
-import { chance, clock, nick, pct, pp } from "@/lib/format";
+import { chance, clock, nick, num, pct, pp } from "@/lib/format";
 import { roundEndMs, SPIKE_TIMER_MS, toMinimap, type UV } from "@/lib/minimap";
 import { decodeNavGrid, lineOfSight, type NavGrid, type NavGridRaw } from "@/lib/navgrid";
 import { playVerb, roundStory } from "@/lib/roundStory";
@@ -547,6 +547,11 @@ function SequenceRow({ i, e, byId, past, current, decisive, onSeek }: {
             {e.type === "revive" && e.from !== undefined && <span className="text-muted"> · entre {clock(e.from)} e {clock(e.t)}</span>}
             {e.first_blood && <span className="text-muted"> · first blood</span>}
             {e.is_trade && <span className="text-muted"> · trade</span>}
+            {e.defuse_margin !== undefined && (
+              <span className="text-muted">
+                {" "}· {e.defuse_margin >= 0 ? `dá para desarmar (sobram ${num(e.defuse_margin, 1)} s)` : `não dá tempo de desarmar (faltam ${num(-e.defuse_margin, 1)} s)`}
+              </span>
+            )}
             {e.after_round_end && <span className="text-muted"> · após o fim</span>}
             {decisive && <span className="font-semibold text-lime"> · maior impacto</span>}
           </span>

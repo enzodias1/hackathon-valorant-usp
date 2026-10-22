@@ -70,8 +70,11 @@ export function roundStory(match: Match, round: Round): string[] {
   if (worst.wp <= COMEBACK_WP && worst.w === 0 && round.plant) {
     // o vencedor já não tinha ninguém vivo: ganhou porque a spike explodiu antes do desarme
     const left = round.plant.t + SPIKE_MS - worst.t;
-    out.push(`${tn(W)} venceu sem ninguém vivo: ${tn(L)} ficou ${worst.l} contra 0, com ${dur(left)} para desarmar a spike `
-      + `(${chance(1 - worst.wp)} de chance), e ela explodiu.`);
+    const margin = live.find((e) => e.defuse_margin !== undefined && e.t <= worst.t)?.defuse_margin;
+    const time = margin === undefined ? "" : margin >= 0 ? `, tempo para chegar e desarmar com ${dur(margin * 1000)} de sobra`
+      : `, sem tempo para chegar e desarmar (faltavam ${dur(-margin * 1000)})`;
+    out.push(`${tn(W)} venceu sem ninguém vivo: ${tn(L)} ficou ${worst.l} contra 0 com ${dur(left)} de spike${time} `
+      + `(${chance(1 - worst.wp)} de chance), mas a spike explodiu.`);
   } else if (worst.wp <= COMEBACK_WP) {
     const plant = worst.planted && round.attacker === L ? " e a spike plantada" : "";
     out.push(`${tn(W)} venceu de virada: ${tn(L)} chegou a ${chance(1 - worst.wp)} de chance, com ${worst.l} ${worst.l === 1 ? "vivo" : "vivos"} contra ${worst.w}${plant}.`);

@@ -119,7 +119,11 @@ Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela veloc
   dados), e esses estados ensinavam que "ataque todo morto com pouco tempo de spike" favorece a defesa, o contrário do instante em
   que o último atacante morre (com até 3,5 s de spike, o ataque vence 100%; o modelo dava 67%). A chance nesse instante continua
   calculada por um modelo que não viu a partida. Para "ataque todo morto com a spike plantada" (só ~1.300 estados), a chance é a
-  taxa real da faixa de tempo de spike restante, como as outras regras de estados terminais: com até 3,5 s, 98,9% para o ataque.
+  taxa real da faixa de **folga para desarmar**, medida quando o último atacante morre: tempo de spike restante − corrida do
+  defensor mais perto até a spike (linha reta a 5,5 m/s) − 7 s de desarme. Com 1 s ou mais de sobra, o ataque vence ~0%; com 3 s
+  ou mais faltando, 97%. A folga não muda até o desarme (o relógio corre enquanto o defensor vai e desarma), então a chance não
+  despenca antes de cada desarme: no round 6 de Azure Bears Golden × USP Stars, a Dioguera mata o último atacante com 13,8 s de
+  spike a 11 m dela (folga de 4,8 s; desarmou com 4,7 s restantes), e a defesa fica com 96% até o fim, em vez de cair para 14%.
 - **Trade:** morte vingada por um aliado em até 5 s.
 - **Morte isolada:** aliado vivo mais próximo a mais de 3.000 unidades (~30 m). A chance de ser trocado cai de 41% (< 5 m) para 6% (> 30 m).
 - **Papéis por comportamento** (percentis na liga, mín. 60 rounds): Entry, Support, Lurker, Clutch.

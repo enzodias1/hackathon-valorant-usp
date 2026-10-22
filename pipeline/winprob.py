@@ -40,6 +40,10 @@ def build_timelines():
     kl = pd.read_parquet(P / "kills.parquet").sort_values(["match_id", "round_num", "kill_idx"])
     pr = pd.read_parquet(P / "player_round.parquet")
     rv = pd.read_parquet(P / "revives.parquet")
+    # where the defenders are when each kill happens (for the defuse margin when the last attacker dies)
+    pos = pd.read_parquet(P / "positions.parquet", columns=["match_id", "round_num", "event", "event_idx", "color", "x", "y"])
+    pos = pos[pos.event == "kill"]
+    pos_at = {k: g[["color", "x", "y"]].to_numpy() for k, g in pos.groupby(["match_id", "round_num", "event_idx"])}
 
     lo = pr.set_index(["match_id", "round_num", "puuid"])["loadout"].to_dict()
     side = pr.set_index(["match_id", "round_num", "puuid"])["side"].to_dict()
@@ -53,6 +57,7 @@ def build_timelines():
         y = int(r.winner_side == "Ataque")
         alive = {pu: True for pu in players_by_round[key]}
         planted, plant_t = False, None
+        elim_margin = np.nan  # defuse margin when the last attacker died (see spike_rule)
 
         def snap(t):
             s = {"atk_alive": 0, "def_alive": 0, "atk_lo": 0, "def_lo": 0}
@@ -67,6 +72,7 @@ def build_timelines():
             for sd in ("atk", "def"):
                 if s[f"{sd}_alive"] == 0:
                     s[f"{sd}_lo"] = np.nan
+            s["elim_margin"] = elim_margin if planted and s["atk_alive"] == 0 else np.nan
             return s
 
         timeline = []
@@ -99,6 +105,14 @@ def build_timelines():
             before = snap(t)
             if kind == "kill":
                 alive[k.victim] = False
+                if (planted and side[key + (k.victim,)] == "Ataque"
+                        and not any(al and side[key + (pu,)] == "Ataque" for pu, al in alive.items())):
+                    # last attacker down after the plant: can the nearest defender reach the spike and defuse in time?
+                    d = pos_at.get((r.match_id, r.round_num, k.kill_idx))
+                    d = d[d[:, 0] == r.defender_color] if d is not None else None
+                    if d is not None and len(d):
+                        dist_m = float(np.hypot(d[:, 1].astype(float) - r.plant_x, d[:, 2].astype(float) - r.plant_y).min()) / 100
+                        elim_margin = (plant_t + 45000 - t) / 1000 - dist_m / RUN_MPS - DEFUSE_S
             elif kind == "revive":
                 alive[k.puuid] = True
             elif kind == "plant":
@@ -131,22 +145,35 @@ def terminal_rules(df):
     df.loc[m, "p_atk"] = df.loc[m, "p_atk"].clip(upper=0.01)
 
 
-SPIKE_BANDS = [-1, 3.5, 5, 7, 8, 10, 15, 46]  # seconds of spike left
+SPIKE_BANDS = [-1, 3.5, 5, 7, 8, 10, 15, 46]  # seconds of spike left (fallback when there is no margin)
+MARGIN_BANDS = [-99, -3, -1, 0, 1, 3, 5, 99]  # seconds of defuse margin
+DEFUSE_S = 7.0  # a full defuse
+RUN_MPS = 5.5  # straight line to the spike, so a bit under the running speed (~6.75 m/s) to account for the path
 
 
 def spike_rule(fit, apply, pred):
     """Attackers all dead with the spike planted: the defense only has to defuse in time. Too few of these states (~1,300,
     150 with under 10 s left) for the model to learn the 7 s defuse limit (it gave the attack 67% with under 3.5 s left,
-    where it wins 100%), so they take the empirical rate of their band of spike time left, from `fit` (smoothed)."""
-    def band(d):
-        return pd.cut((45 - d.t_since_plant).clip(-0.5, 45.5), SPIKE_BANDS)
+    where it wins 100%), so they take the empirical rate of their band of defuse margin, from `fit` (smoothed): the spike
+    time left when the last attacker died, minus the run of the nearest defender to the spike, minus 7 s. With 1 s or more
+    to spare the attack wins ~0%; with 3 s short, ~80%. The margin stays the one at that moment until the defuse (nothing
+    else happens: the clock runs while the defender goes and defuses), so the chance no longer sinks before every defuse."""
     sel = lambda d: (d.atk_alive == 0) & (d.planted == 1)
     f = fit[sel(fit)]
-    rates = f.groupby(band(f), observed=False).y.agg(["sum", "size"])
-    rates = (rates["sum"] + 0.5) / (rates["size"] + 1)
     m = sel(apply).to_numpy()
-    if m.any():
-        pred[m] = band(apply[m]).map(rates).astype(float).to_numpy()
+    if not m.any():
+        return pred
+    a = apply[m]
+    out = np.full(len(a), np.nan)
+    for col, edges, val in (("elim_margin", MARGIN_BANDS, lambda d: d.elim_margin.clip(-98, 98)),
+                            ("t_since_plant", SPIKE_BANDS, lambda d: (45 - d.t_since_plant).clip(-0.5, 45.5))):
+        ff = f[f.elim_margin.notna()] if col == "elim_margin" else f
+        rates = ff.groupby(pd.cut(val(ff), edges), observed=False).y.agg(["sum", "size"])
+        rates = (rates["sum"] + 0.5) / (rates["size"] + 1)
+        todo = np.isnan(out) & (a.elim_margin.notna().to_numpy() if col == "elim_margin" else True)
+        if todo.any():
+            out[todo] = pd.cut(val(a[todo]), edges).map(rates).astype(float).to_numpy()
+    pred[m] = out
     return pred
 
 
