@@ -43,7 +43,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} antialiased`}>
         <Sidebar />
         <HashOpener />
-        <div data-print-main className="flex min-h-screen flex-col lg:pl-60">
+        <div data-print-main className="flex min-h-screen flex-col lg:pl-60 lg:has-[[data-landing]]:pl-0">
           <PrintHeader />
           <div className="flex-1">{children}</div>
           <footer className="border-t border-line">

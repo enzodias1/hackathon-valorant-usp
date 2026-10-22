@@ -9,7 +9,7 @@ export default function NotFound() {
     <main>
       <PageBand kicker="Erro 404" title="Essa página não existe"
                 actions={<>
-                  <BandButton href="/" primary>Início</BandButton>
+                  <BandButton href="/inicio" primary>Início</BandButton>
                   <BandButton href="/times">Times</BandButton>
                   <BandButton href="/partidas">Partidas</BandButton>
                 </>}>

@@ -1,14 +1,11 @@
-// Apresentação do projeto (o edital fala em "link da apresentação"; vai no "material complementar" do formulário): 7 telas na ordem do
-// roteiro do vídeo. Os números vêm dos mesmos dados do site; os poucos fixos dizem de onde saíram.
+// Apresentação do projeto: a primeira tela do site (raiz), em tela inteira e sem o menu. Telas na ordem do roteiro do vídeo,
+// terminando no "Curtiu? Bora testar?", que leva ao site (/inicio). Os números vêm dos mesmos dados do site; os poucos fixos dizem
+// de onde saíram. (O edital fala em "link da apresentação": é o link do site, que abre aqui.)
 import Link from "next/link";
-import type { Metadata } from "next";
 import { getIndex, getModel } from "@/lib/data";
 import { num, pct } from "@/lib/format";
-import { PRODUCT_NAME, SITE_URL, TAGLINE, pageMeta } from "@/lib/site";
+import { PRODUCT_NAME, TAGLINE } from "@/lib/site";
 import Deck from "@/components/site/Deck";
-
-export const metadata: Metadata = pageMeta(`Apresentação · ${PRODUCT_NAME}`,
-  "O problema, os dados, o método e o que o protótipo entrega para jogadores, coaches e organizadores do VALORANT universitário.");
 
 // fixos, com a origem: pipeline/checks.py (checagens) e o impacto médio do first blood (wp_events, README)
 const CHECKS = 42;
@@ -49,7 +46,16 @@ function Feature({ title, items, href, cta }: { title: string; items: string[]; 
   );
 }
 
-export default async function PresentationPage() {
+function Shortcut({ href, title, text }: { href: string; title: string; text: string }) {
+  return (
+    <Link href={href} className="group rounded-xl bg-white/10 p-4 transition-colors hover:bg-white/20">
+      <p className="font-display text-xl uppercase tracking-wide text-white">{title} <span className="text-lime transition-transform group-hover:translate-x-0.5" aria-hidden>→</span></p>
+      <p className="mt-1 text-sm text-white/80">{text}</p>
+    </Link>
+  );
+}
+
+export default async function PresentationDeck() {
   const [index, model] = await Promise.all([getIndex(), getModel()]);
   const rounds = index.matches.reduce((s, m) => s + m.score.Red + m.score.Blue, 0);
   const cal = model.calibration.reduce((a, b) => (Math.abs(b.p - 0.75) < Math.abs(a.p - 0.75) ? b : a));
@@ -60,16 +66,23 @@ export default async function PresentationPage() {
   const braim = index.players.find((p) => p.name.startsWith("BRaim#"));
 
   return (
-    <main>
+    // data-landing: o layout tira o espaço do menu lateral nesta página
+    <main data-landing>
+      {/* para quem já conhece: pular a apresentação */}
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-40 flex items-center justify-between px-4 py-3 sm:px-6">
+        <Link href="/inicio" className="pointer-events-auto flex items-center gap-2" aria-label={`${PRODUCT_NAME}: ir para o site`}>
+          <span className="font-display text-2xl uppercase leading-none tracking-wide text-white">Analista</span>
+          <span className="rounded-[3px] bg-lime px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-bg">Univavá</span>
+        </Link>
+        <Link href="/inicio" className="label-caps pointer-events-auto rounded-full border border-white/40 bg-bg/40 px-4 py-2 text-[11px] text-white backdrop-blur hover:border-white">
+          Ir para o site →
+        </Link>
+      </div>
       <Deck>
         <Slide brand kicker="Hackathon VALORANT · USP São Carlos / SEMCOMP 2026" title={PRODUCT_NAME}>
           <p className="max-w-2xl text-xl leading-relaxed text-white/90">{TAGLINE}: análise pós-partida que mostra quais jogadas decidiram cada
             round, como o time joga junto e o que cada jogador pode melhorar, com os dados oficiais do UNIVAVÁ e da Rush Series.</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/" className="label-caps bg-lime px-5 py-3 text-xs text-bg hover:opacity-90">Abrir o protótipo</Link>
-            <a href={SITE_URL} className="label-caps border border-white/40 px-5 py-3 text-xs text-white hover:border-white">{SITE_URL.replace("https://", "")}</a>
-          </div>
-          <p className="mt-10 text-xs text-white/70">Use as setas ou role para passar · F para tela cheia</p>
+          <p className="mt-10 text-sm text-white/80">Role ou use as setas para conhecer o projeto em 6 telas · F para tela cheia</p>
         </Slide>
 
         <Slide n="01" kicker="O problema" title={<>Times universitários não têm analista</>}>
@@ -176,6 +189,21 @@ export default async function PresentationPage() {
           </p>
         </Slide>
 
+        <Slide brand kicker="Agora é com você" title={<>Curtiu? Bora testar?</>}>
+          <p className="max-w-2xl text-xl leading-relaxed text-white/90">
+            Todas as {num(index.matches.length)} partidas, {num(Object.keys(index.teams).length)} times e {num(index.players.length)} jogadores estão no site. Comece por onde quiser:
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <Shortcut href="/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@79" title="Um round no replay" text="UFMT Turuna × MackLogic RED: o round que virou com 99% de chance." />
+            <Shortcut href="/times" title="O seu time" text="Diagnóstico, sinergia, onde o time morre e os rounds para revisar." />
+            <Shortcut href="/comparar/jogadores" title="Jogador × jogador" text="Quem vence o duelo direto e as estatísticas lado a lado." />
+            <Shortcut href="/destaques" title="Destaques" text="As jogadas que mais mudaram rounds e as maiores viradas." />
+          </div>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link href="/inicio" className="label-caps bg-lime px-6 py-3.5 text-xs text-bg hover:opacity-90">Explorar o site →</Link>
+            <Link href="/como-funciona" className="label-caps text-xs text-white underline decoration-lime underline-offset-4 hover:text-lime">Como usar</Link>
+          </div>
+        </Slide>
       </Deck>
     </main>
   );

@@ -13,8 +13,8 @@ a mira, a chance de vitória ao vivo, a sequência de eliminações com o impact
 de [UFMT Turuna × MackLogic RED](https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@84.1)
 para ver. Ele é o centro da demonstração do vídeo.
 
-**Novidades (22/10):** [apresentação do projeto](https://analista-univava.vercel.app/apresentacao) (vai no "material
-complementar" do formulário, junto com o link do site; setas para passar, F para tela cheia), [comparar jogadores](https://analista-univava.vercel.app/comparar/jogadores) e busca
+**Novidades (22/10):** o link do site agora **abre na apresentação** do
+projeto (setas para passar, F para tela cheia) e termina no "Bora testar?", que leva ao site; o menu ficou em grupos, [comparar jogadores](https://analista-univava.vercel.app/comparar/jogadores) e busca
 rápida no menu (Ctrl+K). Os nomes dos times da planilha da Camila já estão no site.
 
 ## Quadro
