@@ -12,7 +12,8 @@ export const metadata: Metadata = pageMeta(`Metodologia · ${PRODUCT_NAME}`, "Co
 const MODELS: { key: keyof ModelInfo["models"]; name: string; text: string }[] = [
   { key: "baseline_alive_lookup", name: "Referência", text: "Só conta quantos jogadores estão vivos de cada lado e consulta a média histórica. Serve de régua." },
   { key: "logistic", name: "Regressão logística", text: "Soma ponderada dos fatores. Simples e transparente, mas trata cada fator separadamente." },
-  { key: "gbm", name: "Gradient boosting", text: "Centenas de árvores de decisão pequenas que combinam os fatores: uma spike plantada vale mais quando sobram poucos defensores." },
+  // taxas reais da base (wp_states): o ataque vence 40% dos 1 contra 1 sem a spike e 64% com ela; no 1 contra 4, 0,6% e 2%
+  { key: "gbm", name: "Gradient boosting", text: "Centenas de árvores de decisão pequenas que combinam os fatores: o peso da spike plantada depende de quantos estão vivos. Num 1 contra 1, ela leva o ataque de 40% para 64% de vitória; num 1 contra 4, quase não muda nada." },
 ];
 
 const TOC = [
@@ -115,7 +116,7 @@ export default async function MethodologyPage() {
               <p className="text-sm text-ink-2">
                 <b className="text-ink">Por que o gradient boosting?</b> Ele teve o menor erro nas probabilidades (Brier e log loss) e separou melhor
                 quem vence de quem perde (AUC). A regressão logística ficou um pouco mais bem calibrada ({pct(model.models.logistic.ece, 1)} contra {pct(chosen.ece, 1)}),
-                mas os dois erram menos de 2 pontos, e só o boosting capta combinações como “spike plantada com 1 defensor vivo”.
+                mas os dois erram menos de 2 pontos, e só o boosting capta combinações como “spike plantada num 1 contra 1”.
               </p>
             </div>
           </div>
