@@ -70,7 +70,7 @@ export default function MatchView({ match, nav }: { match: Match; nav: NavGridRa
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+      <section data-pdf-section="Momentum da partida" className="rounded-xl border border-line bg-surface p-5 sm:p-6">
         <header className="mb-3">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold text-ink">Momentum da partida</h2>
@@ -144,7 +144,8 @@ function RoundDetail({ match, round, nav, startT, onPrev, onNext }: {
   const atk = round.attacker, def: Color = atk === "Red" ? "Blue" : "Red";
   const tn = (c: Color) => match.teams[c].name;
   return (
-    <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+    // no PDF o replay sairia como foto de um instante: a seção começa desmarcada na lista do "Exportar PDF"
+    <section data-pdf-section={`Round ${round.n}: detalhe e replay`} data-pdf-default="off" className="rounded-xl border border-line bg-surface p-5 sm:p-6">
       <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-2xl tracking-wide text-ink">Round {round.n} <span className="text-base text-muted">· {round.half}</span></h2>
@@ -157,7 +158,7 @@ function RoundDetail({ match, round, nav, startT, onPrev, onNext }: {
             {round.anomalous && <span className="text-warn"> · round com erro na base de dados</span>}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div data-print-hide className="flex gap-2">
           <button onClick={onPrev} className="rounded-md border border-line px-3 py-1.5 text-sm text-ink-2 hover:border-ink-2">← anterior</button>
           <button onClick={onNext} className="rounded-md border border-line px-3 py-1.5 text-sm text-ink-2 hover:border-ink-2">próximo →</button>
         </div>

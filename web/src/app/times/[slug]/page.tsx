@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import ExportPdf from "@/components/site/ExportPdf";
 import { pageMeta } from "@/lib/site";
 import { getIndex, getNavGrid, getTeam, getZones } from "@/lib/data";
 import { competitionLabel, date, nick, num, pct } from "@/lib/format";
@@ -49,6 +50,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
                 actions={<>
                   <BandButton href={`/comparar?a=${team.slug}`} primary>Comparar com outro time</BandButton>
                   <BandButton href={`/partidas?time=${team.slug}`}>Ver partidas</BandButton>
+                  <ExportPdf title={team.name} />
                 </>}>
         {team.institution && <p className="text-sm">{team.institution}</p>}
         <p className="label-caps mt-1 text-[11px] text-white/70">
@@ -63,7 +65,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
           </p>
         )}
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div data-pdf-section="Resumo" className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <StatTile label="Mapas" value={`${team.record.map_wins}V · ${team.record.maps - team.record.map_wins}D`} sub={`${team.record.maps} mapas jogados`} />
           <StatTile label="Rounds vencidos" value={pct(team.record.round_win)} sub={`${team.record.rounds} rounds`} />
           <StatTile label="Rounds além da economia" value={`${wae.diff >= 0 ? "+" : "−"}${num(Math.abs(wae.diff))}`}

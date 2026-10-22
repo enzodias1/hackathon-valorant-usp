@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import ExportPdf from "@/components/site/ExportPdf";
 import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import { BandButton, PageBand } from "@/components/analise/ui";
 import { getIndex } from "@/lib/data";
@@ -10,7 +11,7 @@ export default async function ComparePage() {
   const index = await getIndex();
   return (
     <main>
-      <PageBand kicker="Preparação para o próximo jogo" title="Time × adversário" actions={<BandButton href="/comparar/jogadores">Comparar jogadores</BandButton>}>
+      <PageBand kicker="Preparação para o próximo jogo" title="Time × adversário" actions={<><BandButton href="/comparar/jogadores">Comparar jogadores</BandButton><ExportPdf /></>}>
         Quem é favorito, em quais mapas cada um rende mais, como o adversário costuma jogar e quem são os jogadores que mais decidem rounds.
         Tudo a partir das partidas já disputadas: é preparação antes do jogo, não ajuda durante a partida.
       </PageBand>

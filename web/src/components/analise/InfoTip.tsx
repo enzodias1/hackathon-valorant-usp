@@ -22,7 +22,7 @@ export default function InfoTip({ text, label = "Como ler", align = "left" }: {
   }, [open]);
 
   return (
-    <span ref={ref} className="relative inline-flex align-middle">
+    <span ref={ref} data-print-hide className="relative inline-flex align-middle">
       <button type="button" aria-label={label} aria-expanded={open} aria-controls={id} title={label}
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((o) => !o); }}
               className={`grid h-6 w-6 place-items-center rounded-full border text-xs font-bold normal-case tracking-normal transition-colors ${

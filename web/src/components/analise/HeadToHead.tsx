@@ -56,7 +56,7 @@ export default function HeadToHead({ A, B, ids }: { A: Team; B: Team; ids: strin
   const top = (team: "A" | "B") => [...players.entries()].filter(([, p]) => p.team === team).sort((x, y) => y[1].wpa - x[1].wpa).slice(0, 3);
 
   return (
-    <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+    <section data-pdf-section="Histórico do confronto" className="rounded-xl border border-line bg-surface p-5 sm:p-6">
       <div className="flex items-center gap-2">
         <h2 className="text-2xl tracking-wide text-ink">Histórico do confronto</h2>
         <ChanceInfo />

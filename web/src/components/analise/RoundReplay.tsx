@@ -310,7 +310,7 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
           <Controls t={t} maxT={maxT} end={end} playing={playing} speed={speed} events={round.events} byId={byId}
                     onToggle={togglePlay} onSeek={seek} onSpeed={setSpeed} onCopy={copyLink} copied={copied} onFull={toggleFull} full={full} />
 
-          <label className={`flex items-start gap-2 text-xs text-muted ${full ? "hidden" : ""}`}>
+          <label data-print-hide className={`flex items-start gap-2 text-xs text-muted ${full ? "hidden" : ""}`}>
             <input type="checkbox" checked={smooth} onChange={(e) => setSmooth(e.target.checked)} className="mt-0.5 accent-[var(--brand-2)]" />
             <span>
               Movimento estimado. A Riot registra a posição e a mira de todos a cada kill, plant e desarme. Entre esses instantes, cada
@@ -459,7 +459,8 @@ function Controls({ t, maxT, end, playing, speed, events, byId, onToggle, onSeek
   onFull: () => void; full: boolean;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    // no PDF o replay é a foto de um instante: os controles não entram (data-print-hide)
+    <div data-print-hide className="flex flex-wrap items-center gap-3">
       <button type="button" onClick={onToggle} aria-label={playing ? "Pausar replay" : "Tocar replay"}
               className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-lime text-bg hover:opacity-90">
         {playing ? "❚❚" : "▶"}
