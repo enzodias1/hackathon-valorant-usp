@@ -61,6 +61,8 @@ export interface ComebackHighlight {
   result: string;
   /** vivos do vencedor contra os do perdedor no pior momento */
   aliveThen: [number, number];
+  /** ms que faltavam para a spike explodir no pior momento (null se ainda não estava plantada) */
+  spikeLeft: number | null;
   /** o que decidiu o round (as frases do resumo do replay, sem a da virada, que o card já mostra) */
   story: string[];
 }
@@ -168,6 +170,7 @@ function comebackOf(m: Match, info: MatchInfo, r: Round, after: Record<Color, nu
     minWp,
     result: RESULT_PT[r.result] ?? r.result,
     aliveThen: [n[r.winner], n[loser]],
+    spikeLeft: worst >= 0 && r.plant && r.plant.t <= t ? r.plant.t + SPIKE_MS - t : null,
     story: roundStory(m, r).slice(1),
   };
 }

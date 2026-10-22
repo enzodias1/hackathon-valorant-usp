@@ -1,6 +1,7 @@
 // Uma virada: o round em que o vencedor chegou à menor chance de vitória e mesmo assim ganhou.
 import { clock } from "@/lib/format";
 import type { ComebackHighlight } from "@/lib/highlights";
+import { dur } from "@/lib/roundStory";
 import { CardShell, chance, MatchLine, ReplayButton, teamColor } from "./parts";
 
 export default function ComebackCard({ item, rank }: { item: ComebackHighlight; rank: number }) {
@@ -19,6 +20,7 @@ export default function ComebackCard({ item, rank }: { item: ComebackHighlight; 
         <span className="text-ink">e venceu</span>
         <span className="block text-xs text-muted">
           menor chance aos {clock(item.t)}, {item.aliveThen[0] === 0 ? `sem ninguém vivo contra ${item.aliveThen[1]}` : `com ${item.aliveThen[0]} ${item.aliveThen[0] === 1 ? "vivo" : "vivos"} contra ${item.aliveThen[1]}`}
+          {item.spikeLeft !== null && `, spike plantada e ${dur(item.spikeLeft)} para explodir`}
           {" "}· resultado: {item.result}
         </span>
       </p>

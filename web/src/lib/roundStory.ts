@@ -76,8 +76,13 @@ export function roundStory(match: Match, round: Round): string[] {
     out.push(`${tn(W)} venceu sem ninguém vivo: ${tn(L)} ficou ${worst.l} contra 0 com ${dur(left)} de spike${time} `
       + `(${chance(1 - worst.wp)} de chance), mas a spike explodiu.`);
   } else if (worst.wp <= COMEBACK_WP) {
-    const plant = worst.planted && round.attacker === L ? " e a spike plantada" : "";
-    out.push(`${tn(W)} venceu de virada: ${tn(L)} chegou a ${chance(1 - worst.wp)} de chance, com ${worst.l} ${worst.l === 1 ? "vivo" : "vivos"} contra ${worst.w}${plant}.`);
+    // com a spike plantada, o tempo dela explica boa parte da chance (4 contra 2 com 14 s não é o mesmo que com 45 s)
+    const left = worst.planted && round.plant ? round.plant.t + SPIKE_MS - worst.t : null;
+    const alive = `${worst.l} ${worst.l === 1 ? "vivo" : "vivos"} contra ${worst.w}`;
+    const situation = left === null ? alive
+      : round.attacker === L ? `${alive}, a spike plantada e ${dur(left)} para ela explodir`
+      : `${alive} e ${dur(left)} para desarmar a spike`;
+    out.push(`${tn(W)} venceu de virada: ${tn(L)} chegou a ${chance(1 - worst.wp)} de chance, com ${situation}.`);
   } else if (states[0].wp <= UNDERDOG_WP) {
     out.push(`${tn(W)} venceu mesmo começando com só ${pct(states[0].wp)} de chance pela economia (${round.buy[W]} contra ${round.buy[L]}).`);
   } else {
