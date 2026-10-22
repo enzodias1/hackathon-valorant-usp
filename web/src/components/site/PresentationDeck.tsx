@@ -12,19 +12,27 @@ const FIRST_BLOOD_PTS = 17;
 
 function Slide({ n, kicker, title, children, brand, art }: {
   n?: string; kicker?: string; title: React.ReactNode; children?: React.ReactNode; brand?: boolean;
-  /** arte de agente no fundo, à direita (capa) */
+  /** arte de agente à direita do título, mirando nele (capa) */
   art?: { src: string; alt: string };
 }) {
   return (
     <section data-slide className={`relative isolate flex min-h-[100dvh] snap-start items-center overflow-hidden px-6 py-20 sm:px-12 ${brand ? "bg-brand" : "bg-bg"}`}>
-      {art && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={art.src} alt={art.alt} className="pointer-events-none absolute bottom-[-2%] right-[4%] -z-10 hidden h-[94%] w-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.35)] md:block lg:right-[8%]" />
-      )}
       <div className="mx-auto w-full max-w-5xl">
-        {kicker && <p className={`label-caps text-xs ${brand ? "text-white/80" : "text-lime"}`}>{n ? `// ${n} · ` : ""}{kicker}</p>}
-        <h2 className="font-display mt-3 text-[clamp(2.4rem,5.5vw,4.4rem)] uppercase leading-[1.02] text-white">{title}</h2>
-        {children && <div className="mt-8">{children}</div>}
+        {/* com arte, o texto quebra na largura do título e a arte começa logo depois do nome (lg+) */}
+        <div className={art ? "lg:w-min" : undefined}>
+          {kicker && <p className={`label-caps text-xs ${brand ? "text-white/80" : "text-lime"} ${art ? "lg:whitespace-nowrap" : ""}`}>{n ? `// ${n} · ` : ""}{kicker}</p>}
+          <div className="relative">
+            <h2 className={`font-display mt-3 text-[clamp(2.4rem,5.5vw,4.4rem)] uppercase leading-[1.02] text-white ${art ? "lg:whitespace-nowrap" : ""}`}>{title}</h2>
+            {art && (
+              // a ponta da flecha fica em (20,6%, 33,2%) da imagem: o translate a põe um pouco acima do meio do título,
+              // porque a flecha desce para a esquerda e a linha dela cruza o nome
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={art.src} alt={art.alt}
+                   className="pointer-events-none absolute left-full top-1/2 -z-10 ml-4 hidden h-[min(82dvh,60vw)] w-auto max-w-none translate-y-[calc(-33.2%-1.25rem)] drop-shadow-[0_20px_40px_rgba(0,0,0,0.35)] lg:block" />
+            )}
+          </div>
+          {children && <div className="mt-8">{children}</div>}
+        </div>
       </div>
     </section>
   );
@@ -86,7 +94,7 @@ export default async function PresentationDeck() {
       </div>
       <Deck>
         <Slide brand kicker="Hackathon VALORANT · USP São Carlos / SEMCOMP 2026" title={PRODUCT_NAME}
-               art={{ src: "/art/agents/hush_cover.webp", alt: "Hush, agente do VALORANT" }}>
+               art={{ src: "/art/agents/sova_cover.webp", alt: "Sova, agente do VALORANT, mirando o arco" }}>
           <p className="max-w-2xl text-xl leading-relaxed text-white/90">{TAGLINE}: análise pós-partida que mostra quais jogadas decidiram cada
             round, como o time joga junto e o que cada jogador pode melhorar, com os dados oficiais do UNIVAVÁ e da Rush Series.</p>
           <p className="mt-10 text-sm text-white/80">Role ou use as setas para conhecer o projeto · F para tela cheia</p>
@@ -180,7 +188,7 @@ export default async function PresentationDeck() {
             Todas as {num(index.matches.length)} partidas, {num(Object.keys(index.teams).length)} times e {num(index.players.length)} jogadores estão no site. Comece por onde quiser:
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            <Shortcut href="/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@79" title="Um round no replay" text="UFMT Turuna × MackLogic RED: com a spike plantada, 4 contra 2 e 14 segundos para explodir, o UFMT tinha 99% de chance e perdeu." />
+            <Shortcut href="/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@79" title="Um round no replay" text="Em um 4x2 com a spike plantada faltando 14 segundos para explodir, a UFMT tinha 99% de chance de vitória e perdeu." />
             <Shortcut href="/times" title="O seu time" text="Diagnóstico, sinergia, onde o time morre e os rounds para revisar." />
             <Shortcut href="/comparar/jogadores" title="Jogador × jogador" text="Quem vence o duelo direto e as estatísticas lado a lado." />
             <Shortcut href="/destaques" title="Destaques" text="As jogadas que mais mudaram rounds e as maiores viradas." />
