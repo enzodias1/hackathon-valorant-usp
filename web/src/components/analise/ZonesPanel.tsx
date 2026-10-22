@@ -25,12 +25,14 @@ export default function ZonesPanel({ zones, navs = {} }: { zones: TeamZones; nav
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <select value={mi} onChange={(e) => { setMi(Number(e.target.value)); setSel(null); }} aria-label="Mapa"
+        {/* no PDF os controles somem (data-print-hide) e fica escrito o que está selecionado */}
+        <span className="hidden text-sm font-semibold text-ink print:inline">{mp.map} · {side}</span>
+        <select data-print-hide value={mi} onChange={(e) => { setMi(Number(e.target.value)); setSel(null); }} aria-label="Mapa"
                 className="rounded-md border border-line bg-surface-2 px-3 py-1.5 text-sm text-ink focus:border-accent focus:outline-none">
           {zones.maps.map((m, i) => <option key={m.code} value={i}>{m.map} ({m.deaths} mortes)</option>)}
         </select>
         {(["Ataque", "Defesa"] as Side[]).map((sd) => (
-          <button key={sd} onClick={() => setSide(sd)} aria-pressed={side === sd}
+          <button key={sd} data-print-hide onClick={() => setSide(sd)} aria-pressed={side === sd}
                   className={`rounded-md border px-3 py-1.5 text-sm ${side === sd ? "border-ink bg-surface-2 text-ink" : "border-line text-ink-2 hover:border-ink-2"}`}>
             <span className={sd === "Ataque" ? "text-atk" : "text-def"}>●</span> {sd}
           </button>
@@ -76,7 +78,7 @@ export default function ZonesPanel({ zones, navs = {} }: { zones: TeamZones; nav
             </table>
           )}
           {total > TOP && (
-            <button type="button" onClick={() => setAll((a) => !a)} aria-expanded={all}
+            <button type="button" data-print-hide onClick={() => setAll((a) => !a)} aria-expanded={all}
                     className="mt-1 flex w-full items-center justify-center gap-2 border-t border-line/50 py-2 text-xs text-ink-2 transition-colors hover:text-ink">
               {all ? `Mostrar só as ${TOP} com mais mortes` : `Ver todas as ${total} regiões`}
               <svg viewBox="0 0 16 16" className={`h-3.5 w-3.5 transition-transform ${all ? "rotate-180" : ""}`} fill="none" stroke="currentColor"
@@ -84,7 +86,8 @@ export default function ZonesPanel({ zones, navs = {} }: { zones: TeamZones; nav
             </button>
           )}
           <p className="mt-2 text-xs text-muted">
-            Cada morte é atribuída à região nomeada mais próxima do mapa. Clique numa região (aqui ou no mapa) para ver onde ela fica.
+            Cada morte é atribuída à região nomeada mais próxima do mapa.{" "}
+            <span data-print-hide>Clique numa região (aqui ou no mapa) para ver onde ela fica.</span>
             ▼: morre sem trade nessa região mais que a liga, com confirmação estatística.
           </p>
         </div>
@@ -191,7 +194,8 @@ function Heatmap({ map, grid, size, nav, sel, onPick }: {
       </MinimapBase>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-2">
-        <div className="flex gap-1" role="group" aria-label="Quais mortes mostrar">
+        <span className="hidden text-ink print:inline">{onlyUntraded ? "Só mortes sem trade" : "Todas as mortes"}</span>
+        <div data-print-hide className="flex gap-1" role="group" aria-label="Quais mortes mostrar">
           {[false, true].map((u) => (
             <button key={String(u)} onClick={() => setOnlyUntraded(u)} aria-pressed={onlyUntraded === u}
                     className={`rounded-md border px-2 py-1 ${onlyUntraded === u ? "border-ink bg-surface-2 text-ink" : "border-line hover:border-ink-2"}`}>

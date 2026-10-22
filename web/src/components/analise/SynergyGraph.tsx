@@ -86,7 +86,7 @@ export default function SynergyGraph({ synergy }: { synergy: Team["synergy"] }) 
         ) : (
           <div className="space-y-2 text-ink-2">
             <p><b className="text-ink">Como ler:</b> cada linha é uma dupla. Quanto mais grossa, mais vezes um vingou a morte do outro (trade em até 5 s). Quanto mais forte a cor, maior a taxa de trade da dupla. As escalas comparam as duplas deste time entre si.</p>
-            <p>Passe o mouse numa linha ou num jogador para ver os números.</p>
+            <p data-print-hide>Passe o mouse numa linha ou num jogador para ver os números.</p>
             <p className="text-muted">Média de duplas na liga: {pct(league)} das mortes vingadas pelo parceiro.</p>
           </div>
         )}

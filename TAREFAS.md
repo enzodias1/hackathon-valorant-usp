@@ -21,12 +21,11 @@ rápida no menu (Ctrl+K). Os nomes dos times da planilha da Camila já estão no
 
 | Membro | Tarefa | Status | Entrega |
 |---|---|---|---|
-| Azi | [Exportar em PDF (partida, time, jogador, comparar)](#azi--exportar-em-pdf) | 🟡 A fazer | PR da branch `exportar-pdf` |
 | Jodão | [Roteiro do vídeo pitch](#jodão--roteiro-do-vídeo-pitch) | 🟡 A fazer (entrevistas prontas) | Documento com o roteiro → Enzo |
 | Camila | [Validação das análises com olhar de jogador](#camila--validação-das-análises-com-olhar-de-jogador) | 🟡 A fazer | Lista de observações → Enzo |
 | — | [Gravações de tela para o vídeo](#gravações-de-tela-para-o-vídeo) | ⏳ Quando o front estiver fechado | Arquivos de vídeo → Jodão |
 
-✅ **Concluídas: 8** (Azi ×4, Nukan ×2, Jodão ×1, Camila ×1). As descrições ficam recolhidas no [fim do arquivo](#-tarefas-concluídas).
+✅ **Concluídas: 9** (Azi ×5, Nukan ×2, Jodão ×1, Camila ×1). As descrições ficam recolhidas no [fim do arquivo](#-tarefas-concluídas).
 
 Legenda: ⏳ aguardando · 🟡 a fazer / em andamento · 🔵 entregue, em revisão · ✅ concluída
 
@@ -47,38 +46,6 @@ git push -u origin <nome-da-branch>
 Depois abra um **Pull Request** para `main` no GitHub e avise o Enzo. Ele revisa e faz o merge. Não faça push direto na `main`.
 
 **Tarefas sem código (Camila, Jodão):** mande o arquivo para o Enzo, que coloca no repositório.
-
----
-
-## Azi — Exportar em PDF
-**O que fazer:** nas páginas de **partida**, **time**, **jogador** e **comparar**, um botão **"Exportar PDF"** que gera um relatório da
-página. O "plus": ao clicar, abre uma janelinha com a lista das seções da página, todas marcadas, e a pessoa desmarca o que não quer
-(com "Marcar todas" e "Desmarcar todas"). Só as marcadas entram no PDF.
-
-Caminho sugerido, sem biblioteca nova: a impressão do próprio navegador (`window.print()`, "Salvar como PDF"), que mantém o texto
-selecionável e os gráficos nítidos, porque são SVG.
-1. **Marcar as seções:** quase todas as seções usam o componente `Section` de `web/src/components/analise/ui.tsx`. Coloque nele um
-   `data-pdf-section={title}`; assim as páginas de time (10 seções), jogador (11) e partida já ficam prontas. No comparar
-   (`web/src/components/analise/Comparator.tsx` e `HeadToHead.tsx`), os blocos são `<section>` soltos: marque cada um com
-   `data-pdf-section="Nome do bloco"`.
-2. **O botão:** um componente cliente (ex.: `web/src/components/site/ExportPdf.tsx`) colocado em `actions` da faixa roxa `PageBand`
-   de cada página. Ao clicar, ele lê `document.querySelectorAll("[data-pdf-section]")` e monta a lista de checkboxes.
-3. **Ao confirmar:** coloque `data-pdf-hide` nas seções desmarcadas, abra todos os `<details>` (as seções recolhíveis) guardando o
-   estado anterior, troque o `document.title` por algo como `UFMT Turuna — Analista UNIVAVÁ — 22-10-2026` (vira o nome do arquivo)
-   e chame `window.print()`. No evento `afterprint`, desfaça tudo.
-4. **CSS de impressão** (`@media print` em `web/src/app/globals.css`): esconder menu lateral, botões, filtros e o "i" das explicações;
-   `[data-pdf-hide] { display: none }`; `print-color-adjust: exact` para manter as cores do site; `break-inside: avoid` nas seções
-   e cartões; página A4. Um cabeçalho que só aparece na impressão, com o nome do site, a data e o link da página, ajuda quem recebe.
-5. **Cuidados:** os gráficos do Recharts às vezes não se redimensionam na impressão (teste a página do time); o replay da partida sai
-   como uma foto do instante atual (tudo bem, ou deixe a seção desmarcada por padrão); confira no Edge e no Chrome.
-
-**Por quê:** o coach e os jogadores vão querer mandar a análise no grupo do time ou levar para a reunião de revisão, e nem todo mundo
-vai abrir o site. Para a AcadArena, que está na banca e organiza o UNIVAVÁ, um relatório por time pronto para enviar mostra que o
-produto já serve no dia a dia (critérios "Viabilidade" e "Usabilidade").
-
-**Como entregar:** PR da branch `exportar-pdf` (ver [Como entregar](#como-entregar)) com um PDF de exemplo de cada uma das 4 páginas
-(um completo e um só com algumas seções) e `npm run build` passando. Antes de começar, `git pull origin main` e `npm install` dentro de
-`web/`. Tempo estimado: 3 a 4 h. Se travar, avise o Enzo.
 
 ---
 
@@ -131,6 +98,40 @@ lentos e sem notificações na tela. Grave cada clipe com alguns segundos de fol
 ---
 
 ## ✅ Tarefas concluídas
+
+<details>
+<summary>✅ <b>Azi — Exportar em PDF</b> (PR #7, no ar: botão em partida, time, jogador e nos dois comparadores, com escolha das seções)</summary>
+
+**O que fazer:** nas páginas de **partida**, **time**, **jogador** e **comparar**, um botão **"Exportar PDF"** que gera um relatório da
+página. O "plus": ao clicar, abre uma janelinha com a lista das seções da página, todas marcadas, e a pessoa desmarca o que não quer
+(com "Marcar todas" e "Desmarcar todas"). Só as marcadas entram no PDF.
+
+Caminho sugerido, sem biblioteca nova: a impressão do próprio navegador (`window.print()`, "Salvar como PDF"), que mantém o texto
+selecionável e os gráficos nítidos, porque são SVG.
+1. **Marcar as seções:** quase todas as seções usam o componente `Section` de `web/src/components/analise/ui.tsx`. Coloque nele um
+   `data-pdf-section={title}`; assim as páginas de time (10 seções), jogador (11) e partida já ficam prontas. No comparar
+   (`web/src/components/analise/Comparator.tsx` e `HeadToHead.tsx`), os blocos são `<section>` soltos: marque cada um com
+   `data-pdf-section="Nome do bloco"`.
+2. **O botão:** um componente cliente (ex.: `web/src/components/site/ExportPdf.tsx`) colocado em `actions` da faixa roxa `PageBand`
+   de cada página. Ao clicar, ele lê `document.querySelectorAll("[data-pdf-section]")` e monta a lista de checkboxes.
+3. **Ao confirmar:** coloque `data-pdf-hide` nas seções desmarcadas, abra todos os `<details>` (as seções recolhíveis) guardando o
+   estado anterior, troque o `document.title` por algo como `UFMT Turuna — Analista UNIVAVÁ — 22-10-2026` (vira o nome do arquivo)
+   e chame `window.print()`. No evento `afterprint`, desfaça tudo.
+4. **CSS de impressão** (`@media print` em `web/src/app/globals.css`): esconder menu lateral, botões, filtros e o "i" das explicações;
+   `[data-pdf-hide] { display: none }`; `print-color-adjust: exact` para manter as cores do site; `break-inside: avoid` nas seções
+   e cartões; página A4. Um cabeçalho que só aparece na impressão, com o nome do site, a data e o link da página, ajuda quem recebe.
+5. **Cuidados:** os gráficos do Recharts às vezes não se redimensionam na impressão (teste a página do time); o replay da partida sai
+   como uma foto do instante atual (tudo bem, ou deixe a seção desmarcada por padrão); confira no Edge e no Chrome.
+
+**Por quê:** o coach e os jogadores vão querer mandar a análise no grupo do time ou levar para a reunião de revisão, e nem todo mundo
+vai abrir o site. Para a AcadArena, que está na banca e organiza o UNIVAVÁ, um relatório por time pronto para enviar mostra que o
+produto já serve no dia a dia (critérios "Viabilidade" e "Usabilidade").
+
+**Como entregar:** PR da branch `exportar-pdf` (ver [Como entregar](#como-entregar)) com um PDF de exemplo de cada uma das 4 páginas
+(um completo e um só com algumas seções) e `npm run build` passando. Antes de começar, `git pull origin main` e `npm install` dentro de
+`web/`. Tempo estimado: 3 a 4 h. Se travar, avise o Enzo.
+
+</details>
 
 <details>
 <summary>✅ <b>Camila — Nomes dos 68 times</b> (planilha entregue em 22/10: 68 siglas e instituições, 12 nomes corrigidos; no ar)</summary>

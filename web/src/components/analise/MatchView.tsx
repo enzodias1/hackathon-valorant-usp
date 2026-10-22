@@ -79,7 +79,7 @@ export default function MatchView({ match, nav }: { match: Match; nav: NavGridRa
           <p className="mt-1 max-w-3xl text-sm text-ink-2">
             Chance de vitória do round a cada kill, plant e desarme. Acima do meio: vantagem de{" "}
             <span className="font-medium text-team-red">{teamName("Red")}</span>; abaixo: de{" "}
-            <span className="font-medium text-team-blue">{teamName("Blue")}</span>. Clique para abrir um round.
+            <span className="font-medium text-team-blue">{teamName("Blue")}</span>.<span data-print-hide> Clique para abrir um round.</span>
           </p>
         </header>
         <div className="mb-1 flex justify-between pl-10 text-xs">
@@ -117,7 +117,8 @@ export default function MatchView({ match, nav }: { match: Match; nav: NavGridRa
 
         <div className="mt-1 pl-10 text-xs"><span className="text-team-blue">▼ {teamName("Blue")} favorito</span></div>
 
-        <div className="mt-4 flex flex-wrap gap-1.5" role="tablist" aria-label="Rounds">
+        {/* botões dos rounds: no PDF não servem (o gráfico acima já mostra cada round) */}
+        <div data-print-hide className="mt-4 flex flex-wrap gap-1.5" role="tablist" aria-label="Rounds">
           {match.rounds.map((r) => (
             <button key={r.n} role="tab" aria-selected={r.n === sel} onClick={() => pick(r.n)}
                     title={`Round ${r.n}: ${teamName(r.winner)} (${RESULT_PT[r.result]})`}
@@ -127,7 +128,7 @@ export default function MatchView({ match, nav }: { match: Match; nav: NavGridRa
             </button>
           ))}
         </div>
-        <p className="mt-2 text-xs text-muted">A cor embaixo do número indica quem venceu o round.</p>
+        <p data-print-hide className="mt-2 text-xs text-muted">A cor embaixo do número indica quem venceu o round.</p>
       </section>
 
       {/* scroll-mt: margem para o cabeçalho fixo do site não cobrir o topo do round */}
