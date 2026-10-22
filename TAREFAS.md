@@ -51,7 +51,7 @@ Depois abra um **Pull Request** para `main` no GitHub e avise o Enzo. Ele revisa
 
 ## Jodão — Roteiro do vídeo pitch
 > **Entrevistas prontas:** use o resumo em [`para_equipe/entrevistas_ufg.md`](para_equipe/entrevistas_ufg.md) nos trechos **[ENTREVISTA]**
-> (ex.: 2 de 8 pediram um replay 2D com agentes, mortes e abates, e o produto já tem). Os entrevistados são do UFG Eagles, que está na base.
+> (ex.: 12 de 21 pediram um replay 2D com as mortes e as melhores jogadas, e o produto já tem). Os entrevistados são dos 4 times da UFG no UNIVAVÁ.
 >
 > **Atualização (21/10):** a demonstração agora gira em torno do **replay do round 12** (UFMT Turuna × MackLogic RED): a chance de vitória ao
 > vivo cai de 99% enquanto a Jett (kim) faz o triplo, e a spike é desarmada 55 milissegundos antes da morte do Cypher (sick). Os números do roteiro
@@ -198,7 +198,7 @@ convida a clicar, e é a primeira coisa que a banca vê se colarmos o link de um
 </details>
 
 <details>
-<summary>✅ <b>Jodão — Entrevistas com jogadores/coaches</b> (8 jogadores da UFG Eagles; resumo em <code>para_equipe/entrevistas_ufg.md</code>)</summary>
+<summary>✅ <b>Jodão — Entrevistas com jogadores/coaches</b> (21 jogadores dos 4 times da UFG; resumo em <code>para_equipe/entrevistas_ufg.md</code>)</summary>
 
 **O que fazer:** conversar com 3 a 5 jogadores ou coaches de times universitários e perguntar: *"depois de uma partida, o que você queria saber e não consegue?"*. Anotar também como eles analisam as partidas hoje (VOD, planilha, nada…).
 

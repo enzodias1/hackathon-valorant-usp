@@ -27,8 +27,8 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
 > "Times profissionais têm analistas. Times universitários, não. E as estatísticas que todo mundo usa, como K/D e ACS, contam
 > kills, mas não dizem **quais kills importaram** nem **o que fazer diferente**."
 >
-> "Conversamos com 8 jogadores do UFG Eagles. O mais pedido foi entender o próprio desempenho, além do placar; e dois pediram
-> exatamente um replay 2D com os agentes, as mortes e as melhores jogadas de cada time."
+> "Ouvimos 21 jogadores e jogadoras dos 4 times da UFG que disputaram o UNIVAVÁ. O pedido mais comum, de 12 deles, foi um replay
+> 2D com as mortes e as melhores jogadas; e 7 querem entender o próprio desempenho, além do placar."
 >
 > **[ENTREVISTA]** *uma frase marcante de um dos entrevistados (ex.: o pedido do "momento exato em que cada habilidade foi usada").*
 
@@ -103,7 +103,7 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
 - "K/D engana" com mais contraste que o BRaim (31% → 63%): **LHC JF** (Liga Vulkanica), melhor que 23% da liga em K/D e que
   **74%** em impacto (sentinela); **sunevj** (FEI Whiteowls), 42% em K/D e **85%** em impacto (iniciador).
 - Replay: a mira de quem mata aponta para a vítima em 99% das 45.440 kills; 99,97% das posições ficam no chão do mapa.
-- UFG Eagles (time dos entrevistados): 13º mais forte de 68; vence 77% dos rounds defendendo (liga: 48%); o darnubra tem o maior
+- UFG Eagles (um dos 4 times dos entrevistados): 13º mais forte de 68; vence 77% dos rounds defendendo (liga: 48%); o darnubra tem o maior
   impacto por round entre os jogadores com 60+ rounds.
 - Evolução: o Azure Bears Black melhorou o jogo de trade e a conversão do first blood mesmo enfrentando adversários mais fortes.
 - Rounds "jogados fora" acontecem em proporção parecida em todos os times: é mais azar que padrão (por isso não acusamos ninguém disso).

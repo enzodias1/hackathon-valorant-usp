@@ -1,4 +1,15 @@
-# Entrevistas com jogadores (Jodão, 21/10)
+# Entrevistas com jogadores (Jodão, 21–22/10)
+
+> **Atualização (22/10): a pesquisa foi ampliada para 21 pessoas**, jogadores e jogadoras dos 4 times da UFG que disputaram o UNIVAVÁ
+> (UFG Eagles, UFG Eagles Blue, UFG Eagles GC e Gambiarra UFG), com a mesma pergunta aberta. Resultado:
+>
+> | Categoria | Respostas |
+> |---|---|
+> | Replay 2D com as mortes e as melhores jogadas | 12 |
+> | Desempenho individual e evolução, além do placar | 7 |
+> | Uso das habilidades | 2 |
+>
+> O detalhamento abaixo é da primeira rodada (8 jogadores do UFG Eagles).
 
 Para validar a solução, o Jodão entrevistou **8 jogadores de VALORANT da UFG Eagles**. Cada um respondeu a uma pergunta aberta, sem
 opções pré-definidas, para que as respostas viessem do que eles sentem falta de verdade e não do que fosse sugerido:

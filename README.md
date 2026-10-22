@@ -83,7 +83,8 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
   de compra). Kills nos primeiros segundos são duelos de abertura, comuns perto do spawn da defesa.
 
 ## Página do jogador: duelos e quando morre (pedidos das entrevistas)
-Das entrevistas com 8 jogadores do UFG Eagles ([`para_equipe/entrevistas_ufg.md`](para_equipe/entrevistas_ufg.md)), dois pedidos viraram seções:
+Das entrevistas com 21 jogadores e jogadoras dos 4 times da UFG no UNIVAVÁ ([`para_equipe/entrevistas_ufg.md`](para_equipe/entrevistas_ufg.md): 12 pediram
+um replay 2D, 7 querem entender o próprio desempenho, 2 o uso das habilidades), dois pedidos viraram seções:
 - **Duelos:** placar contra cada adversário (3+ duelos) e duelos vencidos contra cada agente (10+), comparados com a média do próprio
   jogador. "Confirmado" só quando passa no teste, com Benjamini-Hochberg na lista de agentes da página (34 de 2.812 comparações).
 - **Quando morre no round:** distribuição das mortes ao longo do round, mediana e parcela nos primeiros 20 s, contra a liga **na mesma

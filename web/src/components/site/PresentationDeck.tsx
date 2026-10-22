@@ -7,15 +7,20 @@ import { num, pct } from "@/lib/format";
 import { PRODUCT_NAME, TAGLINE } from "@/lib/site";
 import Deck from "@/components/site/Deck";
 
-// fixos, com a origem: pipeline/checks.py (checagens) e o impacto médio do first blood (wp_events, README)
-const CHECKS = 42;
+// fixo, com a origem: o impacto médio do first blood (wp_events, README)
 const FIRST_BLOOD_PTS = 17;
 
-function Slide({ n, kicker, title, children, brand }: {
+function Slide({ n, kicker, title, children, brand, art }: {
   n?: string; kicker?: string; title: React.ReactNode; children?: React.ReactNode; brand?: boolean;
+  /** arte de agente no fundo, à direita (capa) */
+  art?: { src: string; alt: string };
 }) {
   return (
-    <section data-slide className={`relative flex min-h-[100dvh] snap-start items-center overflow-hidden px-6 py-20 sm:px-12 ${brand ? "bg-brand" : "bg-bg"}`}>
+    <section data-slide className={`relative isolate flex min-h-[100dvh] snap-start items-center overflow-hidden px-6 py-20 sm:px-12 ${brand ? "bg-brand" : "bg-bg"}`}>
+      {art && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={art.src} alt={art.alt} className="pointer-events-none absolute bottom-[-2%] right-[4%] -z-10 hidden h-[94%] w-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.35)] md:block lg:right-[8%]" />
+      )}
       <div className="mx-auto w-full max-w-5xl">
         {kicker && <p className={`label-caps text-xs ${brand ? "text-white/80" : "text-lime"}`}>{n ? `// ${n} · ` : ""}{kicker}</p>}
         <h2 className="font-display mt-3 text-[clamp(2.4rem,5.5vw,4.4rem)] uppercase leading-[1.02] text-white">{title}</h2>
@@ -34,14 +39,18 @@ function Big({ value, label }: { value: React.ReactNode; label: string }) {
   );
 }
 
-function Feature({ title, items, href, cta }: { title: string; items: string[]; href: string; cta: string }) {
+function Feature({ title, items, href, cta, extra }: { title: string; items: string[]; href: string; cta: string; extra?: { href: string; cta: string } }) {
   return (
     <div className="flex flex-col rounded-xl border border-line bg-surface p-5">
       <h3 className="font-display text-2xl uppercase tracking-wide text-ink">{title}</h3>
       <ul className="mt-3 flex-1 space-y-1.5 text-sm text-ink-2">
         {items.map((i) => <li key={i} className="flex gap-2"><span className="text-lime" aria-hidden>›</span>{i}</li>)}
       </ul>
-      <Link href={href} className="label-caps mt-4 w-fit text-[11px] text-ink underline decoration-lime underline-offset-4 hover:text-lime">{cta} →</Link>
+      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+        {[{ href, cta }, ...(extra ? [extra] : [])].map((l) => (
+          <Link key={l.href} href={l.href} className="label-caps w-fit text-[11px] text-ink underline decoration-lime underline-offset-4 hover:text-lime">{l.cta} →</Link>
+        ))}
+      </div>
     </div>
   );
 }
@@ -60,9 +69,6 @@ export default async function PresentationDeck() {
   const rounds = index.matches.reduce((s, m) => s + m.score.Red + m.score.Blue, 0);
   const cal = model.calibration.reduce((a, b) => (Math.abs(b.p - 0.75) < Math.abs(a.p - 0.75) ? b : a));
   const gbm = model.models.gbm;
-  const near = model.trade_by_distance[0];
-  const far = model.trade_by_distance.filter((d) => parseInt(d.distance, 10) >= 30);
-  const farRate = far.reduce((s, d) => s + d.trade_rate * d.n, 0) / Math.max(far.reduce((s, d) => s + d.n, 0), 1);
   const braim = index.players.find((p) => p.name.startsWith("BRaim#"));
 
   return (
@@ -79,10 +85,11 @@ export default async function PresentationDeck() {
         </Link>
       </div>
       <Deck>
-        <Slide brand kicker="Hackathon VALORANT · USP São Carlos / SEMCOMP 2026" title={PRODUCT_NAME}>
+        <Slide brand kicker="Hackathon VALORANT · USP São Carlos / SEMCOMP 2026" title={PRODUCT_NAME}
+               art={{ src: "/art/agents/hush_cover.webp", alt: "Hush, agente do VALORANT" }}>
           <p className="max-w-2xl text-xl leading-relaxed text-white/90">{TAGLINE}: análise pós-partida que mostra quais jogadas decidiram cada
             round, como o time joga junto e o que cada jogador pode melhorar, com os dados oficiais do UNIVAVÁ e da Rush Series.</p>
-          <p className="mt-10 text-sm text-white/80">Role ou use as setas para conhecer o projeto em 6 telas · F para tela cheia</p>
+          <p className="mt-10 text-sm text-white/80">Role ou use as setas para conhecer o projeto · F para tela cheia</p>
         </Slide>
 
         <Slide n="01" kicker="O problema" title={<>Times universitários não têm analista</>}>
@@ -93,11 +100,14 @@ export default async function PresentationDeck() {
             </p>
             <div className="rounded-xl border border-line bg-surface p-5">
               <p className="label-caps text-[11px] text-muted">Entrevistas</p>
-              <p className="mt-2 text-ink">Conversamos com <b>8 jogadores do UFG Eagles</b>, um dos times da base.</p>
+              <p className="mt-2 text-ink">
+                Ouvimos <b>21 jogadores e jogadoras</b> dos 4 times da UFG que disputaram o UNIVAVÁ: UFG Eagles, UFG Eagles Blue,
+                UFG Eagles GC e Gambiarra UFG.
+              </p>
               <ul className="mt-3 space-y-1.5 text-sm text-ink-2">
-                <li><b className="text-ink">3 de 8</b> querem entender o próprio desempenho e a evolução, além do placar.</li>
-                <li><b className="text-ink">2 de 8</b> pediram um replay 2D com as mortes e as melhores jogadas.</li>
-                <li><b className="text-ink">2 de 8</b> querem saber como usam as habilidades.</li>
+                <li><b className="text-ink">12</b> pediram um replay 2D com as mortes e as melhores jogadas.</li>
+                <li><b className="text-ink">7</b> querem entender o próprio desempenho e a evolução, além do placar.</li>
+                <li><b className="text-ink">2</b> querem saber como usaram as habilidades.</li>
               </ul>
             </div>
           </div>
@@ -112,16 +122,15 @@ export default async function PresentationDeck() {
             <Big value={num(model.data.kills)} label="kills" />
           </div>
           <p className="mt-6 max-w-3xl text-lg leading-relaxed text-ink-2">
-            Em cada kill, plant e desarme, a posição e a mira de todos os jogadores vivos. Tudo vem dos JSONs da organização:
-            nenhuma API, scraping ou dado externo de partida.
+            Em cada kill, plant e desarme, a posição e a mira de todos os jogadores vivos.
           </p>
         </Slide>
 
-        <Slide n="03" kicker="A ideia" title={<>Cada jogada vale o quanto mudou a chance de vencer</>}>
+        <Slide n="03" kicker="A ideia" title={<>Quanto cada jogada pesou no round</>}>
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-xl border border-line bg-surface p-5">
               <p className="label-caps text-[11px] text-lime">1 · Chance de vitória</p>
-              <p className="mt-2 text-ink-2">A cada kill, plant e desarme, um modelo calcula a chance de cada time vencer o round: vivos, equipamento, spike e tempo.</p>
+              <p className="mt-2 text-ink-2">A cada kill, plant e desarme, um modelo calcula a chance de cada time vencer o round, considerando os players vivos, o equipamento, a spike e o tempo.</p>
             </div>
             <div className="rounded-xl border border-line bg-surface p-5">
               <p className="label-caps text-[11px] text-lime">2 · Impacto</p>
@@ -140,42 +149,23 @@ export default async function PresentationDeck() {
         <Slide n="04" kicker="O protótipo" title={<>O que o site entrega</>}>
           <div className="grid gap-4 md:grid-cols-2">
             <Feature title="Partida" href="/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@79" cta="Ver o round 12 de UFMT Turuna × MackLogic RED"
-                     items={["Replay 2D de cada round, com a chance de vitória ao vivo", "Resumo automático do que decidiu o round", "Em cada morte: aliado mais perto e quem podia trocar"]} />
+                     items={["Replay 2D de cada round, com a chance de vitória em cada momento", "Resumo automático do que decidiu o round", "Em cada morte: aliado mais perto e quem podia trocar"]} />
             <Feature title="Time" href="/times/ufmt_turuna" cta="Ver o UFMT Turuna"
                      items={["Diagnóstico contra a liga, só com diferenças confirmadas", "Sinergia: quem cobre quem dentro do time", "Onde o time morre, com mapa de calor e regiões"]} />
             <Feature title="Jogador" href={braim ? `/jogadores/${braim.puuid}` : "/jogadores"} cta="Ver um jogador"
                      items={["Impacto por round, além do K/D", "Duelos: contra quem e contra quais agentes ganha e perde", "Quando morre no round e uso das habilidades"]} />
             <Feature title="Comparar e destaques" href="/comparar?a=ufmt_turuna&b=macklogic_red" cta="Comparar dois times"
+                     extra={{ href: "/destaques", cta: "Ver os destaques" }}
                      items={["Time × time: favorito, mapas para escolher e vetar e o histórico do confronto", "Jogador × jogador: duelos diretos e estatísticas lado a lado", "Jogadas de maior impacto e maiores viradas, com link para o replay"]} />
           </div>
         </Slide>
 
-        <Slide n="05" kicker="Por que confiar" title={<>Números que se sustentam</>}>
-          <div className="grid gap-4 md:grid-cols-2">
-            {[
-              [`${CHECKS} checagens automáticas`, "A cada atualização dos dados, o pipeline confere propriedades que precisam valer: impacto que soma zero, placares, vivos de cada time, links."],
-              ["Sem falso positivo", "Ponto forte ou fraco só aparece quando a diferença para a liga passa no teste estatístico, com controle de falsos positivos."],
-              ["Registrado × estimado", "O replay separa o que a Riot registrou do que é estimado. A mira foi validada: em 99% das kills, quem mata está olhando para a vítima."],
-              ["Modelo honesto", "O impacto de cada partida vem de um modelo que nunca viu aquela partida. Casos raros da base (ressurreições, ultimate do Chamber) foram tratados e documentados."],
-            ].map(([t, d]) => (
-              <div key={t} className="rounded-xl border border-line bg-surface p-5">
-                <p className="font-display text-2xl uppercase tracking-wide text-ink">{t}</p>
-                <p className="mt-2 text-sm leading-relaxed text-ink-2">{d}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-6 text-sm text-ink-2">
-            Exemplo de achado: morrer a menos de 5 m de um aliado dá {pct(near.trade_rate)} de chance de a morte ser trocada; a mais de 30 m, {pct(farRate)}.{" "}
-            <Link href="/metodologia" className="text-ink underline decoration-lime underline-offset-4 hover:text-lime">Metodologia completa</Link>
-          </p>
-        </Slide>
-
-        <Slide n="06" kicker="Valor e viabilidade" title={<>Para quem joga, treina e organiza</>}>
+        <Slide n="05" kicker="Valor e viabilidade" title={<>Para quem joga, treina e organiza</>}>
           <div className="grid gap-4 md:grid-cols-3">
             {[
               ["Jogador", "Saber o que melhorar além do K/D: duelos, quando morre, uso das habilidades e as jogadas que decidiram rounds."],
               ["Coach", "Os rounds para rever no VOD, as duplas que funcionam, onde o time morre e como o próximo adversário joga."],
-              ["Organização", "Destaques automáticos com link para o replay: conteúdo pronto para redes sociais e transmissão."],
+              ["Organização", "Destaques automáticos com link para o replay: conteúdo já mapeado, que pode ser útil para redes sociais e transmissão."],
             ].map(([t, d]) => (
               <div key={t} className="rounded-xl border border-line bg-surface p-5">
                 <p className="label-caps text-[11px] text-lime">{t}</p>
@@ -183,10 +173,6 @@ export default async function PresentationDeck() {
               </div>
             ))}
           </div>
-          <p className="mt-6 max-w-3xl text-lg leading-relaxed text-ink-2">
-            Site estático, sem servidor: <b className="text-ink">custo zero</b>, abre em qualquer navegador e roda com qualquer campeonato no formato
-            oficial da Riot. Atualizar é rodar o pipeline com os arquivos novos. Próximos passos: relatório em PDF por time e atualização a cada rodada.
-          </p>
         </Slide>
 
         <Slide brand kicker="Agora é com você" title={<>Curtiu? Bora testar?</>}>
@@ -194,7 +180,7 @@ export default async function PresentationDeck() {
             Todas as {num(index.matches.length)} partidas, {num(Object.keys(index.teams).length)} times e {num(index.players.length)} jogadores estão no site. Comece por onde quiser:
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            <Shortcut href="/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@79" title="Um round no replay" text="UFMT Turuna × MackLogic RED: o round que virou com 99% de chance." />
+            <Shortcut href="/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@79" title="Um round no replay" text="UFMT Turuna × MackLogic RED: com a spike plantada, 4 contra 2 e 14 segundos para explodir, o UFMT tinha 99% de chance e perdeu." />
             <Shortcut href="/times" title="O seu time" text="Diagnóstico, sinergia, onde o time morre e os rounds para revisar." />
             <Shortcut href="/comparar/jogadores" title="Jogador × jogador" text="Quem vence o duelo direto e as estatísticas lado a lado." />
             <Shortcut href="/destaques" title="Destaques" text="As jogadas que mais mudaram rounds e as maiores viradas." />
