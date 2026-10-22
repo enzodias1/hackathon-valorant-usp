@@ -10,20 +10,19 @@ Ele é atualizado a cada entrega. Na dúvida, chame o Enzo.
 
 **Novidade (21/10): replay 2D do round.** Na página de cada partida, o round agora toca como um replay: cada jogador com o agente e
 a mira, a chance de vitória ao vivo, a sequência de eliminações com o impacto de cada uma e "Copiar link do momento". Abra o round 12
-de [UFMT Turuna × Macklogic Red](https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@84.1)
+de [UFMT Turuna × MackLogic RED](https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@84.1)
 para ver. Ele é o centro da demonstração do vídeo.
 
 ## Quadro
 
 | Membro | Tarefa | Status | Entrega |
 |---|---|---|---|
-| Camila | [Nomes dos 68 times](#camila--nomes-dos-68-times) | 🟡 Em andamento | Planilha preenchida → Enzo |
+| Azi | [Exportar em PDF (partida, time, jogador, comparar)](#azi--exportar-em-pdf) | 🟡 A fazer | PR da branch `exportar-pdf` |
 | Jodão | [Roteiro do vídeo pitch](#jodão--roteiro-do-vídeo-pitch) | 🟡 A fazer (entrevistas prontas) | Documento com o roteiro → Enzo |
-| Camila | [Validação das análises com olhar de jogador](#camila--validação-das-análises-com-olhar-de-jogador) | ⏳ Depois da planilha | Lista de observações → Enzo |
-| Camila | [Apresentação (slides)](#camila--apresentação-slides) | ⏳ Depois da validação | Link da apresentação → Enzo |
+| Camila | [Validação das análises com olhar de jogador](#camila--validação-das-análises-com-olhar-de-jogador) | 🟡 A fazer | Lista de observações → Enzo |
 | — | [Gravações de tela para o vídeo](#gravações-de-tela-para-o-vídeo) | ⏳ Quando o front estiver fechado | Arquivos de vídeo → Jodão |
 
-✅ **Concluídas: 7** (Azi ×4, Nukan ×2, Jodão ×1). As descrições ficam recolhidas no [fim do arquivo](#-tarefas-concluídas).
+✅ **Concluídas: 8** (Azi ×4, Nukan ×2, Jodão ×1, Camila ×1). As descrições ficam recolhidas no [fim do arquivo](#-tarefas-concluídas).
 
 Legenda: ⏳ aguardando · 🟡 a fazer / em andamento · 🔵 entregue, em revisão · ✅ concluída
 
@@ -47,17 +46,35 @@ Depois abra um **Pull Request** para `main` no GitHub e avise o Enzo. Ele revisa
 
 ---
 
-## Camila — Nomes dos 68 times
-**O que fazer:** abrir `para_equipe/nomes_dos_times.xlsx` e preencher **só as colunas amarelas**:
-- **NOME CORRETO**: só se o "nome sugerido" estiver errado (ex.: `FEI Darkowls` → `FEI Dark Owls`). Se estiver certo, deixe em branco.
-- **SIGLA CURTA**: até 8 letras, para os gráficos (ex.: `FEI DO`).
-- **INSTITUIÇÃO**: nome completo (ex.: `Centro Universitário FEI`).
+## Azi — Exportar em PDF
+**O que fazer:** nas páginas de **partida**, **time**, **jogador** e **comparar**, um botão **"Exportar PDF"** que gera um relatório da
+página. O "plus": ao clicar, abre uma janelinha com a lista das seções da página, todas marcadas, e a pessoa desmarca o que não quer
+(com "Marcar todas" e "Desmarcar todas"). Só as marcadas entram no PDF.
 
-As colunas "nicks mais frequentes" e "competições" ajudam a identificar cada time. Pode conferir nas redes sociais do UNIVAVÁ, das atléticas e das organizações. Isso é só para nomes, não para dados de partida, então está dentro das regras.
+Caminho sugerido, sem biblioteca nova: a impressão do próprio navegador (`window.print()`, "Salvar como PDF"), que mantém o texto
+selecionável e os gráficos nítidos, porque são SVG.
+1. **Marcar as seções:** quase todas as seções usam o componente `Section` de `web/src/components/analise/ui.tsx`. Coloque nele um
+   `data-pdf-section={title}`; assim as páginas de time (10 seções), jogador (11) e partida já ficam prontas. No comparar
+   (`web/src/components/analise/Comparator.tsx` e `HeadToHead.tsx`), os blocos são `<section>` soltos: marque cada um com
+   `data-pdf-section="Nome do bloco"`.
+2. **O botão:** um componente cliente (ex.: `web/src/components/site/ExportPdf.tsx`) colocado em `actions` da faixa roxa `PageBand`
+   de cada página. Ao clicar, ele lê `document.querySelectorAll("[data-pdf-section]")` e monta a lista de checkboxes.
+3. **Ao confirmar:** coloque `data-pdf-hide` nas seções desmarcadas, abra todos os `<details>` (as seções recolhíveis) guardando o
+   estado anterior, troque o `document.title` por algo como `UFMT Turuna — Analista UNIVAVÁ — 22-10-2026` (vira o nome do arquivo)
+   e chame `window.print()`. No evento `afterprint`, desfaça tudo.
+4. **CSS de impressão** (`@media print` em `web/src/app/globals.css`): esconder menu lateral, botões, filtros e o "i" das explicações;
+   `[data-pdf-hide] { display: none }`; `print-color-adjust: exact` para manter as cores do site; `break-inside: avoid` nas seções
+   e cartões; página A4. Um cabeçalho que só aparece na impressão, com o nome do site, a data e o link da página, ajuda quem recebe.
+5. **Cuidados:** os gráficos do Recharts às vezes não se redimensionam na impressão (teste a página do time); o replay da partida sai
+   como uma foto do instante atual (tudo bem, ou deixe a seção desmarcada por padrão); confira no Edge e no Chrome.
 
-**Por quê:** os nomes aparecem em todas as telas e no vídeo. A AcadArena, que está na banca, organiza o UNIVAVÁ e conhece esses times, então um nome errado passa descuido. Precisa estar pronto antes das gravações.
+**Por quê:** o coach e os jogadores vão querer mandar a análise no grupo do time ou levar para a reunião de revisão, e nem todo mundo
+vai abrir o site. Para a AcadArena, que está na banca e organiza o UNIVAVÁ, um relatório por time pronto para enviar mostra que o
+produto já serve no dia a dia (critérios "Viabilidade" e "Usabilidade").
 
-**Como entregar:** mandar a planilha preenchida para o Enzo. Tempo estimado: 1h.
+**Como entregar:** PR da branch `exportar-pdf` (ver [Como entregar](#como-entregar)) com um PDF de exemplo de cada uma das 4 páginas
+(um completo e um só com algumas seções) e `npm run build` passando. Antes de começar, `git pull origin main` e `npm install` dentro de
+`web/`. Tempo estimado: 3 a 4 h. Se travar, avise o Enzo.
 
 ---
 
@@ -65,7 +82,7 @@ As colunas "nicks mais frequentes" e "competições" ajudam a identificar cada t
 > **Entrevistas prontas:** use o resumo em [`para_equipe/entrevistas_ufg.md`](para_equipe/entrevistas_ufg.md) nos trechos **[ENTREVISTA]**
 > (ex.: 2 de 8 pediram um replay 2D com agentes, mortes e abates, e o produto já tem). Os entrevistados são do UFG Eagles, que está na base.
 >
-> **Atualização (21/10):** a demonstração agora gira em torno do **replay do round 12** (UFMT Turuna × Macklogic Red): a chance de vitória ao
+> **Atualização (21/10):** a demonstração agora gira em torno do **replay do round 12** (UFMT Turuna × MackLogic RED): a chance de vitória ao
 > vivo cai de 99% enquanto a Jett (kim) faz o triplo, e a spike é desarmada 55 milissegundos antes da morte do Cypher (sick). Os números do roteiro
 > foram conferidos no replay. **O roteiro-base já foi atualizado (21/10)** com o replay em tela cheia, as entrevistas e as seções novas do
 > jogador (duelos, quando morre, habilidades); está em ~4:20, então adapte cortando, se precisar.
@@ -95,17 +112,6 @@ gente da Riot: se algo soar errado para um jogador, eles vão perceber.
 
 ---
 
-## Camila — Apresentação (slides)
-**O que fazer:** montar a apresentação que acompanha o vídeo (o edital pede o link dela na entrega), com 6 a 8 slides na mesma ordem do roteiro: problema → dados e método → demonstração (prints do site) → valor → viabilidade → equipe.
-Use poucos textos e números grandes (ex.: "336 partidas", "41% vs. 6%: chance de a morte ser trocada perto e longe de um aliado").
-Atenção aos direitos de imagem: logos e artes do VALORANT só se forem de uso permitido pela Riot (você já conferiu a política); prefira prints do nosso próprio site.
-
-**Por quê:** a apresentação é entregue junto com o vídeo, e a banca pode consultá-la depois. Ela também serve de base visual para gravar o vídeo.
-
-**Como entregar:** link da apresentação (Google Slides, Canva…) para o Enzo, com permissão de visualização.
-
----
-
 ## Gravações de tela para o vídeo
 > ⏳ **Quando o front estiver fechado** (combinamos o dia e o responsável no grupo).
 
@@ -121,6 +127,22 @@ lentos e sem notificações na tela. Grave cada clipe com alguns segundos de fol
 ---
 
 ## ✅ Tarefas concluídas
+
+<details>
+<summary>✅ <b>Camila — Nomes dos 68 times</b> (planilha entregue em 22/10: 68 siglas e instituições, 12 nomes corrigidos; no ar)</summary>
+
+**O que fazer:** abrir `para_equipe/nomes_dos_times.xlsx` e preencher **só as colunas amarelas**:
+- **NOME CORRETO**: só se o "nome sugerido" estiver errado (ex.: `FEI Darkowls` → `FEI Dark Owls`). Se estiver certo, deixe em branco.
+- **SIGLA CURTA**: até 8 letras, para os gráficos (ex.: `FEI DO`).
+- **INSTITUIÇÃO**: nome completo (ex.: `Centro Universitário FEI`).
+
+As colunas "nicks mais frequentes" e "competições" ajudam a identificar cada time. Pode conferir nas redes sociais do UNIVAVÁ, das atléticas e das organizações. Isso é só para nomes, não para dados de partida, então está dentro das regras.
+
+**Por quê:** os nomes aparecem em todas as telas e no vídeo. A AcadArena, que está na banca, organiza o UNIVAVÁ e conhece esses times, então um nome errado passa descuido. Precisa estar pronto antes das gravações.
+
+**Como entregar:** mandar a planilha preenchida para o Enzo. Tempo estimado: 1h.
+
+</details>
 
 <details>
 <summary>✅ <b>Nukan — Página "Destaques do campeonato"</b> (PR #6, no ar: as 10 jogadas de maior impacto e as 10 maiores viradas, com "Ver no replay")</summary>

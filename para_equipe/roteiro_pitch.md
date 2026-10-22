@@ -5,7 +5,7 @@
 conferidos nos dados (21/10); se mudar algum, confira com o Enzo.
 
 - **Ritmo:** ~140 palavras por minuto. As falas abaixo somam ~610 palavras ≈ 4:20, sobrando só ~40 s para as falas das entrevistas e
-  pausas. Está apertado: se passar de 5:00, os primeiros cortes são a frase dos 41% × 6% (time) e a do eco do Macklogic (comparar).
+  pausas. Está apertado: se passar de 5:00, os primeiros cortes são a frase dos 41% × 6% (time) e a do eco do MackLogic (comparar).
 - **Tela:** gravar o site rodando (https://analista-univava.vercel.app) com zoom do navegador em 110–125% para ler bem no vídeo. No replay,
   use o botão **⛶ Tela cheia** (ou a tecla **F**): mostra o título do round, o resumo, o mapa grande e a sequência de eliminações.
 - **O que a banca vai pontuar** (lembrar ao gravar): Inovação · Impacto · Qualidade da análise · Viabilidade · Usabilidade · Apresentação.
@@ -13,7 +13,7 @@ conferidos nos dados (21/10); se mudar algum, confira com o Enzo.
 ---
 
 ## 0:00–0:25 · Gancho
-**Tela:** replay do round 12 de UFMT Turuna × Macklogic Red (Fase de Grupos) em tela cheia, tocando de 1:19 até o desarme, com o quadro
+**Tela:** replay do round 12 de UFMT Turuna × MackLogic RED (Fase de Grupos) em tela cheia, tocando de 1:19 até o desarme, com o quadro
 "O que decidiu o round" no topo e a chance de vitória caindo de 99%.
 Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@79
 
@@ -64,9 +64,9 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
 > "E o que os jogadores pediram nas entrevistas está aqui: contra quem ele mais perde duelos, em que momento do round costuma morrer
 > e se usa as habilidades mais ou menos que a média do agente."
 
-**3:25 · Comparar**: UFMT Turuna × Macklogic Red.
+**3:25 · Comparar**: UFMT Turuna × MackLogic RED.
 > "Para o próximo jogo, o comparador mostra quem é favorito, quais mapas escolher e vetar, e o histórico do confronto: em cada mapa,
-> a jogada que mais pesou, com o replay a um clique. O Macklogic economizou nas 8 vezes que perdeu o pistol: dá para esperar eco no round 2."
+> a jogada que mais pesou, com o replay a um clique. O MackLogic economizou nas 8 vezes que perdeu o pistol: dá para esperar eco no round 2."
 
 ## 3:50–4:25 · Por que confiar
 **Tela:** "Metodologia" → "O replay: o que é registrado e o que é estimado" e "Comparações justas".

@@ -27,6 +27,12 @@ def suggest(slug):
 
 
 def main():
+    # a planilha já foi preenchida pela equipe (21/10, Camila): não sobrescrever
+    if OUT.exists():
+        filled = pd.read_excel(OUT).iloc[:, 2:5].notna().any().any()
+        if filled:
+            print(f"{OUT.name} já está preenchida pela equipe: nada foi alterado (apague o arquivo para gerar de novo).")
+            return
     pm = pd.read_parquet(P / "player_match.parquet")
     m = pd.read_parquet(P / "matches.parquet")
     pm = pm.merge(m[["match_id", "competition", "stage"]], on="match_id")
