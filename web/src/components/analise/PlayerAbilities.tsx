@@ -34,7 +34,7 @@ export function AbilitiesPanel({ abilities }: { abilities: PlayerAbilities[] }) 
       <div className="grid gap-4 xl:grid-cols-2">
         {abilities.map((a) => {
           const max = Math.max(...a.slots.flatMap((s) => [s.per_round, s.league]), 0.01) * 1.15;
-          const umax = Math.max(a.ult.per_map, a.ult.league, 0.01) * 1.15;
+          const umax = a.ult ? Math.max(a.ult.per_map, a.ult.league, 0.01) * 1.15 : 1;
           return (
             <div key={a.agent} className="rounded-xl border border-line bg-surface-2/40 px-4 py-3">
               <div className="flex items-center gap-2">
@@ -45,7 +45,8 @@ export function AbilitiesPanel({ abilities }: { abilities: PlayerAbilities[] }) 
               </div>
               <ul className="mt-1 divide-y divide-line/50">
                 {a.slots.map((s) => <Row key={s.key} icon={s.icon} label={s.key} name={s.name} value={s.per_round} league={s.league} max={max} unit="/round" />)}
-                <Row icon={a.ult.icon} label="X" name={a.ult.name} value={a.ult.per_map} league={a.ult.league} max={umax} unit="/mapa" />
+                {a.ult ? <Row icon={a.ult.icon} label="X" name={a.ult.maps < a.maps ? `${a.ult.name} (${a.ult.maps} de ${a.maps} mapas)` : a.ult.name} value={a.ult.per_map} league={a.ult.league} max={umax} unit="/mapa" />
+                  : <li className="py-2 text-xs text-muted">Ultimate: a Riot não registra a do Chamber a partir do patch 13.02.</li>}
               </ul>
             </div>
           );
@@ -54,7 +55,7 @@ export function AbilitiesPanel({ abilities }: { abilities: PlayerAbilities[] }) 
       <p className="flex flex-wrap gap-x-4 text-xs text-ink-2">
         <span><span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-accent align-middle" />jogador</span>
         <span><span className="mr-1 inline-block h-3 w-0.5 bg-ink align-middle" />média da liga no mesmo agente</span>
-        <span className="text-muted">Habilidades por round; ultimate por mapa. Só agentes com 2+ mapas.</span>
+        <span className="text-muted">Habilidades por round; ultimate por mapa (no Chamber, só os mapas antes do patch 13.02, em que a Riot a contava). Só agentes com 2+ mapas.</span>
       </p>
     </div>
   );

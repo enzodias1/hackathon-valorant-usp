@@ -60,6 +60,15 @@ def main():
 
     # ---------------------------------------------------------------- probabilidade de vitória / impacto
     check("probabilidades entre 0 e 1", st.p_atk.between(0, 1).all())
+    # ultimates informadas ≥ rounds com kill de ultimate (fora o Chamber a partir do 13.02, que a Riot não conta; ver export.py)
+    ver = pm.match_id.map(m.set_index("match_id").game_version).str.extract(r"(\d+)\.(\d+)").astype(int)
+    ch_late = (pm.agent == "Chamber") & ((ver[0] > 13) | ((ver[0] == 13) & (ver[1] >= 2)))
+    uk = kl[((kl.damage_type == "Ability") & (kl.weapon_id.str.lower() == "ultimate")) | ((kl.damage_type == "Weapon") & (kl.weapon_id == ""))]
+    ur = uk.groupby(["match_id", "killer"]).round_num.nunique()
+    pmu = pm.assign(ult_rounds=ur.reindex(pd.MultiIndex.from_frame(pm[["match_id", "puuid"]])).fillna(0).to_numpy())
+    bad_u = pmu[~ch_late.to_numpy() & (pmu.casts_x < pmu.ult_rounds)]
+    check("ultimates informadas cobrem os rounds com kill de ultimate (exceto Chamber 13.02+, tratado)", bad_u.empty,
+          f"{len(bad_u)} jogadores-mapa abaixo; Chamber 13.02+ fora: {int(ch_late.sum())}")
     rvv = ev[ev.event == "revive"]
     rv_agent = pm.set_index(["match_id", "puuid"]).agent
     by_agent = rv_agent.reindex(pd.MultiIndex.from_arrays([rvv.match_id, rvv.actor])).to_numpy()

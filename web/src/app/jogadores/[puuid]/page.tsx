@@ -136,7 +136,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
         </Section>
 
         <Section id="habilidades" title="Habilidades" collapsible
-                 teaser={p.abilities.length ? `${p.abilities[0].agent}: ${num(p.abilities[0].ult.per_map, 1)} ultimates por mapa (média do agente: ${num(p.abilities[0].ult.league, 1)})` : "Disponível com 2+ mapas no mesmo agente"}
+                 teaser={!p.abilities.length ? "Disponível com 2+ mapas no mesmo agente" : p.abilities[0].ult
+                   ? `${p.abilities[0].agent}: ${num(p.abilities[0].ult.per_map, 1)} ultimates por mapa (média do agente: ${num(p.abilities[0].ult.league, 1)})`
+                   : `${p.abilities[0].agent}: uso das habilidades por round, comparado com a média do agente`}
                  info="Quantas vezes o jogador usou cada habilidade por round, e a ultimate por mapa, comparado com a média de quem joga o mesmo agente na liga. A Riot informa só o total por partida: não dá para saber em que momento do round cada habilidade foi usada.">
           {p.abilities.length ? <AbilitiesPanel abilities={p.abilities} /> : <p className="text-sm text-ink-2">Disponível com 2 ou mais mapas no mesmo agente.</p>}
         </Section>

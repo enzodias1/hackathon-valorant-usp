@@ -219,16 +219,18 @@ export function CompareLegend({ expectedLabel = "média da liga" }: { expectedLa
 }
 
 /** Barra divergente para impacto em pontos de chance de vitória (verde positivo / vermelho negativo, sempre com sinal no texto). */
-export function WpaBar({ value, max, digits = 1 }: { value: number; max: number; digits?: number }) {
+export function WpaBar({ value, max, digits = 1, compact }: { value: number; max: number; digits?: number; compact?: boolean }) {
   const w = Math.min(50, (Math.abs(value) / Math.max(max, 1e-9)) * 50);
   return (
     <div className="flex items-center gap-2">
-      <div className="relative h-2.5 w-12 shrink-0 sm:w-24">
+      <div className={`relative h-2.5 shrink-0 ${compact ? "w-12 sm:w-16" : "w-12 sm:w-24"}`}>
         <div className="absolute inset-y-0 left-1/2 w-px bg-axis" />
         <div className={`absolute inset-y-0 rounded-sm ${value >= 0 ? "bg-good" : "bg-bad"}`}
              style={value >= 0 ? { left: "50%", width: `${w}%` } : { right: "50%", width: `${w}%` }} />
       </div>
-      <span className="tabular whitespace-nowrap text-sm text-ink">{pp(value, digits)}</span>
+      <span className="tabular whitespace-nowrap text-sm text-ink">
+        {compact ? `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toLocaleString("pt-BR", { maximumFractionDigits: digits })}` : pp(value, digits)}
+      </span>
     </div>
   );
 }

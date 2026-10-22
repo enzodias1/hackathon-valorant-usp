@@ -39,7 +39,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 .venv/Scripts/python pipeline/zones.py                        # onde cada time morre (regiões do mapa + grade de calor)
 .venv/Scripts/python pipeline/navgrid.py                      # chão caminhável de cada mapa + spawns (movimento do replay)
 .venv/Scripts/python pipeline/export.py                       # JSON do site em web/public/data (formato em web/DADOS.md)
-.venv/Scripts/python pipeline/checks.py                       # 41 checagens de consistência (falha se algum número não fechar)
+.venv/Scripts/python pipeline/checks.py                       # 42 checagens de consistência (falha se algum número não fechar)
 .venv/Scripts/python pipeline/teams_sheet.py                  # planilha de nomes dos times (para_equipe/)
 ```
 
@@ -67,7 +67,10 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 - Em cada kill, plant e desarme vêm a posição e a direção da mira de todos os vivos (base do replay 2D). O uso de utilitárias não vem
   nos dados, mas as kills por habilidade sim (2,6% das kills: ultimate, Q/E e granada), com o slot da habilidade.
 - Armas de habilidade no catálogo de armas: a Tour de Force (ultimate do Chamber) vem **sem ID** a partir do patch 13.02; identificada
-  por ser rara e ~100% com mira (`meta.py`).
+  por ser rara e ~100% com mira (`meta.py`). No mesmo patch, a Riot **deixa de contar a ultimate do Chamber**: a contagem cai de
+  ~1,8 para ~0,4 por mapa e vem zerada em 64–79% dos mapas, mesmo com kills de Tour de Force (nos outros agentes, em 503 mapas
+  com kill de ultimate, ela nunca vem zerada). Nesses mapas o placar mostra só o mínimo garantido ("≥1": rounds em que ele matou
+  com a ultimate) e a seção de habilidades compara a ultimate do Chamber só com mapas anteriores ao 13.02.
 - O relógio do round começa na queda da barreira (o round seguinte começa sempre 37 s depois da última kill: 7 s de fim de round + 30 s
   de compra). Kills nos primeiros segundos são duelos de abertura, comuns perto do spawn da defesa.
 
@@ -153,4 +156,4 @@ com ~100%; ADR, KAST e K/D da liga em faixas plausíveis; coordenadas do minimap
 no replay, quem mata está olhando para a vítima (valida a direção da mira), as posições caem no chão da grade do mapa e toda kill diz o
 que matou; somando todos os jogadores, os duelos vencidos são iguais aos perdidos; os vivos que o modelo considera em cada evento
 batem com os vivos registrados pela Riot (99,95%, com as ressurreições); em rounds que acabaram por tempo, nada depois dos 100 s conta
-como jogada; toda ressurreição tem quem reviveu. Hoje: **41/41 ok**.
+como jogada; toda ressurreição tem quem reviveu. Hoje: **42/42 ok**.

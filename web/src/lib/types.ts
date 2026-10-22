@@ -66,7 +66,10 @@ export interface MatchPlayer {
   /** ícone redondo do agente usado no minimapa do jogo (replay) */
   minimap_icon?: string | null;
   /** usos de cada habilidade na partida: [C, Q, E, ultimate] (a Riot não diz em que momento) */
-  casts?: [number, number, number, number];
+  /** usos de C, Q, E e ultimates na partida; ultimate null onde a Riot não conta (Chamber a partir do patch 13.02) */
+  casts?: [number, number, number, number | null];
+  /** só quando a ultimate não é contada: rounds em que ele matou com a ultimate (o mínimo garantido) */
+  ult_min?: number;
   role: AgentRole;
   kills: number;
   deaths: number;
@@ -389,7 +392,8 @@ export interface PlayerAbilities {
   maps: number;
   rounds: number;
   slots: { key: "C" | "Q" | "E"; name: string | null; icon: string | null; per_round: number; league: number }[];
-  ult: { name: string | null; icon: string | null; total: number; per_map: number; league: number };
+  /** null quando a Riot não conta a ultimate do agente nos mapas dele (Chamber a partir do patch 13.02) */
+  ult: { name: string | null; icon: string | null; total: number; maps: number; per_map: number; league: number } | null;
 }
 
 /** Duelos: quem matou quem (sem team kill), somado em todas as partidas da base. */

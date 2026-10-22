@@ -73,7 +73,7 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
 
 > "Um número sozinho engana, então tomamos cuidados. Cada comparação desconta o tamanho da amostra e passa por um **controle
 > de falsos positivos**. O replay sempre diz o que foi registrado pela Riot e o que é estimado, e validamos até a mira: em 99% das
-> kills, quem mata está olhando para a vítima. E **41 checagens automáticas** garantem que os números fecham."
+> kills, quem mata está olhando para a vítima. E **42 checagens automáticas** garantem que os números fecham."
 
 ## 4:25–5:00 · Valor e viabilidade + fechamento
 **Tela:** página do time → página inicial com o link visível.

@@ -89,7 +89,7 @@ alguns rounds), e anotar tudo que **não faz sentido para quem joga VALORANT**: 
 Clutch) que não combina com o jogador, uma região do mapa de calor esquisita, um caminho no replay que nenhum jogador faria, um texto
 confuso. Também vale anotar o que achou **mais útil**: isso orienta o que mostrar no vídeo.
 
-**Por quê:** os números passam por 41 checagens automáticas, mas nenhuma checagem substitui alguém que entende o jogo. A banca tem
+**Por quê:** os números passam por 42 checagens automáticas, mas nenhuma checagem substitui alguém que entende o jogo. A banca tem
 gente da Riot: se algo soar errado para um jogador, eles vão perceber.
 
 **Como entregar:** uma lista curta (pode ser no WhatsApp) para o Enzo, com o link da página e o que pareceu estranho. Tempo: ~1h.

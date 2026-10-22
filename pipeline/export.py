@@ -87,6 +87,15 @@ def load():
     t["player_name"] = t["player_match"].sort_values("match_id").groupby("puuid").name.last().to_dict()
     t["agents_by_name"] = {a["name"]: a for a in LOOKUP["agents"].values()}
     add_kill_labels(t)
+    # A Riot deixou de contar a ultimate do Chamber a partir do patch 13.02, o mesmo em que a Tour de Force perdeu o ID: nesses
+    # mapas a contagem cai de ~1,8 para ~0,4 por mapa e vem zerada em 64–79% deles, mesmo com kills de ultimate (nenhum outro
+    # agente tem isso: em 503 mapas com kill de ultimate, a contagem nunca vem zerada). Nesses mapas a contagem fica de fora e
+    # o placar mostra só o mínimo garantido: os rounds em que ele matou com a Tour de Force.
+    pmx = t["player_match"]
+    ver = pmx.match_id.map(t["matches"].set_index("match_id").game_version).str.extract(r"(\d+)\.(\d+)").astype(int)
+    pmx["ult_ok"] = ~((pmx.agent == "Chamber") & ((ver[0] > 13) | ((ver[0] == 13) & (ver[1] >= 2)))).to_numpy()
+    tdf = t["kills"][t["kills"].weapon == "Tour de Force"].groupby(["match_id", "killer"]).round_num.nunique()
+    pmx["ult_rounds"] = tdf.reindex(pd.MultiIndex.from_frame(pmx[["match_id", "puuid"]])).fillna(0).astype(int).to_numpy()
     for n in ("team_strength", "team_stage", "team_changes", "player_stage", "economy_team"):
         t[n] = pd.read_parquet(P / f"{n}.parquet")
     t["economy"] = json.loads((P / "economy.json").read_text(encoding="utf-8"))
@@ -142,7 +151,9 @@ def export_matches(t, names):
             players.append({
                 "puuid": p.puuid, "name": p.name, "color": p.team_color, "agent": p.agent, "agent_icon": a.get("icon"),
                 "minimap_icon": a.get("minimap_icon"), "role": p.role,
-                "casts": [int(p.casts_c), int(p.casts_q), int(p.casts_e), int(p.casts_x)],  # C, Q, E, ultimate in this match
+                # C, Q, E, ultimate in this match (ultimate None where the Riot does not count it: Chamber from 13.02)
+                "casts": [int(p.casts_c), int(p.casts_q), int(p.casts_e), int(p.casts_x) if p.ult_ok else None],
+                **({} if p.ult_ok else {"ult_min": int(p.ult_rounds)}),
                 "kills": p.kills, "deaths": p.deaths, "assists": p.assists, "acs": p.score / max(p.rounds, 1),
                 "adr": adr.get((mid, p.puuid)), "wpa": t["wpa_pm"].get((mid, p.puuid), 0.0),
             })
@@ -493,7 +504,10 @@ def export_players(t, names):
     dth_t_by = {k: g for k, g in dth_t.groupby("victim")}
 
     by_agent_casts = pm.groupby("agent").agg(maps=("match_id", "count"), rounds=("rounds", "sum"), casts_c=("casts_c", "sum"),
-                                             casts_q=("casts_q", "sum"), casts_e=("casts_e", "sum"), casts_x=("casts_x", "sum"))
+                                             casts_q=("casts_q", "sum"), casts_e=("casts_e", "sum"))
+    # ultimate: só os mapas em que a Riot conta (ver load)
+    ult_ok = pm[pm.ult_ok].groupby("agent").agg(maps_x=("match_id", "count"), casts_x=("casts_x", "sum"))
+    by_agent_casts = by_agent_casts.join(ult_ok).fillna({"maps_x": 0, "casts_x": 0})
 
     def abilities_of(g):
         """Per agent played on 2+ maps: uses of each ability per round and ultimates per map, vs. the league on the same agent."""
@@ -508,8 +522,10 @@ def export_players(t, names):
                 "agent": ag, "icon": t["agents_by_name"].get(ag, {}).get("icon"), "maps": len(ga), "rounds": int(r_),
                 "slots": [{"key": k, "name": meta.get(slot, {}).get("name"), "icon": meta.get(slot, {}).get("icon"),
                            "per_round": ga[col].sum() / max(r_, 1), "league": lg[col] / max(lg.rounds, 1)} for k, (col, slot) in CAST_SLOTS.items()],
-                "ult": {"name": meta.get("Ultimate", {}).get("name"), "icon": meta.get("Ultimate", {}).get("icon"), "total": int(ga.casts_x.sum()),
-                        "per_map": ga.casts_x.sum() / len(ga), "league": lg.casts_x / max(lg.maps, 1)},
+                "ult": {"name": meta.get("Ultimate", {}).get("name"), "icon": meta.get("Ultimate", {}).get("icon"),
+                        "total": int(ga[ga.ult_ok].casts_x.sum()), "maps": int(ga.ult_ok.sum()),
+                        "per_map": ga[ga.ult_ok].casts_x.sum() / ga.ult_ok.sum(), "league": lg.casts_x / max(lg.maps_x, 1)}
+                       if ga.ult_ok.any() and lg.maps_x > 0 else None,
             })
         out.sort(key=lambda x: -x["maps"])
         return out

@@ -78,26 +78,36 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
           </ul>
         </Section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        {/* um time embaixo do outro, como no placar do jogo: lado a lado, as colunas não cabiam */}
+        <div className="grid gap-6">
           {(["Red", "Blue"] as Color[]).map((c) => (
             <Section key={c} title={match.teams[c].name} subtitle={c === match.winner ? "Vencedor" : "Derrota"}>
               <div className="overflow-x-auto">
-                <table className="w-full sm:min-w-[480px]">
-                  <thead><tr><Th>Jogador</Th><Th right>K / D / A</Th><Th right className="hidden sm:table-cell">ACS</Th><Th right className="hidden sm:table-cell">ADR</Th><Th right className="hidden sm:table-cell"><span title="ultimates usadas na partida">Ult.</span></Th><Th>Impacto</Th></tr></thead>
+                <table className="w-full sm:min-w-[480px] sm:table-fixed">
+                  {/* larguras fixas: as colunas dos dois times ficam alinhadas */}
+                  <colgroup>
+                    <col className="sm:w-[34%]" /><col className="sm:w-[14%]" />
+                    <col className="hidden sm:table-column sm:w-[10%]" /><col className="hidden sm:table-column sm:w-[10%]" />
+                    <col className="hidden sm:table-column sm:w-[8%]" /><col className="sm:w-[24%]" />
+                  </colgroup>
+                  <thead><tr><Th>Jogador</Th><Th right>K / D / A</Th><Th right className="hidden sm:table-cell">ACS</Th><Th right className="hidden sm:table-cell">ADR</Th><Th right className="hidden sm:table-cell"><span title="ultimates usadas na partida (Chamber a partir do patch 13.02: a Riot não conta; ≥ = rounds em que ele matou com a ultimate)">Ult.</span></Th><Th>Impacto <span className="normal-case">(pontos)</span></Th></tr></thead>
                   <tbody>
                     {match.players.filter((p) => p.color === c).sort((a, b) => b.wpa - a.wpa).map((p) => (
                       <tr key={p.puuid}>
-                        <Td>
-                          <span className="flex items-center gap-2">
-                            {p.agent_icon && <img src={p.agent_icon} alt={p.agent} title={p.agent} className="h-7 w-7 rounded" />}
-                            <PlayerLink puuid={p.puuid} name={nick(p.name)} />
+                        <Td className="min-w-[8.5rem]">
+                          <span className="flex min-w-0 items-center gap-2" title={nick(p.name)}>
+                            {p.agent_icon && <img src={p.agent_icon} alt={p.agent} title={p.agent} className="h-7 w-7 shrink-0 rounded" />}
+                            <span className="block min-w-0 max-w-[12rem] truncate"><PlayerLink puuid={p.puuid} name={nick(p.name)} /></span>
                           </span>
                         </Td>
-                        <Td right className="whitespace-nowrap">{p.kills} / {p.deaths} / {p.assists}</Td>
+                        <Td right className="whitespace-nowrap pl-3">{p.kills} / {p.deaths} / {p.assists}</Td>
                         <Td right className="hidden sm:table-cell">{num(p.acs)}</Td>
                         <Td right className="hidden sm:table-cell">{num(p.adr)}</Td>
-                        <Td right className="hidden sm:table-cell">{p.casts ? p.casts[3] : "—"}</Td>
-                        <Td><WpaBar value={p.wpa} max={maxWpa} digits={0} /></Td>
+                        <Td right className="hidden sm:table-cell">
+                          {!p.casts ? "—" : p.casts[3] !== null ? p.casts[3]
+                            : <span title="A Riot não conta a ultimate do Chamber a partir do patch 13.02: este é o mínimo, os rounds em que ele matou com ela">{p.ult_min ? `≥${p.ult_min}` : "—"}</span>}
+                        </Td>
+                        <Td><WpaBar value={p.wpa} max={maxWpa} digits={0} compact /></Td>
                       </tr>
                     ))}
                   </tbody>
