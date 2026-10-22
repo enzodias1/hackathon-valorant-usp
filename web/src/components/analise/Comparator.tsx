@@ -96,7 +96,7 @@ function Comparison({ A, B, styleTerms }: { A: Team; B: Team; styleTerms: [strin
   const metric = (t: Team, k: string) => t.metrics.find((m) => m.key === k);
   const pistolEco = (t: Team) => t.economy.find((e) => e.context === "perdeu o pistol");
   const ecoB = pistolEco(B);
-  const ecoShare = ecoB && ecoB.n ? (ecoB.decisions.Economizar?.n ?? 0) / ecoB.n : null;
+  const ecoShare = ecoB && ecoB.n ? (ecoB.decisions.Eco?.n ?? 0) / ecoB.n : null;
   const core = (t: Team) => t.roster.filter((p) => p.core).sort((x, y) => y.wpa_per_round - x.wpa_per_round);
 
   return (
@@ -182,7 +182,7 @@ function Comparison({ A, B, styleTerms }: { A: Team; B: Team; styleTerms: [strin
           <ul className="mt-3 space-y-2 text-sm">
             {ecoShare != null && ecoB!.n >= 5 && (
               <li className="rounded-lg bg-surface-2 p-3 text-ink">
-                💰 Depois de perder o pistol, economizou em {ecoB!.decisions.Economizar?.n ?? 0} de {ecoB!.n} vezes
+                💰 Depois de perder o pistol, fez eco em {ecoB!.decisions.Eco?.n ?? 0} de {ecoB!.n} vezes
                 {ecoShare >= 0.7 ? ": espere eco no round 2 e no 14 (dá para jogar pela vantagem de armas, sem se expor)." : ecoShare <= 0.3 ? ": costuma forçar no round 2 e no 14, então não subestime o round seguinte ao pistol." : "."}
               </li>
             )}

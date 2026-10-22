@@ -41,17 +41,67 @@ def half_of(rn):
     return "1º tempo" if rn < 12 else "2º tempo" if rn < 24 else "Prorrogação"
 
 
-def buy_type(total_loadout, round_num):
-    """Team-level buy classification on summed loadout value (5 players)."""
-    if round_num in (0, 12):
-        return "Pistol"
-    if total_loadout < 5000:
-        return "Eco"
-    if total_loadout < 10000:
-        return "Semi-eco"
-    if total_loadout < 20000:
-        return "Semi-buy"
-    return "Full buy"
+# Tipos de compra como no jogo: pistol, eco, semi-buy, forçada e full buy. Economia do VALORANT: a derrota paga 1.900, 2.400
+# ou 2.900 conforme a sequência de derrotas (zera ao vencer e na troca de lado); o kit completo é rifle (2.900) + colete pesado
+# (1.000). O "loadout" de cada jogador já inclui as habilidades e o que ele carregou do round anterior.
+FULL_KIT = 3900            # rifle + colete pesado, por jogador
+PARTIAL_KIT = 2000         # acima disso, o jogador comprou mais que pistola e colete leve (Spectre, Bulldog, rifle sem colete...)
+FULL_BUY_TEAM = 20000      # ~4 mil por jogador, já com habilidades
+LOSS_BONUS = (1900, 2400, 2900)
+OT_ROUND = 24              # na prorrogação todo round começa com 5 mil para cada um: o full buy seguinte está sempre garantido
+
+
+def classify_buys(rd, pr):
+    """Tipo de compra de cada time em cada round, pelo que cada jogador comprou e pelo dinheiro que guardou.
+    - Pistol: rounds 1 e 13.
+    - Full buy: 20 mil ou mais de equipamento, ou 4+ jogadores com o kit completo.
+    - Semi-buy: compra parcial (2+ jogadores com 2 mil ou mais) no round depois de ganhar o pistol, ou guardando o full buy
+      do round seguinte: 4+ jogadores com dinheiro guardado + bônus da próxima derrota >= kit completo.
+    - Forçada: abaixo do full buy, gastando (compra parcial ou 65%+ do dinheiro) sem garantir o full buy seguinte.
+    - Eco: o resto (gastou pouco)."""
+    pr = pr.sort_values(["match_id", "team_color", "round_num"])
+    team = pr.groupby(["match_id", "team_color", "round_num"]).agg(
+        won=("won_round", "first"), loadout=("loadout", "sum"), spent=("spent", "sum"), bank=("bank", "sum")).reset_index()
+    # derrotas seguidas antes de cada round, dentro da metade (o pistol começa a contagem do zero)
+    streak, after_pistol_win = [], []
+    prev = None
+    for m, c, rn, won in zip(team.match_id, team.team_color, team.round_num, team.won):
+        if prev is None or prev[:2] != (m, c) or rn in (0, 12):
+            k, pistol_won = 0, None
+        streak.append(k)
+        after_pistol_win.append(rn in (1, 13) and pistol_won is True)
+        if rn in (0, 12):
+            pistol_won = bool(won)
+        k = 0 if won else k + 1
+        prev = (m, c, rn)
+    team["loss_bonus"] = [LOSS_BONUS[min(k, 2)] for k in streak]
+    team["after_pistol_win"] = after_pistol_win
+    pl = pr.merge(team[["match_id", "team_color", "round_num", "loss_bonus"]], on=["match_id", "team_color", "round_num"])
+    pl["full"] = pl.loadout >= FULL_KIT
+    pl["bought"] = pl.loadout >= PARTIAL_KIT
+    pl["keeps_full_buy"] = pl.bank + pl.loss_bonus >= FULL_KIT
+    cnt = pl.groupby(["match_id", "team_color", "round_num"])[["full", "bought", "keeps_full_buy"]].sum()
+    team = team.join(cnt, on=["match_id", "team_color", "round_num"])
+
+    def kind(r):
+        if r.round_num in (0, 12):
+            return "Pistol"
+        if r.loadout >= FULL_BUY_TEAM or r.full >= 4:
+            return "Full buy"
+        bought = r.bought >= 2
+        keeps = r.keeps_full_buy >= 4 or r.round_num >= OT_ROUND
+        if bought and r.after_pistol_win:
+            return "Semi-buy"
+        if not keeps and (bought or r.spent >= 0.65 * (r.spent + r.bank)):
+            return "Forçada"
+        return "Semi-buy" if bought else "Eco"
+
+    team["buy"] = team.apply(kind, axis=1)
+    buy = team.set_index(["match_id", "round_num", "team_color"]).buy
+    rd = rd.copy()
+    rd["atk_buy"] = buy.reindex(pd.MultiIndex.from_arrays([rd.match_id, rd.round_num, rd.attacker_color])).to_numpy()
+    rd["def_buy"] = buy.reindex(pd.MultiIndex.from_arrays([rd.match_id, rd.round_num, rd.defender_color])).to_numpy()
+    return rd
 
 
 def weapon_name(uuid):
@@ -307,7 +357,7 @@ def parse_match(path: Path, data_root: Path, T):
             "atk_loadout": team_loadout[atk], "def_loadout": team_loadout[dfn],
             "atk_spent": team_spent[atk], "def_spent": team_spent[dfn],
             "atk_bank": team_bank[atk], "def_bank": team_bank[dfn],
-            "atk_buy": buy_type(team_loadout[atk], rn), "def_buy": buy_type(team_loadout[dfn], rn),
+            "atk_buy": None, "def_buy": None,   # preenchidos por classify_buys, com a partida inteira
             "n_kills": len(kills),
             "first_blood_side": fb["killer_side"] if fb else None,
             "anomalous": anomalous,
@@ -345,6 +395,8 @@ def main(data_root):
     OUT.mkdir(parents=True, exist_ok=True)
     for name, rows in T.items():
         df = pd.DataFrame(rows)
+        if name == "rounds":
+            df = classify_buys(df, pd.DataFrame(T["player_round"]))
         if name == "kills":
             df["assistants"] = df["assistants"].apply(lambda xs: ",".join(xs))
         df.to_parquet(OUT / f"{name}.parquet", index=False)

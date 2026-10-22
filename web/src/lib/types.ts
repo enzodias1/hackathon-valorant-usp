@@ -287,7 +287,7 @@ export interface TeamZones {
 }
 
 // ---------------------------------------------------------------- economia ("forçar ou economizar?")
-export type EcoDecision = "Economizar" | "Meio-termo" | "Forçar";
+export type EcoDecision = "Eco" | "Semi-buy" | "Forçada";
 
 export interface TeamEconomy {
   context: string;

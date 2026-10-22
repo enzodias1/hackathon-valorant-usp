@@ -1,9 +1,10 @@
 """Economy advisor: "force or save?" when the team cannot afford a full buy.
 
-Decision zone: non-pistol rounds of regulation where the team's credits + carried equipment < 20k (no full buy).
-Decision (by how much of the available credits was spent): Economizar <= 35% · Meio-termo · Forçar >= 65%.
+Decision zone: non-pistol rounds of regulation without a full buy.
+Decision: the round's buy type (etl.classify_buys, as in the game): Eco · Semi-buy (partial buy keeping the next full buy,
+or the round after winning the pistol) · Forçada (spent without guaranteeing the next full buy).
 Outcome: rounds won in this round and the next 2 (same half; observations whose horizon is cut by the end of the
-map are dropped). Effects vs. Economizar come from a linear model with controls (credits, carried equipment,
+map are dropped). Effects vs. Eco come from a linear model with controls (credits, carried equipment,
 opponent credits/equipment, strength difference, side, score, round number) and a match-level bootstrap.
 This is observational evidence ("in similar situations, teams that forced won X more rounds"), not proof of causality.
 
@@ -19,8 +20,7 @@ from sklearn.linear_model import LinearRegression
 ROOT = Path(__file__).resolve().parents[1]
 P = ROOT / "data" / "processed"
 FULL_BUY = 20000
-SAVE_MAX, FORCE_MIN = 0.35, 0.65
-DECISIONS = ["Economizar", "Meio-termo", "Forçar"]
+DECISIONS = ["Eco", "Semi-buy", "Forçada"]
 CONTEXTS = ["perdeu o pistol", "perdeu o round anterior"]
 BOOT = 1000
 CONTROLS = ["credits", "carried", "opp_credits", "opp_carried", "sdiff", "atk", "score_diff", "round_num"]
@@ -68,19 +68,22 @@ def build():
     sc = g.set_index(["match_id", "team_color", "round_num"]).my_score
     g["score_diff"] = g.my_score - sc.reindex(pd.MultiIndex.from_arrays([g.match_id, g.team_color.map({"Red": "Blue", "Blue": "Red"}), g.round_num])).to_numpy()
 
-    z = g[~g.round_num.isin([0, 12]) & (g.round_num < 24) & ((g.credits + g.carried) < FULL_BUY)].copy()
-    frac = z.spent / z.credits.clip(lower=1)
-    z["decision"] = np.select([frac <= SAVE_MAX, frac >= FORCE_MIN], ["Economizar", "Forçar"], "Meio-termo")
+    r = rd.set_index(["match_id", "round_num"])
+    idx = pd.MultiIndex.from_frame(g[["match_id", "round_num"]])
+    is_atk = r.attacker_color.reindex(idx).to_numpy() == g.team_color.to_numpy()
+    g["buy"] = np.where(is_atk, r.atk_buy.reindex(idx).to_numpy(), r.def_buy.reindex(idx).to_numpy())
+    z = g[~g.round_num.isin([0, 12]) & (g.round_num < 24) & g.buy.isin(DECISIONS)].copy()
+    z["decision"] = z.buy
     z["context"] = np.select([z.round_num.isin([1, 13]) & (z.prev_won == 0), z.prev_won == 0], CONTEXTS, "outro")
     z["credit_band"] = pd.cut(z.credits, [0, 8000, 12000, 16000, FULL_BUY], labels=["< 8 mil", "8–12 mil", "12–16 mil", "16–20 mil"]).astype(str)
     return z
 
 
 def effects(d, y="w3", controls=CONTROLS, boot=BOOT, seed=1):
-    """Adjusted difference vs Economizar for each decision with >= 15 rows: estimate + 90% match-bootstrap CI."""
+    """Adjusted difference vs Eco for each decision with >= 15 rows: estimate + 90% match-bootstrap CI."""
     d = d[d[y].notna()].reset_index(drop=True)
-    cols = [c for c in ("Meio-termo", "Forçar") if (d.decision == c).sum() >= 15]
-    if (d.decision == "Economizar").sum() < 15 or not cols:
+    cols = [c for c in ("Semi-buy", "Forçada") if (d.decision == c).sum() >= 15]
+    if (d.decision == "Eco").sum() < 15 or not cols:
         return {}, len(d)
     X = pd.get_dummies(d.decision).reindex(columns=cols, fill_value=0).astype(float)
     for c in controls:
@@ -108,7 +111,7 @@ def describe(d):
 
 def main():
     z = build()
-    league = {"definitions": {"full_buy_credits": FULL_BUY, "save_max_spent_share": SAVE_MAX, "force_min_spent_share": FORCE_MIN,
+    league = {"definitions": {"full_buy_credits": FULL_BUY, "decision": "tipo de compra do round (eco, semi-buy ou forçada)",
                               "horizon_rounds": 3, "controls": ["dinheiro do time", "armas carregadas", "dinheiro e armas do adversário",
                                                                "diferença de força dos times", "lado", "placar", "número do round"]},
               "contexts": {}}

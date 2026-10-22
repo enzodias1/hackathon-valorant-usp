@@ -114,7 +114,7 @@ quem vence de quem perde (1 = perfeito, 0,5 = moeda); **ECE / calibração** = q
 - `teams/<slug>.json`:
   - `strength`: `{ theta, p_vs_avg, rank, of, reliable }`. Força do time (ranking de 1 a 68; `p_vs_avg` = chance de vencer um round contra um time médio).
   - `economy`: lista por situação ("perdeu o pistol", "perdeu o round anterior") com as decisões do time
-    (`Economizar` / `Meio-termo` / `Forçar` → `n`, `win_now`, `rounds_next3`), `league_best` e `insight` (texto pronto ou `null`).
+    (`Eco` / `Semi-buy` / `Forçada` → `n`, `win_now`, `rounds_next3`), `league_best` e `insight` (texto pronto ou `null`).
   - `evolution`: `{ available, periods, stages[], changes[], players[] }`. `stages` = desempenho acima do próprio nível por etapa
     (`above_level_per100` ± 1,645 × `above_level_se100`); `changes` = 1ª × 2ª metade (`significant` já com Benjamini-Hochberg; `text` quando confirmada).
 - `players/<puuid>.json`: `stages` = impacto por etapa (`etapa`, `team`, `rounds`, `wpa_per_round`, `kd`).
@@ -144,7 +144,7 @@ Referências da liga inteira (taxas médias dos times, vitória por tipo de comp
       "n": 1, "half": "1º tempo", "attacker": "Red", "winner": "Red",
       "result": "Elimination | Defuse | Detonate | Timer",
       "score_before": { "Red": 0, "Blue": 0 },
-      "buy":     { "Red": "Pistol | Eco | Semi-eco | Semi-buy | Full buy", "Blue": "..." },
+      "buy":     { "Red": "Pistol | Eco | Semi-buy | Forçada | Full buy", "Blue": "..." },   // como no jogo: etl.classify_buys
       "loadout": { "Red": 3550, "Blue": 3600 },
       "wp_red_start": 0.48,          // P(Red vence o round) antes do primeiro tiro (só economia)
       "plant":  { "t": 43125, "site": "B", "by": "<puuid>", "xy": [x, y] } | null,

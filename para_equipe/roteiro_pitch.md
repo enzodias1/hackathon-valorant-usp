@@ -5,7 +5,7 @@
 conferidos nos dados (21/10); se mudar algum, confira com o Enzo.
 
 - **Ritmo:** ~140 palavras por minuto. As falas abaixo somam ~610 palavras ≈ 4:20, sobrando só ~40 s para as falas das entrevistas e
-  pausas. Está apertado: se passar de 5:00, os primeiros cortes são a frase dos 41% × 6% (time) e a do eco do MackLogic (comparar).
+  pausas. Está apertado: se passar de 5:00, os primeiros cortes são a frase dos 41% × 4% (time) e a do eco do MackLogic (comparar).
 - **Tela:** gravar o site rodando (https://analista-univava.vercel.app) com zoom do navegador em 110–125% para ler bem no vídeo. No replay,
   use o botão **⛶ Tela cheia** (ou a tecla **F**): mostra o título do round, o resumo, o mapa grande e a sequência de eliminações.
 - **O que a banca vai pontuar** (lembrar ao gravar): Inovação · Impacto · Qualidade da análise · Viabilidade · Usabilidade · Apresentação.
@@ -55,7 +55,7 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
 > "Na página do time, o diagnóstico compara com a liga: o UFMT vence 61% dos rounds atacando, contra 52% da liga, e é resiliente quando
 > perde o primeiro duelo. O grafo mostra **quem cobre quem**: quais duplas vingam a morte uma da outra."
 >
-> "E isso importa: morrer a menos de 5 metros de um aliado dá **41%** de chance de a morte ser trocada; a mais de 30 metros, **6%**."
+> "E isso importa: morrer a menos de 5 metros de um aliado dá **41%** de chance de a morte ser trocada; a mais de 30 metros, **4%**."
 
 **2:45 · Jogador**: BRaim (Unicamp Tritons Black): perfil → "Duelos" → "Quando morre no round" → "Habilidades".
 > "O K/D engana. No K/D, este jogador é melhor que só 31% da liga; em impacto, é melhor que **63%**: as jogadas dele acontecem
@@ -66,7 +66,7 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
 
 **3:25 · Comparar**: UFMT Turuna × MackLogic RED.
 > "Para o próximo jogo, o comparador mostra quem é favorito, quais mapas escolher e vetar, e o histórico do confronto: em cada mapa,
-> a jogada que mais pesou, com o replay a um clique. O MackLogic economizou nas 8 vezes que perdeu o pistol: dá para esperar eco no round 2."
+> a jogada que mais pesou, com o replay a um clique. O MackLogic fez eco nas 8 vezes que perdeu o pistol: dá para esperar eco no round 2."
 
 ## 3:50–4:25 · Por que confiar
 **Tela:** "Metodologia" → "O replay: o que é registrado e o que é estimado" e "Comparações justas".
@@ -92,7 +92,7 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
 - [ ] Gravar a tela em 1080p; áudio com fone/microfone, ambiente sem eco.
 - [ ] No replay, usar a tela cheia (F) e a velocidade 1× nos momentos-chave; espaço toca/pausa, ← → pulam de jogada.
 - [ ] Cortar tempos mortos de carregamento na edição.
-- [ ] Legendas nos números-chave (99% → derrota; 75% → 74%; 41% × 6%).
+- [ ] Legendas nos números-chave (99% → derrota; 75% → 74%; 41% × 4%).
 - [ ] Conferir o tempo final: **até 5:00**.
 - [ ] Publicar no YouTube como **não listado** e testar o link em aba anônima.
 - [ ] Nome da equipe e dos integrantes na tela final (o formulário também pede).

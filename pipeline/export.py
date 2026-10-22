@@ -286,7 +286,7 @@ def export_teams(t, names):
                                              "tip": "Compare a tabela de economia: em qual tipo de compra o time rende abaixo do esperado?"})
         ins["strengths"], ins["weaknesses"] = ins["strengths"][:4], ins["weaknesses"][:4]
 
-        order = ["Pistol", "Eco", "Semi-eco", "Semi-buy", "Full buy"]
+        order = ["Pistol", "Eco", "Semi-buy", "Forçada", "Full buy"]
         buys.sort(key=lambda x: order.index(x["buy"]) if x["buy"] in order else 99)
 
         maps = []
@@ -392,7 +392,7 @@ def team_economy(t, slug):
     """What the team did when it could not afford a full buy, and what happened next. Descriptive only:
     the league-wide "force vs save" comparison is not shown as a recommendation (observational, few force cases)."""
     lg, et = t["economy"]["contexts"], t["economy_team"]
-    verb = {"Economizar": "economizou", "Meio-termo": "fez meia compra", "Forçar": "forçou"}
+    verb = {"Eco": "fez eco", "Semi-buy": "fez semi-buy", "Forçada": "forçou"}
     out = []
     for ctx in lg:
         rows = et[(et.team == slug) & (et.context == ctx)]
@@ -540,7 +540,8 @@ def export_players(t, names):
                 team = main_team.get(o)
                 opponents.append({"puuid": o, "name": t["player_name"].get(o), "team": team,
                                   "team_name": names.get(team, {}).get("name", team), "kills": k_, "deaths": d_})
-        opponents.sort(key=lambda x: (-(x["kills"] + x["deaths"]), -x["kills"]))
+        # desempate fixo (nick, puuid): sem ele, quem empata muda de ordem (e de quem entra no corte de 8) a cada execução
+        opponents.sort(key=lambda x: (-(x["kills"] + x["deaths"]), -x["kills"], (x["name"] or "").lower(), x["puuid"]))
         K, D = int(kc.sum()), int(dcnt.sum())
         rate = K / (K + D) if K + D else None
         ka = w_.victim_agent.value_counts() if w_ is not None else pd.Series(dtype=int)
@@ -554,7 +555,7 @@ def export_players(t, names):
         bh_adjust(by_agent)  # its own family on the page: the list of enemy agents
         agents_out = [{"agent": c["agent"], "icon": c["icon"], "kills": c["kills"], "deaths": c["deaths"], "win": c["value"],
                        "z": c["z"], "significant": c["significant"], "good": c["good"]}
-                      for c in sorted(by_agent.values(), key=lambda c: -(c["kills"] + c["deaths"]))]
+                      for c in sorted(by_agent.values(), key=lambda c: (-(c["kills"] + c["deaths"]), c["agent"]))]
         return {"kills": K, "deaths": D, "win_rate": rate, "opponents": opponents[:8], "by_agent": agents_out}
 
     def death_timing_of(puuid):
