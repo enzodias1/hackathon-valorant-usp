@@ -92,3 +92,68 @@ h2 {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
+/* ---------------------------------------------------------------- Exportar PDF (components/site/ExportPdf.tsx)
+   A impressão do navegador vira o relatório: só as seções marcadas, sem menu nem botões, com as cores do site.
+   data-print-hide: some na impressão · data-pdf-hide: seção desmarcada · data-print-main: coluna principal do layout */
+@page {
+  size: A4;
+  margin: 12mm 10mm;
+  background: var(--bg);
+}
+
+/* durante a exportação a tela já fica na largura útil da folha (190 mm): os gráficos se redimensionam antes de imprimir */
+html.pdf-mode body {
+  width: 190mm;
+}
+html.pdf-mode [data-print-hide],
+html.pdf-mode [data-pdf-hide] {
+  display: none !important;
+}
+html.pdf-mode [data-print-main] {
+  padding-left: 0 !important;
+}
+html.pdf-mode .print-header {
+  display: flex !important;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  html,
+  body {
+    background: var(--bg) !important;
+  }
+  [data-print-hide],
+  [data-pdf-hide] {
+    display: none !important;
+  }
+  [data-print-main] {
+    padding-left: 0 !important;
+  }
+  .print-header {
+    display: flex !important;
+    margin-bottom: 4mm;
+  }
+  /* sem cabeçalho fixo repetido em cada folha */
+  .sticky {
+    position: static !important;
+  }
+  /* as seções podem continuar na folha seguinte (senão sobra meia folha vazia antes de cada uma),
+     mas cartões, linhas, gráficos e os números do resumo não são cortados ao meio */
+  .rounded-lg,
+  tr,
+  li,
+  svg,
+  .recharts-wrapper,
+  [data-pdf-section="Resumo"] > * {
+    break-inside: avoid;
+  }
+  h2,
+  h3,
+  summary {
+    break-after: avoid;
+  }
+}

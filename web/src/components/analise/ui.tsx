@@ -26,14 +26,14 @@ export function Section({ title, subtitle, info, teaser, collapsible, defaultOpe
   const box = "min-w-0 scroll-mt-20 rounded-xl border border-line bg-surface";
   if (!collapsible) {
     return (
-      <section id={id} className={`${box} p-5 sm:p-6`}>
+      <section id={id} data-pdf-section={title} className={`${box} p-5 sm:p-6`}>
         <header className="mb-4 flex flex-wrap items-end justify-between gap-2">{heading}{aside}</header>
         {children}
       </section>
     );
   }
   return (
-    <details id={id} open={defaultOpen} className={`${box} group`}>
+    <details id={id} data-pdf-section={title} open={defaultOpen} className={`${box} group`}>
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 sm:px-6 [&::-webkit-details-marker]:hidden">
         <div className="min-w-0">
           {heading}
@@ -41,7 +41,7 @@ export function Section({ title, subtitle, info, teaser, collapsible, defaultOpe
         </div>
         <span className="flex shrink-0 items-center gap-3">
           {aside && <span className="hidden group-open:inline">{aside}</span>}
-          <span aria-hidden className="grid h-8 w-8 place-items-center rounded-full border border-line text-ink-2 transition-[transform,color,border-color] group-open:rotate-180 group-hover:border-ink-2 group-hover:text-ink">
+          <span aria-hidden data-print-hide className="grid h-8 w-8 place-items-center rounded-full border border-line text-ink-2 transition-[transform,color,border-color] group-open:rotate-180 group-hover:border-ink-2 group-hover:text-ink">
             <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 6l4 4 4-4" />
             </svg>
@@ -63,17 +63,18 @@ export function PageBand({ back, kicker, title, children, actions, art, compact 
   return (
     <section className="relative isolate overflow-hidden bg-brand">
       {/* splash do mapa tingido de roxo (luminosidade da imagem + cor da faixa) e esmaecido do lado do texto */}
+      {/* no PDF o splash e a arte de fundo saem (data-print-hide): a mistura de cores vira imagem pesada (~5 MB por arquivo) */}
       {art?.splash && (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={art.splash} alt="" aria-hidden className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover opacity-40 mix-blend-luminosity" />
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-20 bg-gradient-to-r from-brand from-25% via-brand/70 to-brand/10" />
+          <img src={art.splash} alt="" aria-hidden data-print-hide className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover opacity-40 mix-blend-luminosity" />
+          <div aria-hidden data-print-hide className="pointer-events-none absolute inset-0 -z-20 bg-gradient-to-r from-brand from-25% via-brand/70 to-brand/10" />
         </>
       )}
       {/* arte oficial dos agentes (política "Legal Jibber Jabber" da Riot) */}
       {art?.background && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={art.background} alt="" aria-hidden className="pointer-events-none absolute -top-8 right-[14%] -z-10 hidden h-[130%] opacity-[0.14] md:block" />
+        <img src={art.background} alt="" aria-hidden data-print-hide className="pointer-events-none absolute -top-8 right-[14%] -z-10 hidden h-[130%] opacity-[0.14] md:block" />
       )}
       {art?.portrait && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -81,12 +82,12 @@ export function PageBand({ back, kicker, title, children, actions, art, compact 
              className="pointer-events-none absolute -top-[6%] right-[-14%] -z-10 h-[250%] opacity-25 [mask-image:linear-gradient(to_right,transparent_0%,black_35%)] md:right-[-4%] md:opacity-100" />
       )}
       <div className="mx-auto max-w-6xl px-4 pb-8 pt-7 sm:px-8">
-        {back && <Link href={back.href} className="label-caps text-[11px] text-white/70 hover:text-white">← {back.label}</Link>}
+        {back && <Link href={back.href} data-print-hide className="label-caps text-[11px] text-white/70 hover:text-white">← {back.label}</Link>}
         {kicker && <div className="label-caps mt-4 text-[11px] text-lime">{kicker}</div>}
         {/* entrelinha 1,1: na Anton os acentos das maiúsculas (Ã, Ê) passam da altura da linha e encostariam na linha de cima */}
         <h1 className={`mt-1 max-w-3xl leading-[1.1] text-white ${compact ? "text-[clamp(1.9rem,4vw,3rem)]" : "text-[clamp(2.4rem,5.5vw,4.2rem)]"}`}>{title}</h1>
         {children && <div className="mt-3 max-w-2xl text-white/85">{children}</div>}
-        {actions && <div className="mt-5 flex flex-wrap items-center gap-3">{actions}</div>}
+        {actions && <div data-print-hide className="mt-5 flex flex-wrap items-center gap-3">{actions}</div>}
       </div>
     </section>
   );

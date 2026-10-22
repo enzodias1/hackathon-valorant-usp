@@ -58,7 +58,7 @@ export default function Comparator({ teams }: { teams: TeamSummary[] }) {
   const A = data.a, B = data.b;
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div data-print-hide className="flex flex-col gap-3 sm:flex-row sm:items-end">
         {select(a, setA, "Time", b)}
         <span className="hidden pb-2 text-muted sm:block">×</span>
         {select(b, setB, "Adversário", a)}
@@ -95,8 +95,8 @@ function Comparison({ A, B }: { A: Team; B: Team }) {
   const core = (t: Team) => t.roster.filter((p) => p.core).sort((x, y) => y.wpa_per_round - x.wpa_per_round);
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-3 md:grid-cols-3">
+    <div data-pdf-title={`${A.name} × ${B.name}`} className="space-y-6">
+      <section data-pdf-section="Quem é favorito e confrontos diretos" className="grid gap-3 md:grid-cols-3">
         <div className="rounded-xl border border-line bg-surface p-5 md:col-span-2">
           <p className="text-xs uppercase tracking-wide text-muted">Quem é favorito</p>
           <p className="mt-1 text-2xl font-semibold text-ink">{fav.name} <span className="text-ink-2">vence {pct(fav === A ? pMap : 1 - pMap)} dos mapas</span></p>
@@ -122,7 +122,7 @@ function Comparison({ A, B }: { A: Team; B: Team }) {
 
       {h2h.length > 0 && <HeadToHead A={A} B={B} ids={h2h.map((m) => m.id)} />}
 
-      <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+      <section data-pdf-section="Mapas" className="rounded-xl border border-line bg-surface p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Mapas</h2>
         <p className="mt-1 text-sm text-ink-2">Rounds vencidos em cada mapa por cada time (mapas jogados entre parênteses). A sugestão só considera mapas em que os dois jogaram pelo menos 2 vezes.</p>
         {(pick || ban) && (
@@ -148,7 +148,7 @@ function Comparison({ A, B }: { A: Team; B: Team }) {
         </div>
       </section>
 
-      <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+      <section data-pdf-section="Estilo lado a lado" className="rounded-xl border border-line bg-surface p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Estilo lado a lado</h2>
         <p className="mt-1 text-sm text-ink-2">▲/▼: diferença em relação à liga confirmada estatisticamente.</p>
         <div className="mt-3 overflow-x-auto">
@@ -169,7 +169,7 @@ function Comparison({ A, B }: { A: Team; B: Team }) {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+        <section data-pdf-section={`O que esperar de ${B.name}`} className="rounded-xl border border-line bg-surface p-5 sm:p-6">
           <h2 className="text-lg font-semibold text-ink">O que esperar de {B.name}</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {ecoShare != null && ecoB!.n >= 5 && (
@@ -191,7 +191,7 @@ function Comparison({ A, B }: { A: Team; B: Team }) {
           <Link href={`/times/${B.slug}`} className="mt-3 inline-block text-sm text-accent hover:underline">Página completa de {B.name} →</Link>
         </section>
 
-        <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+        <section data-pdf-section="Jogadores-chave" className="rounded-xl border border-line bg-surface p-5 sm:p-6">
           <h2 className="text-lg font-semibold text-ink">Jogadores-chave</h2>
           <p className="mt-1 text-sm text-ink-2">Titulares ordenados por impacto por round.</p>
           <div className="mt-3 grid gap-4 sm:grid-cols-2">

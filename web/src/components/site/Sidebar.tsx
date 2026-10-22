@@ -72,7 +72,7 @@ export default function Sidebar() {
   return (
     <>
       {/* desktop: barra lateral fixa */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line bg-bg px-4 py-6 lg:flex">
+      <aside data-print-hide className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line bg-bg px-4 py-6 lg:flex">
         <Logo />
         <div className="mt-6"><QuickSearch hotkey /></div>
         <nav aria-label="Navegação principal" className="mt-6 flex-1"><NavList /></nav>
@@ -80,7 +80,7 @@ export default function Sidebar() {
       </aside>
 
       {/* celular: barra no topo + gaveta */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-bg/95 px-4 py-3 backdrop-blur lg:hidden">
+      <header data-print-hide className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-bg/95 px-4 py-3 backdrop-blur lg:hidden">
         <Logo />
         <button type="button" onClick={() => setOpen(true)} aria-label="Abrir menu" aria-expanded={open}
                 className="grid h-9 w-9 place-items-center rounded-md border border-line text-ink">

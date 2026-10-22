@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import ExportPdf from "@/components/site/ExportPdf";
 import { pageMeta } from "@/lib/site";
 import { getIndex, getPlayer } from "@/lib/data";
 import { betterThan, clock, nick, num, pct, pp } from "@/lib/format";
@@ -54,7 +55,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
       <PageBand back={{ href: "/jogadores", label: "Jogadores" }} art={agentArt(mainAgent)}
                 kicker={p.role.agent_role ?? undefined}
                 title={<>{nick(p.name)} <span className="text-[0.45em] text-white/60">#{p.name.split("#")[1]}</span></>}
-                actions={<BandButton href={`/times/${p.team}`} primary>Ver {p.team_name}</BandButton>}>
+                actions={<><BandButton href={`/times/${p.team}`} primary>Ver {p.team_name}</BandButton><ExportPdf title={nick(p.name)} /></>}>
         <p className="text-sm">
           {mainAgent && <>Mais jogado: <b>{mainAgent}</b> · </>}{p.sample.rounds} rounds em {p.sample.maps} mapas
           {p.teams.length > 1 && <span className="text-white/60"> · também jogou por {p.teams.slice(1).map((t) => t.name).join(", ")}</span>}
@@ -68,7 +69,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
           </p>
         )}
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <div data-pdf-section="Resumo" className="grid grid-cols-2 gap-3 md:grid-cols-5">
           <StatTile label="Impacto por round" value={pp(imp.wpa_per_round)} tone={imp.wpa_per_round >= 0 ? "good" : "bad"}
                     sub={pc?.wpa_per_round != null ? betterThan(pc.wpa_per_round) : `${p.sample.rounds} rounds`} />
           <StatTile label="K/D" value={num(s.kd, 2)} sub={pc?.kd != null ? betterThan(pc.kd) : `${s.kills}/${s.deaths}`} />

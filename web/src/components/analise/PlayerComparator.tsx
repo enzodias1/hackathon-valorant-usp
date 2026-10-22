@@ -151,7 +151,7 @@ export default function PlayerComparator({ players }: { players: PlayerOption[] 
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div data-print-hide className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <Picker label="Jogador A" value={a} options={players} other={b} onPick={setA} />
         <span className="font-display hidden pb-1.5 text-2xl text-muted sm:block" aria-hidden>×</span>
         <Picker label="Jogador B" value={b} options={players} other={a} onPick={setB} />
@@ -161,12 +161,12 @@ export default function PlayerComparator({ players }: { players: PlayerOption[] 
         <p className="rounded-xl border border-line bg-surface p-5 text-sm text-ink-2">{a && b ? "Carregando os dois jogadores…" : "Escolha dois jogadores."}</p>
       ) : (
         <>
-          <div className="grid gap-3 md:grid-cols-2">
+          <div data-pdf-section="Os dois jogadores" data-pdf-title={`${A.name.split("#")[0]} × ${B.name.split("#")[0]}`} className="grid gap-3 md:grid-cols-2">
             <Head p={A} side="a" />
             <Head p={B} side="b" />
           </div>
 
-          <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+          <section data-pdf-section={sameTeam ? "Jogando juntos" : "Frente a frente"} className="rounded-xl border border-line bg-surface p-5 sm:p-6">
             <h2 className="text-2xl tracking-wide text-ink">{sameTeam ? "Jogando juntos" : "Frente a frente"}</h2>
             {sameTeam ? (
               partner ? (
@@ -194,7 +194,7 @@ export default function PlayerComparator({ players }: { players: PlayerOption[] 
             )}
           </section>
 
-          <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+          <section data-pdf-section="Lado a lado" className="rounded-xl border border-line bg-surface p-5 sm:p-6">
             <h2 className="text-2xl tracking-wide text-ink">Lado a lado</h2>
             <div className="mt-2 grid grid-cols-2 text-sm">
               <span className="font-semibold text-ink">{nick(A.name)}</span>
@@ -207,7 +207,7 @@ export default function PlayerComparator({ players }: { players: PlayerOption[] 
             </p>
           </section>
 
-          <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+          <section data-pdf-section="Agentes mais jogados" className="rounded-xl border border-line bg-surface p-5 sm:p-6">
             <h2 className="text-2xl tracking-wide text-ink">Agentes mais jogados</h2>
             <div className="mt-3 grid gap-6 md:grid-cols-2">
               {[A, B].map((p) => (

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import ExportPdf from "@/components/site/ExportPdf";
 import { pageMeta } from "@/lib/site";
 import { getIndex, getMatch, getNavGrid } from "@/lib/data";
 import { clock, competitionLabel, date, nick, num, pct, pp } from "@/lib/format";
@@ -42,7 +43,8 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
       <PageBand back={{ href: "/partidas", label: "Partidas" }} compact
                 kicker={`${competitionLabel(match.competition, match.stage)} · ${date(match.date)} · ${match.map.name} · ${num(match.length_min)} min`}
                 title={<span className="flex flex-col gap-2 pt-1">{(["Red", "Blue"] as Color[]).map((c) => <ScoreLine key={c} match={match} c={c} />)}</span>}
-                art={{ splash: mapSplash(match.map.code), portrait: agentArt(mvp.agent)?.portrait }}>
+                art={{ splash: mapSplash(match.map.code), portrait: agentArt(mvp.agent)?.portrait }}
+                actions={<ExportPdf title={`${match.teams.Red.name} ${match.score.Red}–${match.score.Blue} ${match.teams.Blue.name} · ${match.map.name}`} />}>
         <p className="text-sm">
           Maior impacto da partida: <Link href={`/jogadores/${mvp.puuid}`} className="font-semibold text-white underline decoration-lime underline-offset-4 hover:text-lime">{nick(mvp.name)}</Link>{" "}
           ({mvp.agent}), com <b className="text-white">{pp(mvp.wpa, 0)}</b> somados nos rounds.

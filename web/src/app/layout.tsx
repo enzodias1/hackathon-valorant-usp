@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Anton, Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import HashOpener from "@/components/site/HashOpener";
+import PrintHeader from "@/components/site/PrintHeader";
 import Sidebar from "@/components/site/Sidebar";
 import { PRODUCT_NAME, SITE_URL, TAGLINE, pageMeta } from "@/lib/site";
 import "./globals.css";
@@ -42,7 +43,8 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} ${anton.variable} antialiased`}>
         <Sidebar />
         <HashOpener />
-        <div className="flex min-h-screen flex-col lg:pl-60">
+        <div data-print-main className="flex min-h-screen flex-col lg:pl-60">
+          <PrintHeader />
           <div className="flex-1">{children}</div>
           <footer className="border-t border-line">
             <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-xs text-muted sm:flex-row sm:justify-between">
