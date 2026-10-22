@@ -201,7 +201,7 @@ function Comparison({ A, B }: { A: Team; B: Team }) {
                 <ul className="space-y-1 text-sm">
                   {core(t).map((p) => (
                     <li key={p.puuid} className="flex justify-between gap-2">
-                      <Link href={`/jogadores/${p.puuid}`} className="truncate text-ink hover:underline">{nick(p.name)} <span className="text-xs text-muted">{p.behavior_role ?? p.agent_role ?? ""}</span></Link>
+                      <Link href={`/jogadores/${p.puuid}`} className="truncate text-ink hover:underline">{nick(p.name)} <span className="text-xs text-muted">{p.agent_role ?? ""}</span></Link>
                       <span className={`tabular shrink-0 ${p.wpa_per_round >= 0 ? "text-good" : "text-bad"}`}>{pp(p.wpa_per_round)}</span>
                     </li>
                   ))}

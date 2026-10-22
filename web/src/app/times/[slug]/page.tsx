@@ -6,7 +6,7 @@ import { competitionLabel, date, nick, num, pct } from "@/lib/format";
 import type { Comparison, Team, TeamMetric } from "@/lib/types";
 import SynergyGraph from "@/components/analise/SynergyGraph";
 import ZonesPanel from "@/components/analise/ZonesPanel";
-import { BandButton, Badge, CompareLegend, CompareRow, InsightPanel, PageBand, PlayerLink, Section, StageRow, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
+import { BandButton, CompareLegend, CompareRow, InsightPanel, PageBand, PlayerLink, Section, StageRow, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
 
 // só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
 export const dynamicParams = false;
@@ -88,17 +88,17 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
           <ZonesPanel zones={zones} navs={navs} />
         </Section>
 
-        <Section id="elenco" title="Elenco e papéis" collapsible teaser={t.roster}
-                 info="Papel em jogo (Entry, Support, Lurker, Clutch) é descoberto pelo comportamento (primeiros duelos, trades, distância do time, fim de round), não pelo agente. Impacto = quanto o jogador muda, em média, a chance de vitória do round. Esmaecidos: menos de 20% dos rounds do time.">
+        <Section id="elenco" title="Elenco" collapsible teaser={t.roster}
+                 info="Função: a do agente que o jogador mais usou. Impacto = quanto o jogador muda, em média, a chance de vitória do round. Esmaecidos: menos de 20% dos rounds do time.">
           <div className="overflow-x-auto">
             <table className="w-full sm:min-w-[760px]">
-              <thead><tr><Th className="sticky left-0 z-10 bg-surface">Jogador</Th><Th className="hidden sm:table-cell">Agentes</Th><Th>Função do agente → papel em jogo</Th><Th right>Rounds</Th><Th right>K/D</Th><Th right className="hidden sm:table-cell">ACS</Th><Th>Impacto / round</Th><Th right>Mortes trocadas</Th></tr></thead>
+              <thead><tr><Th className="sticky left-0 z-10 bg-surface">Jogador</Th><Th className="hidden sm:table-cell">Agentes</Th><Th>Função</Th><Th right>Rounds</Th><Th right>K/D</Th><Th right className="hidden sm:table-cell">ACS</Th><Th>Impacto / round</Th><Th right>Mortes trocadas</Th></tr></thead>
               <tbody>
                 {team.roster.map((p) => (
                   <tr key={p.puuid} className={p.core ? "" : "opacity-60"}>
                     <Td className="sticky left-0 z-10 bg-surface"><PlayerLink puuid={p.puuid} name={nick(p.name)} /></Td>
                     <Td className="hidden sm:table-cell text-ink-2">{p.agents.join(", ")}</Td>
-                    <Td className="whitespace-nowrap">{p.agent_role ?? "—"} {p.behavior_role && <>→ <Badge>{p.behavior_role}</Badge></>}</Td>
+                    <Td className="whitespace-nowrap">{p.agent_role ?? "—"}</Td>
                     <Td right>{p.rounds}</Td>
                     <Td right>{num(p.kd, 2)}</Td>
                     <Td right className="hidden sm:table-cell">{num(p.acs)}</Td>
@@ -237,7 +237,7 @@ function teasers(team: Team, zones: Awaited<ReturnType<typeof getZones>>) {
   const pair = [...team.synergy.edges].sort((a, b) => b.a_traded_b + b.b_traded_a - (a.a_traded_b + a.b_traded_a))[0];
   const map0 = zones.maps[0];
   const side = map0 && (["Defesa", "Ataque"] as const).map((s) => map0.sides[s]).filter(Boolean).sort((a, b) => b!.deaths - a!.deaths)[0];
-  const roles = team.roster.filter((p) => p.core && p.behavior_role).reduce<Record<string, number>>((acc, p) => ({ ...acc, [p.behavior_role!]: (acc[p.behavior_role!] ?? 0) + 1 }), {});
+  const roles = team.roster.filter((p) => p.core && p.agent_role).reduce<Record<string, number>>((acc, p) => ({ ...acc, [p.agent_role!]: (acc[p.agent_role!] ?? 0) + 1 }), {});
   const confirmed = team.evolution.changes.filter((c) => c.significant).length;
   const up = team.metrics.filter((m) => m.significant && m.good).length, down = team.metrics.filter((m) => m.significant && m.good === false).length;
   const bestMap = [...team.maps].filter((m) => m.maps >= 2).sort((a, b) => b.round_win - a.round_win)[0];

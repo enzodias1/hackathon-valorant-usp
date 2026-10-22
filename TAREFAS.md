@@ -85,8 +85,7 @@ do roteiro-base e do que ouviu nas entrevistas.
 
 ## Camila — Validação das análises com olhar de jogador
 **O que fazer:** abrir no site **3 times que você conhece ou acha interessantes**, **3 jogadores** e **2 partidas** (assistindo ao replay de
-alguns rounds), e anotar tudo que **não faz sentido para quem joga VALORANT**: um insight estranho, um papel (Entry, Support, Lurker,
-Clutch) que não combina com o jogador, uma região do mapa de calor esquisita, um caminho no replay que nenhum jogador faria, um texto
+alguns rounds), e anotar tudo que **não faz sentido para quem joga VALORANT**: um insight estranho, uma região do mapa de calor esquisita, um caminho no replay que nenhum jogador faria, um texto
 confuso. Também vale anotar o que achou **mais útil**: isso orienta o que mostrar no vídeo.
 
 **Por quê:** os números passam por 42 checagens automáticas, mas nenhuma checagem substitui alguém que entende o jogo. A banca tem

@@ -97,7 +97,7 @@ function Hero({ stats }: { stats: [number, string][] }) {
           </p>
           <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-white/85">
             K/D e ACS não dizem o que fazer. A cada kill, um modelo recalcula a chance de vitória do round. Com isso, mostramos as jogadas que
-            decidiram cada mapa, quem cobre quem dentro do time e o papel que cada jogador realmente exerce.
+            decidiram cada mapa, o replay de cada round e quem cobre quem dentro do time.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Link href="/times" className="label-caps bg-bg px-6 py-3.5 text-[12px] text-white transition-colors [clip-path:polygon(0_0,calc(100%-10px)_0,100%_10px,100%_100%,0_100%)] hover:bg-black">

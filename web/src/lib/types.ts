@@ -3,8 +3,6 @@
 export type Color = "Red" | "Blue";
 export type Side = "Ataque" | "Defesa";
 export type AgentRole = "Duelista" | "Iniciador" | "Controlador" | "Sentinela";
-export type BehaviorRole = "Entry" | "Support" | "Lurker" | "Clutch";
-export type Axes = Record<BehaviorRole | "Impacto", number>;
 
 export interface TeamName {
   name: string;
@@ -43,7 +41,6 @@ export interface PlayerSummary {
   team: string;
   rounds: number;
   agent_role: AgentRole | null;
-  behavior_role: BehaviorRole | null;
   kd: number;
   wpa_per_round: number;
   eligible: boolean;
@@ -204,8 +201,6 @@ export interface RosterPlayer {
   maps: number;
   agents: string[];
   agent_role: AgentRole | null;
-  behavior_role: BehaviorRole | null;
-  axes: Axes | null;
   kd: number;
   acs: number;
   adr: number;
@@ -256,7 +251,7 @@ export interface Team {
   buys: { buy: string; rounds: number; win: number; expected: number; league_win: number | null; z: number; significant: boolean }[];
   roster: RosterPlayer[];
   synergy: {
-    nodes: { puuid: string; name: string; agent_role: AgentRole | null; behavior_role: BehaviorRole | null; rounds: number }[];
+    nodes: { puuid: string; name: string; agent_role: AgentRole | null; rounds: number }[];
     edges: SynergyEdge[];
     league_pair_trade_rate: number;
   };
@@ -369,7 +364,7 @@ export interface Player {
     per_kill: number | null; per_death: number | null; league_per_kill: number; league_per_death: number;
   };
   percentiles: Record<"kd" | "kpr" | "adr" | "acs" | "kast" | "hs_pct" | "wpa_per_round" | "opening_rate" | "clutch_rate", number | null> | null;
-  role: { agent_role: AgentRole | null; behavior_role: BehaviorRole | null; axes: Axes | null };
+  role: { agent_role: AgentRole | null };
   comparisons: Record<string, Comparison>;
   insights: Insights;
   agents: { agent: string; icon: string | null; role: AgentRole; maps: number; rounds: number; kd: number; acs: number; wpa_per_round: number; map_win_rate: number }[];

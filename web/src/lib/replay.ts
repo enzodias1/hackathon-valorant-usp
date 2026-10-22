@@ -29,6 +29,14 @@ export type Leg = {
   early?: boolean; // saiu logo (a rota ficaria mais exposta perto da chegada)
   note?: ReplayNote; // anotação da equipe sobre este trecho
 };
+/** O ponto cai na área do minimapa? 0,01% das posições da base ficam fora, quase todas em duelos dentro da arena da ultimate
+ *  da Iso (um espaço separado do mapa) ou em quedas para fora do mapa (Abyss): o replay não leva o jogador até lá. */
+export const onMap = (xy: readonly [number, number] | null | undefined, tf: MapTransform) => {
+  if (!xy) return false;
+  const { u, v } = toMinimap(xy, tf);
+  return u >= -0.03 && u <= 1.03 && v >= -0.03 && v <= 1.03;
+};
+
 /** Tempo morto: da morte até reaparecer (ressurreição da Sage ou da Clove), ou até o fim do round (to null). */
 export type DeadSpan = { from: number; to: number | null; xy: [number, number] };
 export type Track = { p: MatchPlayer; samples: Sample[]; legs: Leg[]; dead: DeadSpan[] };
@@ -64,14 +72,20 @@ export function buildTracks(match: Match, round: Round, nav: NavGrid | null, sta
   const deaths = new Map<number, { t: number; xy: [number, number] }[]>();
   const revives = new Map<number, number[]>(); // instante do registro em que cada um reaparece vivo
   for (const e of round.events) {
-    for (const [i, x, y, view] of e.pos ?? []) tracks[i]?.samples.push({ t: e.t, x, y, view });
+    for (const [i, x, y, view] of e.pos ?? []) if (onMap([x, y], tf)) tracks[i]?.samples.push({ t: e.t, x, y, view });
     if (e.pos?.length) posAt.set(e.t, [...(posAt.get(e.t) ?? []), ...e.pos]);
     const back = e.type === "revive" && e.target ? idx.get(e.target) : undefined;
     if (back !== undefined) revives.set(back, [...(revives.get(back) ?? []), e.t]);
     const v = e.type === "kill" && e.victim ? idx.get(e.victim) : undefined;
     if (v !== undefined && e.victim_xy) {
-      tracks[v].samples.push({ t: e.t, x: e.victim_xy[0], y: e.victim_xy[1], view: null });
-      deaths.set(v, [...(deaths.get(v) ?? []), { t: e.t, xy: e.victim_xy }]);
+      if (onMap(e.victim_xy, tf)) {
+        tracks[v].samples.push({ t: e.t, x: e.victim_xy[0], y: e.victim_xy[1], view: null });
+        deaths.set(v, [...(deaths.get(v) ?? []), { t: e.t, xy: e.victim_xy }]);
+      } else {
+        // morreu fora do mapa (arena da Iso): a morte fica marcada no último ponto dele dentro do mapa
+        const last = [...tracks[v].samples].filter((s) => s.t <= e.t).sort((a, b) => b.t - a.t)[0];
+        if (last) deaths.set(v, [...(deaths.get(v) ?? []), { t: e.t, xy: [last.x, last.y] }]);
+      }
     }
   }
   /** Último registro do round antes de t: a ressurreição aconteceu depois dele. */

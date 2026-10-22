@@ -40,8 +40,8 @@ export default function SynergyGraph({ synergy }: { synergy: Team["synergy"] }) 
             <g key={e.i} onMouseEnter={() => setHover({ kind: "edge", i: e.i })} onMouseLeave={() => setHover(null)} className="cursor-pointer">
               <line x1={p.x} y1={p.y} x2={q.x} y2={q.y} stroke="transparent" strokeWidth={18} />
               <line x1={p.x} y1={p.y} x2={q.x} y2={q.y} strokeLinecap="round"
-                    stroke="var(--accent)" strokeOpacity={active(e) ? 0.2 + 0.8 * rel : 0.08}
-                    strokeWidth={2 + norm(e.trades, tMin, tMax) * 12} />
+                    stroke="var(--accent)" strokeOpacity={active(e) ? (hover ? 0.5 : 0.3) + (hover ? 0.5 : 0.7) * rel : 0.08}
+                    strokeWidth={3 + norm(e.trades, tMin, tMax) * 11} />
             </g>
           );
         })}
@@ -56,7 +56,7 @@ export default function SynergyGraph({ synergy }: { synergy: Team["synergy"] }) 
               <text x={p.x} y={p.y + 4} textAnchor="middle" fontSize={11} fill="var(--ink)">{nick(n.name).slice(0, 3).toUpperCase()}</text>
               <text x={p.x} y={below ? p.y + 40 : p.y - 44} textAnchor="middle" fontSize={13} fontWeight={600} fill="var(--ink)">{nick(n.name)}</text>
               <text x={p.x} y={below ? p.y + 55 : p.y - 30} textAnchor="middle" fontSize={11} fill="var(--ink-2)">
-                {n.behavior_role ?? n.agent_role ?? ""}
+                {n.agent_role ?? ""}
               </text>
             </g>
           );

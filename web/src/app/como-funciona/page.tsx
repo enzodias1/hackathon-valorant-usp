@@ -38,7 +38,7 @@ export default async function HowToUsePage() {
     { q: "Em quais mapas o time rende mais?", where: "Time › Mapas", href: `${t}#mapas` },
     { q: "Como joga o próximo adversário?", where: "Comparar", href: `/comparar?a=${team.slug}` },
     { q: `K/D abaixo de 1 quer dizer que o jogador não ajuda? (${nick(player.name)}: K/D ${num(player.kd, 2)}, impacto ${pp(player.wpa_per_round)} por round)`, where: "Jogador › De onde vem o impacto", href: `${pl}#impacto` },
-    { q: "Que papel cada um realmente exerce em jogo?", where: "Jogador › Perfil de jogo", href: `${pl}#perfil` },
+    { q: "Em que o jogador está acima ou abaixo da liga?", where: "Jogador › Comparado com a liga", href: `${pl}#perfil` },
     { q: "Contra quem e contra quais agentes o jogador mais ganha e perde duelos?", where: "Jogador › Duelos", href: `${pl}#duelos` },
     { q: "Em que momento do round o jogador costuma morrer?", where: "Jogador › Quando morre", href: `${pl}#quando-morre` },
     { q: "O jogador usa as habilidades mais ou menos que a média do agente?", where: "Jogador › Habilidades", href: `${pl}#habilidades` },
@@ -55,13 +55,6 @@ export default async function HowToUsePage() {
     ["Virada", `O time esteve com ${pct(d.comeback_wp)} ou menos de chance e venceu.`],
     ["Força", "Chance de vencer um round contra um time médio do campeonato, descontando a economia."],
     ["Confirmado", "Ponto forte ou fraco cuja diferença para a liga é grande demais para ser sorte. Diferenças menores não viram ponto forte nem fraco."],
-  ];
-
-  const roles: [string, string][] = [
-    ["Entry", "Abre o round: disputa os primeiros duelos."],
-    ["Support", "Joga para o time: assistências e trades."],
-    ["Lurker", "Joga longe do time, pelos flancos."],
-    ["Clutch", "Decide o fim do round: clutches e pós-plant."],
   ];
 
   return (
@@ -117,18 +110,6 @@ export default async function HowToUsePage() {
               </div>
             ))}
           </dl>
-          <h3 className="font-display mt-10 text-xl uppercase tracking-wide text-ink">Papel em jogo</h3>
-          <p className="mt-1 max-w-3xl text-sm text-ink-2">
-            Sai do que o jogador faz em jogo, não do agente que ele escolhe. Aparece a partir de {d.min_rounds_role} rounds.
-          </p>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {roles.map(([role, text]) => (
-              <li key={role} className="rounded-xl border border-line bg-surface p-4">
-                <span className="font-display text-2xl uppercase tracking-wide text-ink">{role}</span>
-                <p className="mt-1 text-sm text-ink-2">{text}</p>
-              </li>
-            ))}
-          </ul>
         </section>
 
         <section className="relative isolate grid items-center gap-6 overflow-hidden rounded-xl bg-brand p-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:p-8">

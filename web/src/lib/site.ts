@@ -5,7 +5,7 @@ export const PRODUCT_NAME = "Analista UNIVAVÁ";
 export const SITE_URL = "https://analista-univava.vercel.app";
 export const TAGLINE = "O analista que os times universitários não têm";
 export const SITE_DESCRIPTION =
-  "Análise pós-partida do VALORANT universitário: impacto real de cada jogada, momentos decisivos, sinergia dos times e o papel que cada jogador realmente joga.";
+  "Análise pós-partida do VALORANT universitário: impacto real de cada jogada, momentos decisivos, o replay 2D de cada round e a sinergia dos times.";
 
 /**
  * Título, descrição e prévia de link de uma página. O openGraph de uma página substitui o do layout inteiro

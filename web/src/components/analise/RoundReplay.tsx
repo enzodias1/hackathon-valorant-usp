@@ -9,7 +9,7 @@ import { roundEndMs, SPIKE_TIMER_MS, toMinimap, type UV } from "@/lib/minimap";
 import { decodeNavGrid, lineOfSight, type NavGrid, type NavGridRaw } from "@/lib/navgrid";
 import { playVerb, roundStory } from "@/lib/roundStory";
 import ChanceInfo from "./ChanceInfo";
-import { buildTracks, deadAt, nearestAlly, poseAt, wpAt, type Pose, type Track } from "@/lib/replay";
+import { buildTracks, deadAt, nearestAlly, onMap, poseAt, wpAt, type Pose, type Track } from "@/lib/replay";
 import MinimapBase from "@/components/MinimapBase";
 
 const TEAM_VAR: Record<Color, string> = { Red: "var(--team-red)", Blue: "var(--team-blue)" };
@@ -161,14 +161,17 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
   // saltos em andamento (habilidade de movimento / teleporte): trajeto tracejado
   const jumps = smooth ? poses.flatMap(({ tr, dead }) => (dead ? [] : tr.legs.filter((l) => l.kind === "jump" && t >= l.t0 && t < l.t1))) : [];
   const kills = round.events.filter((e) => e.type === "kill" && e.t <= t);
-  const shots = kills.filter((e) => t - e.t < SHOT_MS && e.killer_xy && e.victim_xy);
+  const shots = kills.filter((e) => t - e.t < SHOT_MS && onMap(e.killer_xy, tf) && onMap(e.victim_xy, tf));
   const focusEvent = [...kills].reverse().find((e) => t - e.t < FOCUS_MS && !e.after_round_end && e.victim);
   const focusVictim = focusEvent?.victim ? byId.get(focusEvent.victim) : undefined;
-  const ally = focusEvent && focusVictim ? nearestAlly(focusEvent, match, focusVictim) : null;
-  const focusAt = focusEvent?.victim_xy ? toMinimap(focusEvent.victim_xy, tf) : null;
+  // duelo fora da área do mapa (arena da ultimate da Iso): sem distância até aliados nem linha de visão, que não fazem sentido lá
+  const offMap = !!focusEvent && (!onMap(focusEvent.victim_xy, tf) || (!!focusEvent.killer_xy && !onMap(focusEvent.killer_xy, tf)));
+  const ally = focusEvent && focusVictim && !offMap ? nearestAlly(focusEvent, match, focusVictim) : null;
+  const focusDead = offMap && focusVictim ? tracks.map((tr) => (tr.p.puuid === focusVictim.puuid ? deadAt(tr, t) : null)).find(Boolean) : null;
+  const focusAt = !focusEvent?.victim_xy ? null : !offMap ? toMinimap(focusEvent.victim_xy, tf) : focusDead ? toMinimap(focusDead.xy, tf) : null;
   // quem podia trocar: aliados de quem morreu com visão de quem matou (paredes bloqueiam; smokes não vêm nos dados)
   const killerAt = focusEvent?.killer_xy ? toMinimap(focusEvent.killer_xy, tf) : null;
-  const spotters = focusEvent?.killer_xy && focusVictim && killerAt && nav
+  const spotters = focusEvent?.killer_xy && focusVictim && killerAt && nav && !offMap
     ? (focusEvent.pos ?? [])
         .filter(([i, x, y]) => {
           const q = match.players[i];
@@ -221,7 +224,7 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
                   </span>
                 </div>
                 {focusEvent && focusVictim && focusAt && (
-                  <FocusLabel at={ally ? mid(focusAt, ally.at) : focusAt} e={focusEvent} meters={ally?.m ?? null} spotters={spotters?.length ?? null} />
+                  <FocusLabel at={ally ? mid(focusAt, ally.at) : focusAt} e={focusEvent} meters={ally?.m ?? null} spotters={spotters?.length ?? null} offMap={offMap} />
                 )}
                 {t === 0 && !playing && (
                   <button type="button" onClick={togglePlay}
@@ -432,13 +435,14 @@ function Spike({ at, live }: { at: UV; live: boolean }) {
   );
 }
 
-function FocusLabel({ at, e, meters, spotters }: { at: UV; e: RoundEvent; meters: number | null; spotters: number | null }) {
+function FocusLabel({ at, e, meters, spotters, offMap }: { at: UV; e: RoundEvent; meters: number | null; spotters: number | null; offMap?: boolean }) {
   const isolated = meters !== null && meters > ISOLATED_M;
   const x = at.u < 0.2 ? "-10%" : at.u > 0.8 ? "-90%" : "-50%";
   return (
     <div className="pointer-events-none absolute z-10 w-max max-w-[15rem] rounded-md border border-line bg-bg/90 px-2 py-1 text-[11px] leading-snug text-ink shadow-lg"
          style={{ left: `${at.u * 100}%`, top: `${at.v * 100}%`, transform: `translate(${x}, calc(-100% - 10px))` }}>
-      {meters === null ? "sem aliados vivos" : <>aliado mais perto a <b>{Math.round(meters)} m</b>{isolated && <b className="text-lime"> · isolado</b>}</>}
+      {offMap ? (e.kill_kind === "fall" ? "caiu para fora do mapa" : "duelo fora da área do mapa (arena da ultimate da Iso)")
+        : meters === null ? "sem aliados vivos" : <>aliado mais perto a <b>{Math.round(meters)} m</b>{isolated && <b className="text-lime"> · isolado</b>}</>}
       <span className={e.traded ? "text-good" : "text-ink-2"}>{e.traded ? " · vingado" : " · não vingado"}</span>
       {spotters !== null && (
         <span className="block text-ink-2">

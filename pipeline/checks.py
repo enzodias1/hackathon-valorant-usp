@@ -126,8 +126,12 @@ def main():
     cl = pr[pr.clutch_vs > 0].groupby("clutch_vs").clutch_won.agg(["mean", "size"])
     check("clutch: vitória cai com o número de inimigos", (np.diff(cl["mean"].to_numpy()) < 0).all(),
           " · ".join(f"1v{k} {r['mean']:.0%} (n={int(r['size'])})" for k, r in cl.iterrows()))
-    e_ = pf[pf.role_eligible]
-    check("papel e percentis para todo jogador elegível", e_.behavior_role.notna().all() and e_[[c for c in pf.columns if c.startswith("axis_")]].stack().between(0, 100).all())
+    # percentis (a comparação com a liga na página do jogador) entre 0 e 100 para todo jogador com 60+ rounds
+    idx_pl = [x for x in json.loads((WEB / "index.json").read_text(encoding="utf-8"))["players"] if x["eligible"]]
+    bad_pc = [x["puuid"] for x in idx_pl
+              if not all(v is not None and 0 <= v <= 100
+                         for v in (json.loads((WEB / "players" / f"{x['puuid']}.json").read_text(encoding="utf-8"))["percentiles"] or {"_": None}).values())]
+    check("percentis entre 0 e 100 para todo jogador elegível", not bad_pc, f"{len(bad_pc)} de {len(idx_pl)} com problema")
 
     # ---------------------------------------------------------------- times / liga
     tr_ok = tr[tr.team.notna()]

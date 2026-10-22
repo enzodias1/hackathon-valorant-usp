@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/site";
 import { getIndex, getPlayer } from "@/lib/data";
-import { clock, nick, num, pct, pp } from "@/lib/format";
+import { betterThan, clock, nick, num, pct, pp } from "@/lib/format";
 import type { Moment, Player } from "@/lib/types";
-import { MatchImpactChart, RoleRadar } from "@/components/analise/PlayerCharts";
+import { MatchImpactChart } from "@/components/analise/PlayerCharts";
 import { BandButton, CompareRow, InsightPanel, PageBand, PercentileRow, PlayerLink, Section, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
 import { agentArt } from "@/lib/art";
 import { DeathTimingPanel, DuelsPanel, referenceLabel } from "@/components/analise/PlayerDuels";
@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ puuid: st
   const p = await getPlayer((await params).puuid);
   const stats = p.sample.eligible ? `impacto ${pp(p.impact.wpa_per_round)} por round · K/D ${num(p.summary.kd, 2)}` : `K/D ${num(p.summary.kd, 2)} em ${p.sample.rounds} rounds`;
   return pageMeta(`${nick(p.name)} · Analista UNIVAVÁ`,
-    `${p.team_name} · ${stats}. Impacto real de cada jogada, o papel que joga de fato e os parceiros que cobrem suas mortes.`);
+    `${p.team_name} · ${stats}. Impacto real de cada jogada, duelos, habilidades e os parceiros que cobrem suas mortes.`);
 }
 
 const BREAKDOWN_LABEL: Record<string, string> = { kill: "Kills", assist: "Assistências", plant: "Plants", defuse: "Desarmes", revive: "Ressurreições", death: "Mortes" };
@@ -52,7 +52,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
   return (
     <main>
       <PageBand back={{ href: "/jogadores", label: "Jogadores" }} art={agentArt(mainAgent)}
-                kicker={[p.role.agent_role, p.role.behavior_role && `em jogo: ${p.role.behavior_role}`].filter(Boolean).join(" · ")}
+                kicker={p.role.agent_role ?? undefined}
                 title={<>{nick(p.name)} <span className="text-[0.45em] text-white/60">#{p.name.split("#")[1]}</span></>}
                 actions={<BandButton href={`/times/${p.team}`} primary>Ver {p.team_name}</BandButton>}>
         <p className="text-sm">
@@ -64,16 +64,16 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
       <div className="mx-auto max-w-6xl space-y-4 px-4 py-8 sm:px-8">
         {!p.sample.eligible && (
           <p className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink-2">
-            <span className="font-bold text-warn">!</span> Amostra pequena ({p.sample.rounds} rounds): percentis e papel em jogo aparecem a partir de 60 rounds.
+            <span className="font-bold text-warn">!</span> Amostra pequena ({p.sample.rounds} rounds): a comparação com a liga aparece a partir de 60 rounds.
           </p>
         )}
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
           <StatTile label="Impacto por round" value={pp(imp.wpa_per_round)} tone={imp.wpa_per_round >= 0 ? "good" : "bad"}
-                    sub={pc?.wpa_per_round != null ? `percentil ${Math.round(pc.wpa_per_round)} da liga` : `${p.sample.rounds} rounds`} />
-          <StatTile label="K/D" value={num(s.kd, 2)} sub={pc?.kd != null ? `percentil ${Math.round(pc.kd)}` : `${s.kills}/${s.deaths}`} />
-          <StatTile label="ACS" value={num(s.acs)} sub={pc?.acs != null ? `percentil ${Math.round(pc.acs)}` : undefined} />
-          <StatTile label="KAST" value={pct(s.kast)} sub={pc?.kast != null ? `percentil ${Math.round(pc.kast)}` : undefined} />
+                    sub={pc?.wpa_per_round != null ? betterThan(pc.wpa_per_round) : `${p.sample.rounds} rounds`} />
+          <StatTile label="K/D" value={num(s.kd, 2)} sub={pc?.kd != null ? betterThan(pc.kd) : `${s.kills}/${s.deaths}`} />
+          <StatTile label="ACS" value={num(s.acs)} sub={pc?.acs != null ? betterThan(pc.acs) : undefined} />
+          <StatTile label="KAST" value={pct(s.kast)} sub={pc?.kast != null ? betterThan(pc.kast) : undefined} />
           <StatTile label="Rounds" value={p.sample.rounds} sub={`${p.sample.maps} mapas`} />
         </div>
 
@@ -82,10 +82,10 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
           <InsightPanel insights={p.insights} />
         </Section>
 
-        <Section id="perfil" title="Perfil de jogo" collapsible teaser={p.role.behavior_role ? `Papel em jogo: ${p.role.behavior_role}${p.role.agent_role ? ` (joga de ${p.role.agent_role})` : ""}` : "Disponível a partir de 60 rounds"}
-                 info="À esquerda, o percentil na liga (0–100) em cada eixo de comportamento: o maior eixo de papel define o papel em jogo. À direita, o impacto comparado às estatísticas tradicionais (100 = melhor da liga).">
-          <div className="grid gap-6 lg:grid-cols-2">
-            {p.role.axes ? <RoleRadar axes={p.role.axes} /> : <p className="text-sm text-ink-2">Disponível a partir de 60 rounds.</p>}
+        <Section id="perfil" title="Comparado com a liga" collapsible
+                 teaser={pc ? `Impacto: ${betterThan(pc.wpa_per_round)} · K/D: ${betterThan(pc.kd, "")}` : "Disponível a partir de 60 rounds"}
+                 info="Em cada estatística, a posição do jogador entre os jogadores da liga com 60 rounds ou mais: “melhor que 92%” quer dizer que ele supera 92% deles. A barra vai do pior (vazia) ao melhor da liga (cheia).">
+          <div className="max-w-2xl">
             {pc ? (
               <div>
                 <PercentileRow label="Impacto / round" value={pc.wpa_per_round} />
@@ -97,7 +97,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
                 <PercentileRow label="Abre rounds" value={pc.opening_rate} hint="frequência com que disputa o primeiro duelo" />
                 <PercentileRow label="Clutches" value={pc.clutch_rate} hint="frequência de situações em que fica sozinho" />
               </div>
-            ) : null}
+            ) : <p className="text-sm text-ink-2">Disponível a partir de 60 rounds.</p>}
           </div>
         </Section>
 

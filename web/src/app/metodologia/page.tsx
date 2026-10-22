@@ -65,7 +65,7 @@ export default async function MethodologyPage() {
             {[
               ["Chance de vitória", <>A cada kill, plant ou desarme, o modelo estima a chance de cada time vencer o round, olhando {model.features.join(", ")}.</>],
               ["Impacto da jogada", <>A variação dessa chance é o <b className="text-ink">impacto</b>. Se uma kill leva o time de 52% para 77%, ela vale {pp(25, 0)}. Uma kill num round já decidido vale quase nada.</>],
-              ["Diagnóstico", <>Somando os impactos e comparando com a média da liga, saem o diagnóstico do time, a sinergia (quem cobre quem) e o papel real de cada jogador.</>],
+              ["Diagnóstico", <>Somando os impactos e comparando com a média da liga, saem o diagnóstico do time e de cada jogador e a sinergia (quem cobre quem).</>],
             ].map(([title, text], i) => (
               <li key={i} className="rounded-lg bg-surface-2 p-4">
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-accent text-sm font-bold text-bg" aria-hidden>{i + 1}</span>
@@ -193,10 +193,6 @@ export default async function MethodologyPage() {
               Um ranking de força (modelo de <b className="text-ink">Bradley-Terry</b>) estima a chance de cada time vencer um round contra um time médio,
               descontando a economia. Times com poucos mapas ficam perto da média até que haja dados suficientes. A evolução no campeonato
               também desconta a força dos adversários: sem isso, todo time “pioraria” na Fase de Grupos.
-            </Method>
-            <Method title="Papel real, pelo comportamento">
-              Entry, Support, Lurker e Clutch saem do que o jogador faz (primeiros duelos, trades, distância do time, fim de round), em percentis
-              na liga, a partir de {d.min_rounds_role} rounds. O modelo não vê o agente, e mesmo assim 72% dos duelistas caem em Entry e 71% dos sentinelas em Lurker.
             </Method>
           </div>
         </Section>

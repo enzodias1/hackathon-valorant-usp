@@ -86,7 +86,7 @@ PLAYER_TEXT = {
                           "tip": "A até 5 m de um aliado, a chance de trade é 41%; a mais de 30 m, 6%."},
     "isolated_death_rate": {"good": "Só {v} das mortes do jogador acontecem isoladas (liga: {l}).",
                             "bad": "{v} das mortes do jogador acontecem isoladas, a mais de 30 m do aliado mais próximo (liga: {l}).",
-                            "tip": "Se for intencional (lurker), vale conferir se essas mortes compram tempo ou informação para o time."},
+                            "tip": "Se for de propósito (jogando pelos flancos), vale conferir se essas mortes compram tempo ou informação para o time."},
     "first_duel": {"good": "Vence {v} dos primeiros duelos que disputa (liga: {l}).",
                    "bad": "Perde a maioria dos primeiros duelos que disputa: vence só {v} (liga: {l}).",
                    "tip": "Entradas funcionam melhor com utilitária de iniciador e um aliado pronto para o trade."},

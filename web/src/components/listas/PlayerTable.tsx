@@ -1,16 +1,16 @@
 "use client";
-// Lista de jogadores com busca por nick e filtros por time e papel. Cada linha leva para /jogadores/<puuid>.
+// Lista de jogadores com busca por nick e filtros por time e função do agente. Cada linha leva para /jogadores/<puuid>.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { nick, num } from "@/lib/format";
-import type { BehaviorRole, PlayerSummary } from "@/lib/types";
+import type { AgentRole, PlayerSummary } from "@/lib/types";
 import { Td, Th, WpaBar } from "@/components/analise/ui";
 import { ResultCount, SearchFilter, SelectFilter, fold, useUrlFilters } from "./controls";
 
 export type PlayerRow = PlayerSummary & { team_name: string };
 
-const KEYS = ["busca", "time", "papel"] as const;
-const ROLES: BehaviorRole[] = ["Entry", "Support", "Lurker", "Clutch"];
+const KEYS = ["busca", "time", "funcao"] as const;
+const ROLES: AgentRole[] = ["Duelista", "Iniciador", "Controlador", "Sentinela"];
 
 export default function PlayerTable({ players }: { players: PlayerRow[] }) {
   const router = useRouter();
@@ -25,14 +25,14 @@ export default function PlayerTable({ players }: { players: PlayerRow[] }) {
   const shown = players.filter((p) =>
     (!q || fold(p.name).includes(q)) &&
     (!filters.time || p.team === filters.time) &&
-    (!filters.papel || p.behavior_role === filters.papel));
+    (!filters.funcao || p.agent_role === filters.funcao));
 
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
         <SearchFilter label="Buscar por nick" value={filters.busca} onChange={(v) => set("busca", v)} placeholder="ex.: J3YP" />
         <SelectFilter label="Time" value={filters.time} onChange={(v) => set("time", v)} options={teams} />
-        <SelectFilter label="Papel (pelo comportamento)" value={filters.papel} onChange={(v) => set("papel", v)}
+        <SelectFilter label="Função do agente" value={filters.funcao} onChange={(v) => set("funcao", v)}
                       options={ROLES.map((r) => ({ value: r, label: r }))} />
       </div>
       <ResultCount shown={shown.length} total={players.length} noun="jogadores" onClear={clear} />
@@ -44,7 +44,6 @@ export default function PlayerTable({ players }: { players: PlayerRow[] }) {
               <Th>Jogador</Th>
               <Th className="hidden sm:table-cell">Time</Th>
               <Th className="hidden sm:table-cell">Função (agentes)</Th>
-              <Th className="hidden sm:table-cell">Papel real</Th>
               <Th right className="hidden sm:table-cell">Rounds</Th>
               <Th right>K/D</Th>
               <Th>Impacto por round</Th>
@@ -57,11 +56,10 @@ export default function PlayerTable({ players }: { players: PlayerRow[] }) {
                   <Link href={`/jogadores/${p.puuid}`} onClick={(e) => e.stopPropagation()} className="font-medium text-ink hover:underline hover:underline-offset-4">
                     {nick(p.name)}
                   </Link>
-                  <div className="text-xs text-muted sm:hidden">{p.team_name}{p.behavior_role && ` · ${p.behavior_role}`}</div>
+                  <div className="text-xs text-muted sm:hidden">{p.team_name}{p.agent_role && ` · ${p.agent_role}`}</div>
                 </Td>
                 <Td className="hidden sm:table-cell text-ink-2">{p.team_name}</Td>
                 <Td className="hidden sm:table-cell text-ink-2">{p.agent_role ?? "—"}</Td>
-                <Td className="hidden sm:table-cell text-ink-2">{p.behavior_role ?? "—"}</Td>
                 <Td right className="hidden sm:table-cell">{p.rounds}</Td>
                 <Td right>{num(p.kd, 2)}</Td>
                 <Td>

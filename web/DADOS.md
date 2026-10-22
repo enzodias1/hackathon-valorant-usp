@@ -16,7 +16,7 @@ No código, carregue com `fetch("/data/index.json")` e `fetch(\`/data/matches/${
 {
   "teams":     { "<slug>": { "name": "FEI Darkowls", "tag": "FEI DO", "institution": "..." | null } },
   "team_list": [ { "slug", "name", "tag", "maps", "map_wins", "rounds", "round_win", "competitions": [] } ],
-  "players":   [ { "puuid", "name", "team": "<slug>", "rounds", "agent_role", "behavior_role", "kd", "wpa_per_round", "eligible" } ],
+  "players":   [ { "puuid", "name", "team": "<slug>", "rounds", "agent_role", "kd", "wpa_per_round", "eligible" } ],
   "matches":   [ { "id", "date", "competition", "stage", "map", "red": "<slug>", "blue": "<slug>",
                    "score": { "Red": 13, "Blue": 7 }, "winner": "Red" } ]
 }
@@ -37,11 +37,10 @@ No código, carregue com `fetch("/data/index.json")` e `fetch(\`/data/matches/${
   },
   "maps":   [ { "map", "maps", "map_wins", "rounds", "round_win", "atk_win", "def_win", "league_atk_win" } ],
   "buys":   [ { "buy": "Eco", "rounds", "win", "expected", "league_win", "z", "significant" } ],
-  "roster": [ { "puuid", "name", "rounds", "maps", "agents": [], "agent_role", "behavior_role",
-                "axes": { "Entrada", "Suporte", "Lurk", "Âncora", "Impacto" } | null,   // 0–100, percentil na liga
+  "roster": [ { "puuid", "name", "rounds", "maps", "agents": [], "agent_role",
                 "kd", "acs", "adr", "kast", "wpa_per_round", "fk", "fd", "traded_death_rate", "isolated_death_rate", "core" } ],
   "synergy": {                                              // grafo: nós = titulares (core), arestas = duplas
-    "nodes": [ { "puuid", "name", "agent_role", "behavior_role", "rounds" } ],
+    "nodes": [ { "puuid", "name", "agent_role", "rounds" } ],
     "edges": [ { "a", "b", "rounds_together",
                  "b_traded_a", "a_traded_b",                // quantas vezes um vingou a morte do outro
                  "a_deaths_b_alive", "b_deaths_a_alive",
@@ -61,16 +60,16 @@ No código, carregue com `fetch("/data/index.json")` e `fetch(\`/data/matches/${
 ```jsonc
 {
   "puuid", "name", "team": "<slug principal>", "team_name", "teams": [ { "slug", "name", "rounds" } ],
-  "sample": { "rounds", "maps", "eligible" },              // eligible = ≥ 60 rounds (tem percentis e papel)
+  "sample": { "rounds", "maps", "eligible" },              // eligible = ≥ 60 rounds (tem percentis)
   "summary": { "kd", "kpr", "dpr", "apr", "adr", "acs", "kast", "hs_pct", "kills", "deaths", "assists",
                "fk", "fd", "clutch_att", "clutch_won", "plants", "defuses" },
   "impact": { "wpa_total", "wpa_per_round", "wpa_pr_atk", "wpa_pr_def",
               "breakdown": { "kill", "assist", "death", "plant", "defuse" },   // de onde vem o impacto (pp)
               "per_kill", "per_death", "league_per_kill", "league_per_death" },
   "percentiles": { "kd", "kpr", "adr", "acs", "kast", "hs_pct", "wpa_per_round", "opening_rate", "clutch_rate" } | null,
-  "role": { "agent_role": "Duelista", "behavior_role": "Entrada", "axes": { ... } | null },
+  "role": { "agent_role": "Duelista" },   // o "papel em jogo" pelo comportamento saiu da interface (22/10)
   "comparisons": { "<chave>": { "value", "league", "n", "z", "significant", "good" } },
-  "insights": { "strengths", "weaknesses", "attention", "notes": [ { "key", "text" } ] },  // notes: impacto vs K/D, papel, lado
+  "insights": { "strengths", "weaknesses", "attention", "notes": [ { "key", "text" } ] },  // notes: impacto vs K/D, lado
   "agents":  [ { "agent", "icon", "role", "maps", "rounds", "kd", "acs", "wpa_per_round", "map_win_rate" } ],
   "maps":    [ { "map", "maps", "rounds", "kd", "wpa_per_round", "map_win_rate" } ],
   "matches": [ { "id", "date", "map", "team", "opponent", "opponent_name", "won", "score_for", "score_against",

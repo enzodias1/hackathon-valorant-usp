@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from insights import (NOISE_METRICS, PLAYER_TEXT, ROLE_EXPECTED, TEAM_METRICS, TEAM_TEXT, Z_SIGNIFICANT, bh_adjust, binom, br, make_insights,
+from insights import (NOISE_METRICS, PLAYER_TEXT, TEAM_METRICS, TEAM_TEXT, Z_SIGNIFICANT, bh_adjust, binom, br, make_insights,
                       mean_test, pct, pp, team_counts)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -304,8 +304,7 @@ def export_teams(t, names):
         for p in roster_df.itertuples(index=False):
             roster.append({
                 "puuid": p.puuid, "name": p.name, "rounds": p.rounds, "maps": p.maps, "agents": list(p.top_agents),
-                "agent_role": p.main_agent_role, "behavior_role": p.behavior_role if p.role_eligible else None,
-                "axes": {a: getattr(p, f"axis_{a}") for a in AXES} if p.role_eligible else None,
+                "agent_role": p.main_agent_role,
                 "kd": p.kd, "acs": p.acs, "adr": p.adr, "kast": p.kast, "wpa_per_round": p.wpa_per_round,
                 "fk": p.fk, "fd": p.fd, "traded_death_rate": p.traded_death_rate, "isolated_death_rate": p.isolated_death_rate,
                 "core": bool(p.rounds >= 0.2 * team_rounds_n),
@@ -333,7 +332,7 @@ def export_teams(t, names):
                 "trade_z": binom(trades, deaths, league_pair_trade)["z"] if deaths else None,
                 "assists": get(ab, "b_assists_on_a") + get(ba, "b_assists_on_a"),
             })
-        synergy = {"nodes": [{"puuid": r["puuid"], "name": r["name"], "agent_role": r["agent_role"], "behavior_role": r["behavior_role"], "rounds": r["rounds"]}
+        synergy = {"nodes": [{"puuid": r["puuid"], "name": r["name"], "agent_role": r["agent_role"], "rounds": r["rounds"]}
                              for r in roster if r["core"]],
                    "edges": edges, "league_pair_trade_rate": league_pair_trade}
 
@@ -635,13 +634,12 @@ def export_players(t, names):
         if p.role_eligible:
             p_kd, p_wpa = percentile("kd", p.kd), percentile("wpa_per_round", p.wpa_per_round)
             if p_kd is not None and p_wpa is not None and abs(p_wpa - p_kd) >= 25:
-                txt = (f"O impacto vale mais que o K/D: percentil {p_wpa:.0f} em impacto e {p_kd:.0f} em K/D. As jogadas acontecem nos momentos que decidem rounds."
+                # "melhor que X% da liga", como na página (betterThan em web/src/lib/format.ts)
+                better = lambda v: "é o melhor da liga" if v >= 100 else f"é melhor que {int(v)}% da liga"
+                txt = (f"O impacto vale mais que o K/D: em impacto, {better(p_wpa)}; em K/D, só que {int(p_kd)}%. As jogadas acontecem nos momentos que decidem rounds."
                        if p_wpa > p_kd else
-                       f"O K/D é melhor que o impacto: percentil {p_kd:.0f} em K/D, mas {p_wpa:.0f} em impacto. Parte das kills acontece com o round já decidido, ou as mortes custam caro.")
+                       f"O K/D é melhor que o impacto: em K/D, {better(p_kd)}; em impacto, só que {int(p_wpa)}%. Parte das kills acontece com o round já decidido, ou as mortes custam caro.")
                 notes.append({"key": "impact_vs_kd", "z": None, "text": txt})
-            if p.main_agent_role in ROLE_EXPECTED and p.behavior_role not in ROLE_EXPECTED[p.main_agent_role]:
-                notes.append({"key": "role_mismatch", "z": None,
-                              "text": f"Joga principalmente de {p.main_agent_role}, mas o comportamento em jogo é de {p.behavior_role}. Pode ser um estilo próprio ou um papel que o time precisa ajustar."})
         ins["notes"] = notes
 
         agents = []
@@ -702,8 +700,8 @@ def export_players(t, names):
                        "per_kill": comps["kill_value"]["value"], "per_death": comps["death_cost"]["value"],
                        "league_per_kill": league["kill_value"], "league_per_death": league["death_cost"]},
             "percentiles": {c: percentile(c, p[c]) for c in PERCENTILE_COLS} if p.role_eligible else None,
-            "role": {"agent_role": p.main_agent_role, "behavior_role": p.behavior_role if p.role_eligible else None,
-                     "axes": {a: p[f"axis_{a}"] for a in AXES} if p.role_eligible else None},
+            # só a função do agente: o "papel em jogo" pelo comportamento saiu da interface (22/10), a equipe achou ambíguo
+            "role": {"agent_role": p.main_agent_role},
             "comparisons": comps, "insights": ins,
             "agents": agents, "maps": maps, "matches": matches, "best_plays": best, "costliest_deaths": worst, "partners": partners,
             "duels": duels_of(puuid), "death_timing": death_timing_of(puuid), "abilities": abilities_of(g_pm),
@@ -712,8 +710,7 @@ def export_players(t, names):
                        for r in t["player_stage"][t["player_stage"].puuid == puuid].sort_values("etapa_idx").itertuples(index=False)],
         }
         write(OUT / "players" / f"{puuid}.json", doc)
-        index.append({"puuid": puuid, "name": p["name"], "team": slug, "rounds": rounds, "agent_role": p.main_agent_role,
-                      "behavior_role": p.behavior_role if p.role_eligible else None, "kd": p.kd,
+        index.append({"puuid": puuid, "name": p["name"], "team": slug, "rounds": rounds, "agent_role": p.main_agent_role, "kd": p.kd,
                       "wpa_per_round": doc["impact"]["wpa_per_round"], "eligible": bool(p.role_eligible)})
     return index, league
 

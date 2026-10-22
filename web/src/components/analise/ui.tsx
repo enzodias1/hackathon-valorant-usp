@@ -1,7 +1,7 @@
 // Blocos visuais compartilhados das telas de análise (Server Components; InfoTip é o único pedaço interativo).
 import Link from "next/link";
 import type { Comparison, Insight, Insights } from "@/lib/types";
-import { pct, pp } from "@/lib/format";
+import { betterThan, pct, pp } from "@/lib/format";
 import InfoTip from "./InfoTip";
 
 /**
@@ -174,7 +174,7 @@ export function InsightPanel({ insights, empty }: { insights: Insights; empty?: 
                 </span>
                 <div className="text-sm">
                   <p className="text-ink">{i.text}</p>
-                  {i.tip && <p className="mt-1 text-ink-2">💡 {i.tip}</p>}
+                  {i.tip && <p className="mt-1 text-ink-2">{i.tip}</p>}
                 </div>
               </li>
             ))}
@@ -288,14 +288,15 @@ export function StageRow({ label, sub, value, se, domain = 25 }: { label: string
   );
 }
 
+/** Posição na liga numa estatística: a barra vai de 0 (pior da liga) a 100 (melhor) e o texto diz "melhor que X%". */
 export function PercentileRow({ label, value, hint }: { label: string; value: number | null; hint?: string }) {
   return (
-    <div className="grid grid-cols-[8rem_minmax(0,1fr)_3rem] items-center gap-3 py-1.5" title={hint}>
+    <div className="grid grid-cols-[8rem_minmax(0,1fr)_8.5rem] items-center gap-3 py-1.5" title={hint}>
       <span className="text-sm text-ink-2">{label}</span>
       <div className="relative h-2 rounded-full bg-surface-2">
         {value != null && <div className="absolute inset-y-0 left-0 rounded-full bg-accent" style={{ width: `${value}%` }} />}
       </div>
-      <span className="tabular text-right text-sm text-ink">{value == null ? "—" : `${Math.round(value)}`}</span>
+      <span className="tabular text-right text-sm text-ink">{betterThan(value, "")}</span>
     </div>
   );
 }

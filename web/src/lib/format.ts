@@ -11,6 +11,10 @@ export const chance = (x: number, short = false) => {
   return pct(x, x < 0.01 || (x > 0.99 && x < 1) ? 1 : 0);
 };
 
+/** Posição na liga em vez de "percentil": "melhor que 92% da liga"; o primeiro da liga, "o melhor da liga". */
+export const betterThan = (p: number | null | undefined, suffix = " da liga") =>
+  p == null ? "—" : p >= 100 ? "o melhor da liga" : `melhor que ${Math.floor(p)}%${suffix}`;
+
 /** impacto em pontos (percentuais) de chance de vitória, com sinal: "+12,3 pontos", "−1,5 ponto" */
 export const pp = (x: number | null | undefined, digits = 1) => {
   if (x == null || Number.isNaN(x)) return "—";

@@ -10,8 +10,7 @@ Viabilidade, Usabilidade, Protótipo/apresentação. Análise **coletiva** é "e
 
 ## O produto
 "O analista que times universitários não têm": um modelo de probabilidade de vitória do round mede o **impacto real** de cada jogada,
-e a partir dele mostramos os momentos decisivos da partida, a sinergia do time (quem cobre quem) e o papel que cada jogador
-realmente exerce, descoberto pelo comportamento.
+e a partir dele mostramos os momentos decisivos da partida, o replay 2D de cada round e a sinergia do time (quem cobre quem).
 
 ## Regras do edital que afetam o código
 - Dados de partida **somente** dos JSONs fornecidos pela organização. Nada de APIs da Riot, scraping ou dados externos de partidas.
@@ -33,7 +32,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 .venv/Scripts/python pipeline/meta.py                         # data/meta/lookup.json
 .venv/Scripts/python pipeline/etl.py "../Dados .Json"         # data/processed/*.parquet (+ checagens)
 .venv/Scripts/python pipeline/winprob.py                      # modelo de prob. de vitória + impacto (WPA)
-.venv/Scripts/python pipeline/team.py                         # sinergia, papéis por comportamento, perfil dos times
+.venv/Scripts/python pipeline/team.py                         # sinergia, perfil dos times e dos jogadores
 .venv/Scripts/python pipeline/evolution.py                    # força dos times (Bradley-Terry) e evolução no campeonato
 .venv/Scripts/python pipeline/economy.py                      # decisões de compra sem full buy (descritivo nos times)
 .venv/Scripts/python pipeline/zones.py                        # onde cada time morre (regiões do mapa + grade de calor)
@@ -129,8 +128,10 @@ Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela veloc
   spike a 11 m dela (folga de 4,8 s; desarmou com 4,7 s restantes), e a defesa fica com 96% até o fim, em vez de cair para 14%.
 - **Trade:** morte vingada por um aliado em até 5 s.
 - **Morte isolada:** aliado vivo mais próximo a mais de 3.000 unidades (~30 m). A chance de ser trocado cai de 41% (< 5 m) para 6% (> 30 m).
-- **Papéis por comportamento** (percentis na liga, mín. 60 rounds): Entry, Support, Lurker, Clutch.
-  Validação: 72% dos duelistas → Entry; 71% dos sentinelas → Lurker, sem o modelo ver o agente.
+- **Papéis por comportamento (Entry, Support, Lurker, Clutch): removidos da interface (22/10).** Saíam de percentis de
+  comportamento (72% dos duelistas caíam em Entry e 71% dos sentinelas em Lurker, sem o modelo ver o agente), mas a equipe achou o
+  rótulo ambíguo ao lado da função do agente. `team.py` ainda calcula os eixos; o site mostra só a função do agente, e os percentis
+  aparecem como "melhor que X% da liga".
 - **Round "jogado fora":** o time chegou a ≥ 80% de probabilidade e perdeu. **Virada:** ≤ 20% e venceu.
 - **Controle de falsos positivos:** toda afirmação de "ponto forte/fraco" ou "mudou" passa por Benjamini-Hochberg (q = 10%) dentro
   da página (time ou jogador). Sem isso, com 15 métricas por time, ~1–2 insights por time seriam ruído.
