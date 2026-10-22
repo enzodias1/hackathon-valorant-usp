@@ -2,11 +2,12 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import ExportPdf from "@/components/site/ExportPdf";
 import { pageMeta } from "@/lib/site";
-import { getIndex, getPlayer } from "@/lib/data";
+import { getIndex, getModel, getPlayer } from "@/lib/data";
+import { glossary } from "@/lib/glossary";
 import { betterThan, clock, nick, num, pct, pp } from "@/lib/format";
 import type { Moment, Player } from "@/lib/types";
 import { MatchImpactChart } from "@/components/analise/PlayerCharts";
-import { BandButton, CompareRow, InsightPanel, PageBand, PercentileRow, PlayerLink, Section, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
+import { BandButton, CompareRow, InsightPanel, PageBand, PercentileRow, PlayerLink, Section, StatTile, Td, TermList, Th, WpaBar } from "@/components/analise/ui";
 import { agentArt } from "@/lib/art";
 import { DeathTimingPanel, DuelsPanel, referenceLabel } from "@/components/analise/PlayerDuels";
 import { AbilitiesPanel } from "@/components/analise/PlayerAbilities";
@@ -29,6 +30,7 @@ const BREAKDOWN_LABEL: Record<string, string> = { kill: "Kills", assist: "Assist
 
 export default async function PlayerPage({ params }: { params: Promise<{ puuid: string }> }) {
   const p: Player = await getPlayer((await params).puuid);
+  const g = glossary(await getModel());
   const s = p.summary, imp = p.impact, pc = p.percentiles;
   // por round, para ficar na mesma escala do "impacto por round"
   const breakdown = Object.entries(imp.breakdown).filter(([, v]) => v !== 0).map(([k, v]) => [k, v / p.sample.rounds] as const).sort((a, b) => b[1] - a[1]);
@@ -71,6 +73,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
 
         <div data-pdf-section="Resumo" className="grid grid-cols-2 gap-3 md:grid-cols-5">
           <StatTile label="Impacto por round" value={pp(imp.wpa_per_round)} tone={imp.wpa_per_round >= 0 ? "good" : "bad"}
+                    info={<TermList terms={[g.impact, g.impactPerRound]} className="" />}
                     sub={pc?.wpa_per_round != null ? betterThan(pc.wpa_per_round) : `${p.sample.rounds} rounds`} />
           <StatTile label="K/D" value={num(s.kd, 2)} sub={pc?.kd != null ? betterThan(pc.kd) : `${s.kills}/${s.deaths}`} />
           <StatTile label="ACS" value={num(s.acs)} sub={pc?.acs != null ? betterThan(pc.acs) : undefined} />
@@ -103,7 +106,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
         </Section>
 
         <Section id="impacto" title="De onde vem o impacto" collapsible teaser={`Saldo: ${pp(imp.wpa_per_round)} por round · cada kill vale ${pp(imp.per_kill)} (liga ${pp(imp.league_per_kill)})`}
-                 info="Variação média na chance de vitória por round, por tipo de ação, em pontos de chance (se a chance vai de 45% para 76%, a jogada vale +31 pontos). Mortes sempre custam; a pergunta é quanto. À direita, cada métrica comparada com a liga.">
+                 info={<>Variação média na chance de vitória por round, por tipo de ação, em pontos de chance (se a chance vai de 45% para 76%, a jogada vale +31 pontos). Mortes sempre custam; a pergunta é quanto. À direita, cada métrica comparada com a liga.<TermList terms={[g.trade, g.isolated]} /></>}>
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-2">
               {breakdown.map(([k, v]) => (

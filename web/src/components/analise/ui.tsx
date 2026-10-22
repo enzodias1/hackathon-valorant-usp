@@ -124,13 +124,26 @@ export function SectionHead({ n, title, link, info }: {
   );
 }
 
-export function StatTile({ label, value, sub, tone }: { label: string; value: React.ReactNode; sub?: React.ReactNode; tone?: "good" | "bad" }) {
+export function StatTile({ label, value, sub, tone, info, infoAlign }: {
+  label: string; value: React.ReactNode; sub?: React.ReactNode; tone?: "good" | "bad";
+  /** botão "i" ao lado do rótulo, com o que o número significa */
+  info?: React.ReactNode; infoAlign?: "left" | "right";
+}) {
   return (
     <div className="rounded-xl border border-line bg-surface px-4 py-3">
-      <div className="text-xs uppercase tracking-wide text-muted">{label}</div>
+      <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted">{label}{info && <InfoTip text={info} label={`O que é ${label.toLowerCase()}`} align={infoAlign} />}</div>
       <div className={`font-display mt-1 text-3xl tracking-wide ${tone === "good" ? "text-good" : tone === "bad" ? "text-bad" : "text-ink"}`}>{value}</div>
       {sub && <div className="mt-0.5 text-xs text-ink-2">{sub}</div>}
     </div>
+  );
+}
+
+/** Definições dentro de um "i": o termo em destaque e o que ele quer dizer, uma por linha (ver lib/glossary). */
+export function TermList({ terms, className = "mt-2" }: { terms: [string, string][]; className?: string }) {
+  return (
+    <span className={`block space-y-1.5 ${className}`}>
+      {terms.map(([term, def]) => <span key={term} className="block"><b className="text-ink">{term}:</b> {def}</span>)}
+    </span>
   );
 }
 

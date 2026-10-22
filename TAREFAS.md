@@ -87,7 +87,7 @@ gente da Riot: se algo soar errado para um jogador, eles vão perceber.
 > ⏳ **Quando o front estiver fechado** (combinamos o dia e o responsável no grupo).
 
 **O que fazer:** com o roteiro do Jodão ([`para_equipe/roteiro_pitch.md`](para_equipe/roteiro_pitch.md)), gravar **um clipe por trecho
-da demonstração** (partida + round 12 com o replay tocando, página do time, jogador, comparar, destaques, como usar, metodologia),
+da demonstração** (partida + round 12 com o replay tocando, página do time, jogador, comparar, destaques, metodologia),
 seguindo o que o roteiro pede na coluna "Tela". Use o link da Vercel, em 1080p, com zoom do navegador em 110–125%, movimentos de mouse
 lentos e sem notificações na tela. Grave cada clipe com alguns segundos de folga no começo e no fim, para facilitar a edição.
 
@@ -239,7 +239,7 @@ busca), página inicial com atalhos e deploy na Vercel ligado ao repositório.
 </details>
 
 <details>
-<summary>✅ <b>Azi — Página "Como funciona" + revisão no celular</b> (PR #2, no ar; hoje dividida em "Como usar" e "Metodologia")</summary>
+<summary>✅ <b>Azi — Página "Como funciona" + revisão no celular</b> (PR #2, no ar; hoje é a "Metodologia", e o glossário foi para os botões "i")</summary>
 
 **O que fazer:** página explicando o produto para jogador e para a banca técnica (a ideia em 3 passos, calibração do modelo, comparação
 dos 3 modelos, previsão por tipo de compra, chance de trade por distância, glossário e limites) e revisão de todas as telas no celular.

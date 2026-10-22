@@ -14,7 +14,6 @@ const ICONS: Record<string, React.ReactNode> = {
   compareTeams: <path d="M3 5.5h9m0 0L9.5 3M12 5.5 9.5 8M13 10.5H4m0 0L6.5 8M4 10.5 6.5 13" />,
   comparePlayers: <><circle cx="5.5" cy="6" r="2" /><circle cx="10.5" cy="6" r="2" /><path d="M1.5 13c.4-2 1.9-3 4-3s3.6 1 4 3M10.5 10c2.1 0 3.6 1 4 3" /></>,
   highlights: <path d="m8 2 1.8 3.7 4 .6-2.9 2.8.7 4L8 11.2 4.4 13.1l.7-4L2.2 6.3l4-.6z" />,
-  help: <><circle cx="8" cy="8" r="6" /><path d="M6.3 6.2A1.8 1.8 0 0 1 9.8 6.6c0 1.2-1.8 1.5-1.8 2.6M8 11.3v.2" /></>,
   method: <><path d="M6 2.5h4M6.8 2.5v3.8L3.2 12.3a.9.9 0 0 0 .8 1.2h8a.9.9 0 0 0 .8-1.2L9.2 6.3V2.5" /><path d="M4.8 9.5h6.4" /></>,
   slides: <><rect x="2" y="2.5" width="12" height="8.5" rx="1" /><path d="M8 11v2.5M5.5 13.5h5" /></>,
 };
@@ -33,7 +32,6 @@ const GROUPS: { label?: string; items: NavItem[] }[] = [
     { href: "/destaques", label: "Destaques", icon: "highlights" },
   ] },
   { label: "Sobre o projeto", items: [
-    { href: "/como-funciona", label: "Como usar", icon: "help" },
     { href: "/metodologia", label: "Metodologia", icon: "method" },
     { href: "/", label: "Apresentação", icon: "slides" },
   ] },

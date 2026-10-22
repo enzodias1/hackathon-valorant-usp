@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { Team, TeamSummary } from "@/lib/types";
 import { date, nick, pct, pp } from "@/lib/format";
-import { Td, Th } from "./ui";
+import { Td, TermList, Th } from "./ui";
+import InfoTip from "./InfoTip";
 import HeadToHead from "./HeadToHead";
 
 const sigmoid = (x: number) => 1 / (1 + Math.exp(-x));
@@ -21,7 +22,11 @@ function mapWinProb(p: number) {
 
 const STYLE_KEYS = ["atk_win", "def_win", "pistol_win", "fb_rate", "postplant_win", "retake_win", "traded_death_rate", "isolated_death_rate", "throw_rate"];
 
-export default function Comparator({ teams }: { teams: TeamSummary[] }) {
+export default function Comparator({ teams, styleTerms }: {
+  teams: TeamSummary[];
+  /** o que significam as métricas do "Estilo lado a lado" (lib/glossary, montado no servidor) */
+  styleTerms: [string, string][];
+}) {
   const [a, setA] = useState("");
   const [b, setB] = useState("");
   const [data, setData] = useState<{ a?: Team; b?: Team }>({});
@@ -63,14 +68,14 @@ export default function Comparator({ teams }: { teams: TeamSummary[] }) {
         <span className="hidden pb-2 text-muted sm:block">×</span>
         {select(b, setB, "Adversário", a)}
       </div>
-      {A && B && A.slug === a && B.slug === b ? <Comparison A={A} B={B} /> : (
+      {A && B && A.slug === a && B.slug === b ? <Comparison A={A} B={B} styleTerms={styleTerms} /> : (
         <p className="rounded-xl border border-dashed border-line p-6 text-sm text-ink-2">Escolha os dois times para comparar.</p>
       )}
     </div>
   );
 }
 
-function Comparison({ A, B }: { A: Team; B: Team }) {
+function Comparison({ A, B, styleTerms }: { A: Team; B: Team; styleTerms: [string, string][] }) {
   const pRound = sigmoid(A.strength.theta - B.strength.theta);
   const pMap = mapWinProb(pRound);
   const h2h = A.matches.filter((m) => m.opponent === B.slug);
@@ -149,7 +154,10 @@ function Comparison({ A, B }: { A: Team; B: Team }) {
       </section>
 
       <section data-pdf-section="Estilo lado a lado" className="rounded-xl border border-line bg-surface p-5 sm:p-6">
-        <h2 className="text-lg font-semibold text-ink">Estilo lado a lado</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-ink">Estilo lado a lado</h2>
+          <InfoTip text={<TermList terms={styleTerms} className="" />} label="O que significam as métricas" />
+        </div>
         <p className="mt-1 text-sm text-ink-2">▲/▼: diferença em relação à liga confirmada estatisticamente.</p>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[560px]">

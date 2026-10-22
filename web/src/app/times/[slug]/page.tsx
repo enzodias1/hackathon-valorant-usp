@@ -2,12 +2,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import ExportPdf from "@/components/site/ExportPdf";
 import { pageMeta } from "@/lib/site";
-import { getIndex, getNavGrid, getTeam, getZones } from "@/lib/data";
+import { getIndex, getModel, getNavGrid, getTeam, getZones } from "@/lib/data";
+import { glossary } from "@/lib/glossary";
 import { competitionLabel, date, nick, num, pct } from "@/lib/format";
 import type { Comparison, Team, TeamMetric } from "@/lib/types";
 import SynergyGraph from "@/components/analise/SynergyGraph";
 import ZonesPanel from "@/components/analise/ZonesPanel";
-import { BandButton, CompareLegend, CompareRow, InsightPanel, PageBand, PlayerLink, Section, StageRow, StatTile, Td, Th, WpaBar } from "@/components/analise/ui";
+import { BandButton, CompareLegend, CompareRow, InsightPanel, PageBand, PlayerLink, Section, StageRow, StatTile, Td, TermList, Th, WpaBar } from "@/components/analise/ui";
 
 // só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
 export const dynamicParams = false;
@@ -36,6 +37,7 @@ const GROUPS: { title: string; keys: string[] }[] = [
 export default async function TeamPage({ params }: { params: Promise<{ slug: string }> }) {
   const slug = (await params).slug;
   const [team, zones]: [Team, Awaited<ReturnType<typeof getZones>>] = await Promise.all([getTeam(slug), getZones(slug)]);
+  const g = glossary(await getModel());
   const metric = Object.fromEntries(team.metrics.map((m) => [m.key, m])) as Record<string, TeamMetric>;
   const wae = team.wins_above_expected;
   const maxWpa = Math.max(...team.roster.map((p) => Math.abs(p.wpa_per_round)));
@@ -72,6 +74,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
                     tone={wae.significant ? (wae.diff > 0 ? "good" : "bad") : undefined}
                     sub={`${wae.per100 >= 0 ? "+" : ""}${num(wae.per100, 1)} a cada 100 rounds${wae.significant ? "" : " · não conclusivo"}`} />
           <StatTile label="Força na liga" value={`${team.strength.rank}º de ${team.strength.of}`}
+                    info={<TermList terms={[g.strength]} className="" />} infoAlign="right"
                     sub={team.strength.reliable ? `vence ${pct(team.strength.p_vs_avg)} dos rounds contra um time médio` : "poucos rounds: estimativa imprecisa"} />
         </div>
 
@@ -86,12 +89,12 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
         </Section>
 
         <Section id="zonas" title="Onde o time morre" collapsible teaser={t.zones}
-                 info="Cada morte é atribuída à região nomeada mais próxima do mapa. A tabela compara a parcela de mortes em cada região com a da liga e mostra quantas ficaram sem trade; o mapa de calor mostra onde elas se concentram.">
+                 info={<>Cada morte é atribuída à região nomeada mais próxima do mapa. A tabela compara a parcela de mortes em cada região com a da liga e mostra quantas ficaram sem trade; o mapa de calor mostra onde elas se concentram.<TermList terms={[g.trade]} /></>}>
           <ZonesPanel zones={zones} navs={navs} />
         </Section>
 
         <Section id="elenco" title="Elenco" collapsible teaser={t.roster}
-                 info="Função: a do agente que o jogador mais usou. Impacto = quanto o jogador muda, em média, a chance de vitória do round. Esmaecidos: menos de 20% dos rounds do time.">
+                 info={<>Função: a do agente que o jogador mais usou. Esmaecidos: menos de 20% dos rounds do time.<TermList terms={[g.impactPerRound]} /></>}>
           <div className="overflow-x-auto">
             <table className="w-full sm:min-w-[760px]">
               <thead><tr><Th className="sticky left-0 z-10 bg-surface">Jogador</Th><Th className="hidden sm:table-cell">Agentes</Th><Th>Função</Th><Th right>Rounds</Th><Th right>K/D</Th><Th right className="hidden sm:table-cell">ACS</Th><Th>Impacto / round</Th><Th right>Mortes trocadas</Th></tr></thead>
@@ -119,7 +122,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
         </Section>
 
         <Section id="liga" title="Comparação com a liga" collapsible teaser={t.compare} aside={<CompareLegend />}
-                 info="Cada linha mostra o time (ponto) e a média da liga (traço). ▲/▼ marcam diferenças confirmadas estatisticamente.">
+                 info={<>Cada linha mostra o time (ponto) e a média da liga (traço). ▲/▼ marcam diferenças confirmadas estatisticamente.<TermList terms={[g.throw, g.comeback, g.trade, g.isolated]} /></>}>
           <div className="space-y-5">
             {GROUPS.map((g) => (
               <div key={g.title}>
@@ -193,7 +196,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
         </Section>
 
         <Section id="vod" title="Rounds para revisar no VOD" collapsible teaser={t.decisive}
-                 info="Rounds jogados fora: o time chegou a essa chance de vitória e perdeu. Viradas: caiu a essa chance e venceu. Cada linha abre o round na tela da partida.">
+                 info={<><TermList terms={[g.throw, g.comeback]} className="" /><span className="mt-2 block">Cada linha mostra a chance mais alta (jogados fora) ou mais baixa (viradas) que o time teve no round e abre o round na tela da partida.</span></>}>
           <div className="grid gap-6 lg:grid-cols-2">
             <div>
               <h3 className="label-caps mb-1 text-[10px] text-muted">Jogados fora</h3>

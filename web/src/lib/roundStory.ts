@@ -6,7 +6,7 @@ import { chance, nick, pct, pp } from "./format";
 import type { Color, Match, MatchPlayer, Round, RoundEvent } from "./types";
 
 const MULTI: Record<number, string> = { 3: "um triple kill", 4: "um quadra kill", 5: "um ace" };
-const COMEBACK_WP = 0.2;
+export const COMEBACK_WP = 0.2; // o mesmo de model.json (definitions.comeback_wp)
 const UNDERDOG_WP = 0.35;
 const SPIKE_MS = 45_000;
 

@@ -51,7 +51,6 @@ export default function RootLayout({
               <div className="space-y-2">
                 <p className="label-caps text-[10px]">{PRODUCT_NAME} · protótipo do Hackathon VALORANT (USP São Carlos / SEMCOMP 2026)</p>
                 <p className="label-caps flex gap-4 text-[10px]">
-                  <Link href="/como-funciona" className="text-ink-2 hover:text-lime">Como usar</Link>
                   <Link href="/metodologia" className="text-ink-2 hover:text-lime">Metodologia</Link>
                 </p>
               </div>

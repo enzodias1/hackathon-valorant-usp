@@ -195,7 +195,6 @@ export default async function PresentationDeck() {
           </div>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link href="/inicio" className="label-caps bg-lime px-6 py-3.5 text-xs text-bg hover:opacity-90">Explorar o site →</Link>
-            <Link href="/como-funciona" className="label-caps text-xs text-white underline decoration-lime underline-offset-4 hover:text-lime">Como usar</Link>
           </div>
         </Slide>
       </Deck>

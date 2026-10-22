@@ -18,8 +18,10 @@ F para tela cheia. O endereço antigo `/apresentacao` redireciona para a raiz. O
 do protótipo e o da apresentação.
 
 Páginas: partidas (replay 2D de cada round), times, jogadores, comparar times e **comparar jogadores** (`/comparar/jogadores`:
-duelos diretos ou a parceria no mesmo time, estatísticas lado a lado), destaques, como usar, metodologia. **Busca rápida** no menu
-(Ctrl+K ou "/"): times, jogadores e partidas.
+duelos diretos ou a parceria no mesmo time, estatísticas lado a lado), destaques, metodologia. **Busca rápida** no menu
+(Ctrl+K ou "/"): times, jogadores e partidas. A página "Como usar" saiu (22/10): o que cada número significa (impacto, trade, morte
+isolada, round jogado fora, virada, força) fica no botão "i" dos lugares onde o número aparece, com os textos em
+`web/src/lib/glossary.ts` e os limites tirados do `model.json`; `/como-funciona` redireciona para `/inicio`.
 
 ## Regras do edital que afetam o código
 - Dados de partida **somente** dos JSONs fornecidos pela organização. Nada de APIs da Riot, scraping ou dados externos de partidas.
@@ -137,7 +139,7 @@ Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela veloc
   despenca antes de cada desarme: no round 6 de Azure Bears Golden × USP Stars, a Dioguera mata o último atacante com 13,8 s de
   spike a 11 m dela (folga de 4,8 s; desarmou com 4,7 s restantes), e a defesa fica com 96% até o fim, em vez de cair para 14%.
 - **Trade:** morte vingada por um aliado em até 5 s.
-- **Morte isolada:** aliado vivo mais próximo a mais de 3.000 unidades (~30 m). A chance de ser trocado cai de 41% (< 5 m) para 6% (> 30 m).
+- **Morte isolada:** aliado vivo mais próximo a mais de 3.000 unidades (~30 m). A chance de ser trocado cai de 41% (< 5 m) para 4% (> 30 m; 6% só na faixa de 30–40 m).
 - **Papéis por comportamento (Entry, Support, Lurker, Clutch): removidos da interface (22/10).** Saíam de percentis de
   comportamento (72% dos duelistas caíam em Entry e 71% dos sentinelas em Lurker, sem o modelo ver o agente), mas a equipe achou o
   rótulo ambíguo ao lado da função do agente. `team.py` ainda calcula os eixos; o site mostra só a função do agente, e os percentis

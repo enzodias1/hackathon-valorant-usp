@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PRODUCT_NAME, pageMeta } from "@/lib/site";
-import { getIndex, getMatch } from "@/lib/data";
+import { getIndex, getMatch, getModel } from "@/lib/data";
+import { glossary } from "@/lib/glossary";
 import { computeHighlights, MAX_DEFUSES } from "@/lib/highlights";
 import { PageBand, SectionHead } from "@/components/analise/ui";
 import HighlightPlayCard from "@/components/destaques/HighlightPlayCard";
@@ -13,7 +14,8 @@ export const metadata: Metadata = pageMeta(
 );
 
 export default async function HighlightsPage() {
-  const index = await getIndex();
+  const [index, model] = await Promise.all([getIndex(), getModel()]);
+  const g = glossary(model);
   const matches = await Promise.all(index.matches.map((m) => getMatch(m.id)));
   const { plays, comebacks } = computeHighlights(matches, 10);
 
@@ -27,7 +29,7 @@ export default async function HighlightsPage() {
 
       <div className="mx-auto max-w-6xl space-y-12 px-4 py-8 sm:px-8">
         <section>
-          <SectionHead n="01" title="Jogadas de maior impacto" info={<ChanceInfo />} />
+          <SectionHead n="01" title="Jogadas de maior impacto" info={<ChanceInfo lead={[g.impact]} />} />
           <p className="-mt-2 mb-4 text-sm text-ink-2">
             Kills, plants, desarmes e ressurreições que mais aumentaram a chance de vitória do time de quem agiu, antes → depois, com a
             situação na hora. No máximo {MAX_DEFUSES} desarmes: o modelo só percebe o desarme quando ele termina e credita os 7 segundos
@@ -41,7 +43,7 @@ export default async function HighlightsPage() {
         </section>
 
         <section>
-          <SectionHead n="02" title="Maiores viradas" info={<ChanceInfo />} />
+          <SectionHead n="02" title="Maiores viradas" info={<ChanceInfo lead={[g.comeback]} />} />
           <p className="-mt-2 mb-4 text-sm text-ink-2">
             Rounds em que o vencedor chegou à menor chance de vitória e mesmo assim ganhou, fora os que já aparecem nas jogadas acima.
             O replay abre no momento mais difícil.

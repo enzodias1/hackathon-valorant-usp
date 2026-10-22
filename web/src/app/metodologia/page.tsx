@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { getModel } from "@/lib/data";
 import { num, pct, pp } from "@/lib/format";
@@ -48,7 +47,6 @@ export default async function MethodologyPage() {
                 }>
         Tudo no site sai de um único modelo: a cada kill, plant ou desarme, ele estima a chance de cada time vencer o round.
         Aqui mostramos como ele foi construído, como verificamos que ele acerta e o que fazemos para não tirar conclusões de ruído.
-        O guia de uso, em linguagem de jogador, fica em <Link href="/como-funciona" className="font-semibold text-white underline decoration-lime underline-offset-4 hover:text-lime">Como usar</Link>.
       </PageBand>
 
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">

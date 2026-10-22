@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import ExportPdf from "@/components/site/ExportPdf";
 import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import { BandButton, PageBand } from "@/components/analise/ui";
-import { getIndex } from "@/lib/data";
+import { getIndex, getModel } from "@/lib/data";
+import { glossary } from "@/lib/glossary";
 import Comparator from "@/components/analise/Comparator";
 
 export const metadata: Metadata = pageMeta(`Comparar times · ${PRODUCT_NAME}`, "Time × adversário: quem é favorito, em quais mapas cada um rende mais e como o adversário joga.");
 
 export default async function ComparePage() {
-  const index = await getIndex();
+  const [index, model] = await Promise.all([getIndex(), getModel()]);
+  const g = glossary(model);
   return (
     <main>
       <PageBand kicker="Preparação para o próximo jogo" title="Time × adversário" actions={<><BandButton href="/comparar/jogadores">Comparar jogadores</BandButton><ExportPdf /></>}>
@@ -16,7 +18,7 @@ export default async function ComparePage() {
         Tudo a partir das partidas já disputadas: é preparação antes do jogo, não ajuda durante a partida.
       </PageBand>
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
-        <Comparator teams={index.team_list} />
+        <Comparator teams={index.team_list} styleTerms={[g.trade, g.isolated, g.throw]} />
       </div>
     </main>
   );

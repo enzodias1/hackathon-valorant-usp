@@ -7,7 +7,8 @@ import type { Color, Match, MatchPlayer, Round, RoundEvent } from "@/lib/types";
 import { chance, clock, nick, num, pct, pp } from "@/lib/format";
 import { roundEndMs, SPIKE_TIMER_MS, toMinimap, type UV } from "@/lib/minimap";
 import { decodeNavGrid, lineOfSight, type NavGrid, type NavGridRaw } from "@/lib/navgrid";
-import { playVerb, roundStory } from "@/lib/roundStory";
+import { COMEBACK_WP, playVerb, roundStory } from "@/lib/roundStory";
+import { comebackTerm, impactTerm } from "@/lib/glossary";
 import ChanceInfo from "./ChanceInfo";
 import { buildTracks, deadAt, nearestAlly, onMap, poseAt, wpAt, type Pose, type Track } from "@/lib/replay";
 import MinimapBase from "@/components/MinimapBase";
@@ -199,7 +200,7 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
         <div className="rounded-xl border border-lime/25 bg-lime/[0.06] px-4 py-3">
           <span className="flex items-center gap-2">
             <span className="label-caps text-[10px] text-lime">O que decidiu o round</span>
-            <ChanceInfo />
+            <ChanceInfo lead={story[0]?.includes("de virada") ? [comebackTerm(COMEBACK_WP)] : undefined} />
           </span>
           <p className="mt-1 text-sm leading-relaxed text-ink">{story.join(" ")}</p>
         </div>
@@ -331,7 +332,7 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
               <h3 className="font-display whitespace-nowrap text-base uppercase tracking-wide text-ink">Sequência do round</h3>
               <span className="flex items-center gap-2">
                 <span className="label-caps whitespace-nowrap text-[9px] text-muted">chance · impacto</span>
-                <ChanceInfo align="right" />
+                <ChanceInfo align="right" lead={[impactTerm]} />
               </span>
             </div>
             <ol ref={listRef} className="relative max-h-[28rem] min-h-0 flex-1 overflow-y-auto lg:max-h-none">

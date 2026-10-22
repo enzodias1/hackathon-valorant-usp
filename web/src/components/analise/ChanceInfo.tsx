@@ -2,6 +2,7 @@
 // pela primeira vez (replay, momentum, jogadas que mais mudaram rounds). O texto acompanha o que o modelo usa de fato.
 import Link from "next/link";
 import InfoTip from "./InfoTip";
+import { TermList } from "./ui";
 
 export const CHANCE_EXPLAINED = (
   <>
@@ -13,6 +14,11 @@ export const CHANCE_EXPLAINED = (
   </>
 );
 
-export default function ChanceInfo({ align }: { align?: "left" | "right" }) {
-  return <InfoTip text={CHANCE_EXPLAINED} label="O que é chance de vitória e pontos de chance" align={align} />;
+export default function ChanceInfo({ align, lead }: {
+  align?: "left" | "right";
+  /** definições do que o lugar mostra (ex.: o que é uma virada), antes da explicação da chance */
+  lead?: [string, string][];
+}) {
+  const text = lead ? <><TermList terms={lead} className="mb-2" />{CHANCE_EXPLAINED}</> : CHANCE_EXPLAINED;
+  return <InfoTip text={text} label="O que é chance de vitória e pontos de chance" align={align} />;
 }

@@ -111,9 +111,6 @@ function Hero({ stats }: { stats: [number, string][] }) {
             <Link href="/partidas" className="label-caps border-2 border-white px-6 py-3 text-[12px] text-white transition-colors hover:bg-white hover:text-brand">
               Ver partidas
             </Link>
-            <Link href="/como-funciona" className="label-caps px-2 py-3 text-[11px] text-white/80 underline decoration-lime underline-offset-4 hover:text-white">
-              Como usar →
-            </Link>
           </div>
         </div>
 
