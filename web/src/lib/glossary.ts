@@ -26,3 +26,26 @@ export function glossary(model: ModelInfo) {
     strength: ["Força", "a chance de vencer um round contra um time médio do campeonato, descontando a economia. É a ordem do ranking de times."],
   } satisfies Record<string, Term>;
 }
+
+/** Tipos de compra do time (pipeline/etl.py, buy_type). Pelo valor somado do equipamento dos 5 jogadores no início do round. */
+export const BUY_BASIS =
+  "O tipo de compra sai do valor do equipamento dos 5 jogadores no início do round, somado: armas, colete e habilidades, incluindo o que sobrou do round anterior.";
+const BUY_TYPES = [
+  { name: "Eco", range: "menos de 5 mil", per: "até ~1 mil por jogador", tag: "só pistola",
+    what: "quase só a pistola grátis, guardando dinheiro para o round seguinte" },
+  { name: "Semi-eco", range: "5 a 10 mil", per: "~1 a 2 mil por jogador", tag: "pistola melhor ou SMG",
+    what: "pistola melhor ou SMG, colete leve e algumas habilidades" },
+  { name: "Semi-buy", range: "10 a 20 mil", per: "~2 a 4 mil por jogador", tag: "compra incompleta",
+    what: "compra incompleta, como SMG ou rifle sem colete pesado, ou só parte do time com rifle" },
+  { name: "Full buy", range: "20 mil ou mais", per: "~4 mil por jogador", tag: "rifle e colete pesado",
+    what: "rifle ou Operator, colete pesado e habilidades para todos" },
+];
+const PISTOL: Term = ["Pistol", "os rounds 1 e 13, em que todo mundo começa com 800 créditos."];
+/** Versão completa (metodologia). */
+export const BUY_TERMS: Term[] = [PISTOL, ...BUY_TYPES.map((b): Term => [b.name, `${b.range} no total (${b.per}): ${b.what}.`])];
+/** Versão de uma linha, ao lado da tabela de compras do time. */
+export const BUY_LEGEND = `Pelo equipamento dos 5 jogadores no início do round (armas, colete e habilidades): ${
+  BUY_TYPES.map((b) => `${b.name}, ${b.range} (${b.tag})`).join(" · ")}. Pistol: rounds 1 e 13.`;
+
+/** Decisões sem dinheiro para full buy (pipeline/economy.py): pela parcela do dinheiro disponível que o time gastou. */
+export const DECISION_LEGEND = "Pela parcela do dinheiro disponível que o time gastou: Economizar, até 35% · Meio-termo, entre 35% e 65% · Forçar, 65% ou mais.";

@@ -3,6 +3,7 @@ import { getModel } from "@/lib/data";
 import { num, pct, pp } from "@/lib/format";
 import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import type { ModelInfo } from "@/lib/types";
+import { BUY_BASIS, BUY_TERMS } from "@/lib/glossary";
 import { CalibrationChart, TradeDistanceChart } from "@/components/analise/MethodCharts";
 import { PageBand, Section, StatTile, Td, Th } from "@/components/analise/ui";
 
@@ -122,6 +123,15 @@ export default async function MethodologyPage() {
 
         <Section id="economia" title="O modelo entende economia"
                  subtitle={`Chance de o ataque vencer o round, prevista antes do primeiro tiro, quando a única informação é o que cada time comprou. Em média, a previsão erra por ${num(buyErr * 100, 1)} pontos percentuais nos confrontos de compra mais comuns.`}>
+          <p className="text-sm text-ink-2">{BUY_BASIS}</p>
+          <dl className="mb-5 mt-3 grid gap-x-6 gap-y-2.5 text-sm sm:grid-cols-2 lg:grid-cols-3">
+            {BUY_TERMS.map(([term, def]) => (
+              <div key={term} className="border-l-2 border-brand-2/60 pl-3">
+                <dt className="font-medium text-ink">{term}</dt>
+                <dd className="text-ink-2">{def.charAt(0).toUpperCase() + def.slice(1)}</dd>
+              </div>
+            ))}
+          </dl>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead><tr><Th>Ataque × defesa</Th><Th right>Previsto</Th><Th right>Real</Th><Th right>Rounds</Th></tr></thead>
@@ -150,9 +160,9 @@ export default async function MethodologyPage() {
         </Section>
 
         <Section id="replay" title="O replay: o que é registrado e o que é estimado"
-                 subtitle="A Riot registra a posição e a direção da mira de todos os jogadores vivos em cada kill, plant e desarme. Entre esses instantes, o movimento é estimado, e o replay sempre avisa qual dos dois está na tela.">
+                 subtitle="Os dados registram a posição e a direção da mira de todos os jogadores vivos em cada kill, plant e desarme. Entre esses instantes, o movimento é estimado, e o replay sempre avisa qual dos dois está na tela.">
           <div className="grid gap-3 md:grid-cols-2">
-            <Method title="Registrado pela Riot">
+            <Method title="Registrado nos dados">
               Posição e mira de todos os vivos em cada evento (cerca de 8 registros por round; o primeiro sai, na mediana, aos 15,7 s), a vítima de cada kill, a arma ou a habilidade que matou, o plant, o desarme e o que cada um comprou.
               <b className="text-ink"> A direção da mira foi validada:</b> em 99% das 45.440 kills, quem mata está olhando para a vítima (diferença mediana de 0,3°).
             </Method>
@@ -166,12 +176,12 @@ export default async function MethodologyPage() {
               Isso acontece em 0,9% dos trechos e se concentra em quem tem mobilidade (Iso 6,6%, Neon 5,3%, Yoru 2,6%) contra ~0,3% nos demais.
               Casos que os dados não revelam, como uma ultimate dentro de um intervalo longo, entram como <b className="text-ink">anotação da equipe</b>, sempre identificada.
               <b className="text-ink"> Ressurreições</b> (ultimate da Sage num aliado, ou da Clove nela mesma) aparecem nos dados: quem morreu volta à
-              lista de vivos da Riot. São 95 em 91 rounds. Cada uma vira uma jogada de quem reviveu (a Sage do time, ou a própria Clove):
+              lista de vivos. São 95 em 91 rounds. Cada uma vira uma jogada de quem reviveu (a Sage do time, ou a própria Clove):
               vale a diferença na chance de vitória com e sem o jogador de volta (em média, +19 pontos). O momento exato não vem nos dados,
               só o intervalo entre dois registros, e o replay mostra esse intervalo.
             </Method>
             <Method title="O que os dados não têm">
-              O momento de uso de cada habilidade (smokes, flashes, drones): a Riot informa só o total por partida, que mostramos por agente.
+              O momento de uso de cada habilidade (smokes, flashes, drones): os dados informam só o total por partida, que mostramos por agente.
               Por isso a análise de &ldquo;quem podia trocar&rdquo; considera só as paredes do mapa, sem smokes nem diferença de altura, e o replay
               mostra onde olhar no VOD, sem substituí-lo.
             </Method>
@@ -215,9 +225,8 @@ export default async function MethodologyPage() {
 
         <Section id="limites" title="Limites honestos">
           <ul className="list-disc space-y-1.5 pl-5 text-sm text-ink-2">
-            <li>Só usamos o que está nos dados oficiais das partidas: posições, kills, compras, spike. Não há uso detalhado de utilitárias nem comunicação do time, então o site aponta <i>onde</i> olhar no VOD, sem substituí-lo.</li>
+            <li>Só usamos o que está nos dados oficiais das partidas: posições, kills, compras, spike. Não há uso detalhado de utilitárias nem comunicação do time.</li>
             <li>Amostras pequenas (poucos mapas ou menos de {d.min_rounds_role} rounds) são sinalizadas, e nelas a maioria das comparações fica como “não conclusiva”.</li>
-            <li>Os números valem para o cenário universitário destes campeonatos ({num(model.data.matches)} mapas); o cenário profissional pode se comportar de outro jeito.</li>
             <li>A análise de evolução é observacional: mostra associações controladas, não experimentos.</li>
             <li>
               Rounds “jogados fora” (chegar a {pct(d.throw_wp)} e perder) acontecem em proporção parecida em quase todos os times: a diferença entre eles

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import ExportPdf from "@/components/site/ExportPdf";
 import { pageMeta } from "@/lib/site";
 import { getIndex, getModel, getNavGrid, getTeam, getZones } from "@/lib/data";
-import { glossary } from "@/lib/glossary";
+import { BUY_LEGEND, DECISION_LEGEND, glossary } from "@/lib/glossary";
 import { competitionLabel, date, nick, num, pct } from "@/lib/format";
 import type { Comparison, Team, TeamMetric } from "@/lib/types";
 import SynergyGraph from "@/components/analise/SynergyGraph";
@@ -158,13 +158,15 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
         <Section id="economia" title="Economia" collapsible teaser={t.economy}
                  info="Vitórias em cada tipo de compra comparadas com o esperado pelo modelo (que considera a compra dos dois lados), e o que o time fez quando não tinha dinheiro para full buy (dinheiro + armas abaixo de 20 mil). É descritivo: mostra o que aconteceu, sem recomendar uma decisão.">
           <h3 className="label-caps mb-1 text-[10px] text-muted">Vitórias por tipo de compra</h3>
+          <p className="mb-2 text-xs text-ink-2">{BUY_LEGEND}</p>
           <div className="divide-y divide-line/50">
             {team.buys.map((b) => {
               const c: Comparison = { value: b.win, league: b.expected, n: b.rounds, z: b.z, significant: b.significant, good: b.significant ? b.z > 0 : null };
               return <CompareRow key={b.buy} label={`${b.buy} (${b.rounds} rounds)`} c={c} expectedLabel="esperado" />;
             })}
           </div>
-          <h3 className="label-caps mb-2 mt-6 text-[10px] text-muted">Sem dinheiro para full buy</h3>
+          <h3 className="label-caps mb-1 mt-6 text-[10px] text-muted">Sem dinheiro para full buy</h3>
+          <p className="mb-2 text-xs text-ink-2">{DECISION_LEGEND}</p>
           <div className="grid gap-4 md:grid-cols-2">
             {team.economy.map((e) => (
               <div key={e.context} className="rounded-lg bg-surface-2 p-4">
