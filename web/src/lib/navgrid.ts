@@ -3,7 +3,32 @@
 // Sem React: as contas rodam uma vez por round (useMemo) e funcionam também na renderização do servidor.
 import type { UV } from "./minimap";
 
-export type NavGridRaw = { n: number; walk: string; spawn: { atk?: [number, number]; def?: [number, number] } };
+export type NavGridRaw = {
+  n: number; walk: string; spawn: { atk?: [number, number]; def?: [number, number] };
+  /** regiões nomeadas (callouts oficiais): [nome como na tabela "Onde o time morre", u, v] */
+  callouts?: [string, number, number][];
+};
+
+/** De que região é cada célula de chão (a região nomeada mais perto, a mesma regra que atribui as mortes); -1 fora do chão.
+ *  Devolve também onde escrever o nome de cada região (o centro da área dela). */
+export function regionCells(g: NavGrid, callouts: [string, number, number][]) {
+  const names = [...new Set(callouts.map((c) => c[0]))];
+  const owner = new Int16Array(g.n * g.n).fill(-1);
+  const sum = names.map(() => ({ u: 0, v: 0, n: 0 }));
+  for (let i = 0; i < owner.length; i++) {
+    if (!g.walk[i]) continue;
+    const u = ((i % g.n) + 0.5) / g.n, v = (Math.floor(i / g.n) + 0.5) / g.n;
+    let best = -1, bd = Infinity;
+    for (const [name, cu, cv] of callouts) {
+      const d = (cu - u) ** 2 + (cv - v) ** 2;
+      if (d < bd) { bd = d; best = names.indexOf(name); }
+    }
+    owner[i] = best;
+    sum[best].u += u; sum[best].v += v; sum[best].n++;
+  }
+  const at = sum.map((s) => (s.n ? { u: s.u / s.n, v: s.v / s.n } : null));
+  return { names, owner, at };
+}
 
 export type NavGrid = {
   n: number;

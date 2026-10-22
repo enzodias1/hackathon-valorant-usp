@@ -1,24 +1,28 @@
 "use client";
 // "Onde o time morre": regiões do mapa com mais mortes do time, comparadas com a liga, por mapa e lado.
 // O desenho do mapa de calor entra no espaço reservado (reaproveitando o minimapa do Nukan).
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Side, TeamZones } from "@/lib/types";
 import { pct } from "@/lib/format";
+import { decodeNavGrid, regionCells, type NavGridRaw } from "@/lib/navgrid";
 import MinimapBase from "@/components/MinimapBase";
 
-export default function ZonesPanel({ zones }: { zones: TeamZones }) {
+export default function ZonesPanel({ zones, navs = {} }: { zones: TeamZones; navs?: Record<string, NavGridRaw | null> }) {
   const [mi, setMi] = useState(0);
   const [side, setSide] = useState<Side>("Defesa");
+  const [sel, setSel] = useState<string | null>(null); // região acesa no mapa
   if (!zones.maps.length) return <p className="text-sm text-ink-2">Sem mortes registradas.</p>;
   const mp = zones.maps[mi];
   const s = mp.sides[side];
   const top = (s?.zones ?? []).slice(0, 8);
+  const pick = (z: string | null) => setSel((cur) => (cur === z ? null : z));
+  const selZone = sel ? s?.zones.find((z) => z.zone === sel) : undefined;
   const maxShare = Math.max(...top.map((z) => Math.max(z.share, z.league_share)), 0.01);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <select value={mi} onChange={(e) => setMi(Number(e.target.value))} aria-label="Mapa"
+        <select value={mi} onChange={(e) => { setMi(Number(e.target.value)); setSel(null); }} aria-label="Mapa"
                 className="rounded-md border border-line bg-surface-2 px-3 py-1.5 text-sm text-ink focus:border-accent focus:outline-none">
           {zones.maps.map((m, i) => <option key={m.code} value={i}>{m.map} ({m.deaths} mortes)</option>)}
         </select>
@@ -42,8 +46,12 @@ export default function ZonesPanel({ zones }: { zones: TeamZones }) {
               </thead>
               <tbody>
                 {top.map((z) => (
-                  <tr key={z.zone} className="border-t border-line/50">
-                    <td className="py-2 pr-2 text-ink">{z.zone}</td>
+                  <tr key={z.zone} onClick={() => pick(z.zone)} aria-selected={sel === z.zone}
+                      className={`cursor-pointer border-t border-line/50 transition-colors hover:bg-surface-2 ${sel === z.zone ? "bg-surface-2" : ""}`}>
+                    <td className={`py-2 pr-2 ${sel === z.zone ? "text-lime" : "text-ink"}`}>
+                      <span className={`mr-1.5 inline-block h-2 w-2 rounded-full align-middle ${sel === z.zone ? "bg-lime" : "border border-line"}`} aria-hidden />
+                      {z.zone}
+                    </td>
                     <td className="py-2 pr-2">
                       <div className="flex items-center gap-2">
                         <div className="relative h-2.5 w-28 shrink-0 rounded-sm bg-surface-2">
@@ -65,11 +73,19 @@ export default function ZonesPanel({ zones }: { zones: TeamZones }) {
             </table>
           )}
           <p className="mt-2 text-xs text-muted">
-            Cada morte é atribuída à região nomeada mais próxima do mapa. ▼: morre sem trade nessa região mais que a liga, com confirmação estatística.
+            Cada morte é atribuída à região nomeada mais próxima do mapa. Clique numa região (aqui ou no mapa) para ver onde ela fica.
+            ▼: morre sem trade nessa região mais que a liga, com confirmação estatística.
           </p>
         </div>
         <div className="min-w-0">
-          <Heatmap map={mp} grid={s?.grid ?? []} size={zones.grid_size} />
+          <Heatmap map={mp} grid={s?.grid ?? []} size={zones.grid_size} nav={navs[mp.code] ?? null} sel={sel} onPick={pick} />
+          {sel && (
+            <p className="mt-2 text-sm text-ink-2">
+              <b className="text-lime">{sel}</b>:{" "}
+              {selZone ? <>{pct(selZone.share)} das mortes do time neste lado (liga {pct(selZone.league_share)}), {pct(selZone.untraded_rate)} sem trade.</>
+                : "sem mortes do time neste lado."}
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -88,8 +104,45 @@ function heat(t: number) {
 
 /** Mapa de calor: grade sobre o minimapa; quanto mais quente e forte a célula, mais mortes do time ali (todas ou só as sem trade).
  *  A cor segue a contagem e a opacidade cresce mais rápido, para áreas com poucas mortes ficarem visíveis sem competir com as quentes. */
-function Heatmap({ map, grid, size }: { map: TeamZones["maps"][number]; grid: [number, number, number, number][]; size: number }) {
+function Heatmap({ map, grid, size, nav, sel, onPick }: {
+  map: TeamZones["maps"][number]; grid: [number, number, number, number][]; size: number;
+  nav: NavGridRaw | null; sel: string | null; onPick: (zone: string) => void;
+}) {
   const [onlyUntraded, setOnlyUntraded] = useState(false);
+  const regions = useMemo(() => {
+    if (!nav?.callouts?.length) return null;
+    const g = decodeNavGrid(nav);
+    return { g, ...regionCells(g, nav.callouts) };
+  }, [nav]);
+  const selIdx = regions && sel ? regions.names.indexOf(sel) : -1;
+  // nomes no mapa: sem o "Meio" (curto) e afastados quando dois se sobrepõem
+  const labels = useMemo(() => {
+    if (!regions) return [];
+    const FS = 0.021;
+    const out = regions.names.map((name, i) => ({ name, text: name.replace(/^Meio · /, "").replace(" · ", " "), at: regions.at[i] }))
+      .filter((l): l is { name: string; text: string; at: { u: number; v: number } } => !!l.at)
+      .map((l) => ({ ...l, u: l.at.u, v: l.at.v, w: l.text.length * FS * 0.56 }));
+    for (let pass = 0; pass < 4; pass++) {
+      for (let a = 0; a < out.length; a++) {
+        for (let b = a + 1; b < out.length; b++) {
+          const A = out[a], B = out[b];
+          if (Math.abs(A.u - B.u) < (A.w + B.w) / 2 && Math.abs(A.v - B.v) < FS * 1.15) {
+            const push = (FS * 1.15 - Math.abs(A.v - B.v)) / 2 + 0.001;
+            if (A.v <= B.v) { A.v -= push; B.v += push; } else { A.v += push; B.v -= push; }
+          }
+        }
+      }
+    }
+    return out;
+  }, [regions]);
+  const pickAt = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!regions) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const { g, owner, names } = regions;
+    const c = Math.floor(((e.clientX - r.left) / r.width) * g.n), row = Math.floor(((e.clientY - r.top) / r.height) * g.n);
+    const o = c >= 0 && c < g.n && row >= 0 && row < g.n ? owner[row * g.n + c] : -1;
+    if (o >= 0) onPick(names[o]);
+  };
   const value = (c: [number, number, number, number]) => (onlyUntraded ? c[3] : c[2]);
   const cells = grid.filter((c) => value(c) > 0);
   const max = Math.max(1, ...cells.map(value));
@@ -97,6 +150,7 @@ function Heatmap({ map, grid, size }: { map: TeamZones["maps"][number]; grid: [n
   const cell = 1 / size;
   return (
     <div className="flex flex-col gap-2">
+      <div onClick={pickAt} className={regions ? "cursor-pointer" : ""}>
       <MinimapBase src={map.minimap} alt={`Mapa de calor das mortes em ${map.map}`}>
         {cells.map((c) => {
           const v = value(c);
@@ -107,7 +161,24 @@ function Heatmap({ map, grid, size }: { map: TeamZones["maps"][number]; grid: [n
             </rect>
           );
         })}
+        {regions && selIdx >= 0 && (
+          // a área da região escolhida, por cima do calor
+          <path fill="var(--lime)" fillOpacity={0.32} stroke="none"
+                d={Array.from(regions.owner).flatMap((o, i) => (o === selIdx
+                  ? [`M${(i % regions.g.n) / regions.g.n} ${Math.floor(i / regions.g.n) / regions.g.n}h${1 / regions.g.n}v${1 / regions.g.n}h${-1 / regions.g.n}z`] : [])).join("")} />
+        )}
+        {labels.map(({ name, text, u, v }) => {
+          const on = name === sel;
+          return (
+            <text key={name} x={u} y={v} textAnchor="middle" dominantBaseline="middle" fontSize={on ? 0.026 : 0.021}
+                  fontWeight={on ? 700 : 600} fill={on ? "var(--lime)" : "#fff"} stroke="#0b0a1a" strokeWidth={on ? 0.007 : 0.005}
+                  paintOrder="stroke" opacity={selIdx >= 0 && !on ? 0.55 : 0.95} style={{ pointerEvents: "none" }}>
+              {on ? name.replace(" · ", " ") : text}
+            </text>
+          );
+        })}
       </MinimapBase>
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-2">
         <div className="flex gap-1" role="group" aria-label="Quais mortes mostrar">
           {[false, true].map((u) => (

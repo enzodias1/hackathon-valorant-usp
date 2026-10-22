@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { pageMeta } from "@/lib/site";
-import { getIndex, getTeam, getZones } from "@/lib/data";
+import { getIndex, getNavGrid, getTeam, getZones } from "@/lib/data";
 import { competitionLabel, date, nick, num, pct } from "@/lib/format";
 import type { Comparison, Team, TeamMetric } from "@/lib/types";
 import SynergyGraph from "@/components/analise/SynergyGraph";
@@ -40,6 +40,8 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
   const maxWpa = Math.max(...team.roster.map((p) => Math.abs(p.wpa_per_round)));
   const small = team.record.rounds < 100;
   const t = teasers(team, zones);
+  // chão e regiões nomeadas de cada mapa do time (para escrever os nomes no mapa de calor e acender a área de cada região)
+  const navs = Object.fromEntries(await Promise.all(zones.maps.map(async (m) => [m.code, await getNavGrid(m.code)] as const)));
 
   return (
     <main>
@@ -83,7 +85,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
 
         <Section id="zonas" title="Onde o time morre" collapsible teaser={t.zones}
                  info="Cada morte é atribuída à região nomeada mais próxima do mapa. A tabela compara a parcela de mortes em cada região com a da liga e mostra quantas ficaram sem trade; o mapa de calor mostra onde elas se concentram.">
-          <ZonesPanel zones={zones} />
+          <ZonesPanel zones={zones} navs={navs} />
         </Section>
 
         <Section id="elenco" title="Elenco e papéis" collapsible teaser={t.roster}

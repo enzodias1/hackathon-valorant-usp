@@ -19,6 +19,8 @@ import pandas as pd
 from PIL import Image
 from scipy.ndimage import binary_dilation, distance_transform_edt
 
+from zones import zone_label
+
 ROOT = Path(__file__).resolve().parents[1]
 P = ROOT / "data" / "processed"
 OUT = ROOT / "web" / "public" / "data" / "maps"
@@ -87,7 +89,13 @@ def main():
         i, j = np.clip((v * N).astype(int), 0, N - 1), np.clip((u * N).astype(int), 0, N - 1)
         on_floor = floor[i, j].mean()
         bits = np.packbits(floor.astype(np.uint8).ravel())
-        (OUT / f"{code}.json").write_text(json.dumps({"n": N, "walk": base64.b64encode(bits.tobytes()).decode(), "spawn": spawn}), encoding="utf-8")
+        # regiões nomeadas (callouts oficiais) no espaço do minimapa, com o mesmo nome da tabela "Onde o time morre"
+        callouts = []
+        for c in mp["callouts"]:
+            cu, cv = to_uv(c["x"], c["y"], mp)
+            callouts.append([zone_label(c["super"], c["region"]), round(float(cu), 4), round(float(cv), 4)])
+        (OUT / f"{code}.json").write_text(json.dumps({"n": N, "walk": base64.b64encode(bits.tobytes()).decode(), "spawn": spawn,
+                                                      "callouts": callouts}, ensure_ascii=False), encoding="utf-8")
         print(f"{code:9s} {mp['name']:9s} floor {floor.mean():5.1%} of the grid | recorded positions on the floor: {on_floor:6.2%} "
               f"(n={len(p)}) | spawns: {sorted(spawn)}{' (atk corrigido)' if code in SPAWN_FIX else ''}")
 
