@@ -14,7 +14,7 @@ const NAV = [
   { href: "/como-funciona", label: "Como usar" },
 ];
 // para a banca técnica: discreto, abaixo dos itens principais
-const NAV_SECONDARY = [{ href: "/metodologia", label: "Metodologia" }];
+const NAV_SECONDARY = [{ href: "/metodologia", label: "Metodologia" }, { href: "/apresentacao", label: "Apresentação" }];
 
 function Logo() {
   return (

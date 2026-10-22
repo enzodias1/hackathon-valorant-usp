@@ -4,6 +4,15 @@ import type { Metadata } from "next";
 export const PRODUCT_NAME = "Analista UNIVAVÁ";
 export const SITE_URL = "https://analista-univava.vercel.app";
 export const TAGLINE = "O analista que os times universitários não têm";
+/** Equipe, na tela final da apresentação (/apresentacao). Ajuste os nomes como devem aparecer para a banca. */
+export const TEAM: { name: string; role: string }[] = [
+  { name: "Enzo", role: "Dados, modelo de chance de vitória e site" },
+  { name: "Nukan", role: "Replay do round e destaques do campeonato" },
+  { name: "Azi", role: "Estrutura do site, prévias de link e exportação em PDF" },
+  { name: "Jodão", role: "Entrevistas com jogadores e roteiro do vídeo" },
+  { name: "Camila", role: "Regras e conformidade, nomes dos times e validação" },
+];
+
 export const SITE_DESCRIPTION =
   "Análise pós-partida do VALORANT universitário: impacto real de cada jogada, momentos decisivos, o replay 2D de cada round e a sinergia dos times.";
 
