@@ -11,10 +11,13 @@ export default function ZonesPanel({ zones, navs = {} }: { zones: TeamZones; nav
   const [mi, setMi] = useState(0);
   const [side, setSide] = useState<Side>("Defesa");
   const [sel, setSel] = useState<string | null>(null); // região acesa no mapa
+  const [all, setAll] = useState(false); // tabela com todas as regiões (por padrão, as 8 com mais mortes)
   if (!zones.maps.length) return <p className="text-sm text-ink-2">Sem mortes registradas.</p>;
   const mp = zones.maps[mi];
   const s = mp.sides[side];
-  const top = (s?.zones ?? []).slice(0, 8);
+  const TOP = 8;
+  const total = s?.zones.length ?? 0;
+  const top = (s?.zones ?? []).slice(0, all ? undefined : TOP);
   const pick = (z: string | null) => setSel((cur) => (cur === z ? null : z));
   const selZone = sel ? s?.zones.find((z) => z.zone === sel) : undefined;
   const maxShare = Math.max(...top.map((z) => Math.max(z.share, z.league_share)), 0.01);
@@ -71,6 +74,14 @@ export default function ZonesPanel({ zones, navs = {} }: { zones: TeamZones; nav
                 ))}
               </tbody>
             </table>
+          )}
+          {total > TOP && (
+            <button type="button" onClick={() => setAll((a) => !a)} aria-expanded={all}
+                    className="mt-1 flex w-full items-center justify-center gap-2 border-t border-line/50 py-2 text-xs text-ink-2 transition-colors hover:text-ink">
+              {all ? `Mostrar só as ${TOP} com mais mortes` : `Ver todas as ${total} regiões`}
+              <svg viewBox="0 0 16 16" className={`h-3.5 w-3.5 transition-transform ${all ? "rotate-180" : ""}`} fill="none" stroke="currentColor"
+                   strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 6l4 4 4-4" /></svg>
+            </button>
           )}
           <p className="mt-2 text-xs text-muted">
             Cada morte é atribuída à região nomeada mais próxima do mapa. Clique numa região (aqui ou no mapa) para ver onde ela fica.
