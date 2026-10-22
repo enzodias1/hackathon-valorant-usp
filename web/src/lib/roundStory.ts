@@ -2,7 +2,7 @@
 // Regras, em ordem: virada (o vencedor chegou a ≤ 20%) ou vitória contra a economia; multi-kill (3+) do time que venceu;
 // clutch; ressurreição no time que venceu; desarme no limite; e a jogada que mais aumentou a chance do time que venceu, se
 // ainda não foi citada.
-import { nick, pct, pp } from "./format";
+import { chance, nick, pct, pp } from "./format";
 import type { Color, Match, MatchPlayer, Round, RoundEvent } from "./types";
 
 const MULTI: Record<number, string> = { 3: "um triple kill", 4: "um quadra kill", 5: "um ace" };
@@ -20,12 +20,14 @@ export function dur(ms: number) {
   return `${s.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ${s < 2 ? "segundo" : "segundos"}`;
 }
 
-/** Como alguém voltou ao round: a Clove revive a si mesma com a ultimate; os outros, pela ultimate da Sage do time. */
-export function reviveHow(players: MatchPlayer[], id: string) {
-  const p = players.find((x) => x.puuid === id);
-  if (p?.agent === "Clove") return "com a própria ultimate";
-  const sage = players.find((x) => x.agent === "Sage" && x.color === p?.color && x.puuid !== id);
-  return sage ? `com a ultimate da Sage (${nick(sage.name)})` : "com uma ultimate";
+/** O que a jogada fez, em minúsculas: "matou X", "plantou a spike", "desarmou a spike", "reviveu X com a ultimate" ou, na
+ *  Clove, "voltou ao round com a própria ultimate". */
+export function playVerb(e: RoundEvent, players: MatchPlayer[], withWeapon = false) {
+  const name = (id?: string | null) => nick(players.find((p) => p.puuid === id)?.name);
+  if (e.type === "plant") return "plantou a spike";
+  if (e.type === "defuse") return "desarmou a spike";
+  if (e.type === "revive") return e.actor === e.target ? "voltou ao round com a própria ultimate" : `reviveu ${name(e.target)} com a ultimate`;
+  return `matou ${name(e.victim)}${withWeapon && e.weapon ? ` (${e.weapon})` : ""}`;
 }
 
 export function roundStory(match: Match, round: Round): string[] {
@@ -48,9 +50,9 @@ export function roundStory(match: Match, round: Round): string[] {
   type State = { t: number; wp: number; w: number; l: number; planted: boolean; aliveW: string[] };
   const states: State[] = [{ t: 0, wp: wpW(round.wp_red_start), w: 5, l: 5, planted: false, aliveW: [...alive[W]] }];
   for (const e of live) {
-    for (const id of e.revived ?? []) { // voltou ao round antes deste registro (ressurreição)
-      const c = P.get(id)?.color;
-      if (c) alive[c].add(id);
+    if (e.type === "revive" && e.target) { // ressurreição: volta a contar como vivo
+      const c = P.get(e.target)?.color;
+      if (c) alive[c].add(e.target);
     }
     if (e.type === "kill" && e.victim) {
       const c = P.get(e.victim)?.color;
@@ -65,9 +67,14 @@ export function roundStory(match: Match, round: Round): string[] {
 
   // 1. virada ou vitória contra a economia (ou só o resultado)
   const worst = states.reduce((a, b) => (b.wp < a.wp ? b : a));
-  if (worst.wp <= COMEBACK_WP) {
+  if (worst.wp <= COMEBACK_WP && worst.w === 0 && round.plant) {
+    // o vencedor já não tinha ninguém vivo: ganhou porque a spike explodiu antes do desarme
+    const left = round.plant.t + SPIKE_MS - worst.t;
+    out.push(`${tn(W)} venceu sem ninguém vivo: ${tn(L)} ficou ${worst.l} contra 0, com ${dur(left)} para desarmar a spike `
+      + `(${chance(1 - worst.wp)} de chance), e ela explodiu.`);
+  } else if (worst.wp <= COMEBACK_WP) {
     const plant = worst.planted && round.attacker === L ? " e a spike plantada" : "";
-    out.push(`${tn(W)} venceu de virada: ${tn(L)} chegou a ${pct(1 - worst.wp)} de chance, com ${worst.l} contra ${worst.w}${plant}.`);
+    out.push(`${tn(W)} venceu de virada: ${tn(L)} chegou a ${chance(1 - worst.wp)} de chance, com ${worst.l} ${worst.l === 1 ? "vivo" : "vivos"} contra ${worst.w}${plant}.`);
   } else if (states[0].wp <= UNDERDOG_WP) {
     out.push(`${tn(W)} venceu mesmo começando com só ${pct(states[0].wp)} de chance pela economia (${round.buy[W]} contra ${round.buy[L]}).`);
   } else {
@@ -89,13 +96,16 @@ export function roundStory(match: Match, round: Round): string[] {
   }
 
   // 3. clutch: o vencedor ficou com 1 contra 2 ou mais (não conta se alguém do time voltou depois: não venceu sozinho)
-  const backEv = live.find((e) => (e.revived ?? []).some((id) => P.get(id)?.color === W));
-  const back = backEv?.revived?.find((id) => P.get(id)?.color === W);
+  const backEv = live.find((e) => e.type === "revive" && P.get(e.target ?? "")?.color === W);
   const clutch = states.find((s) => s.w === 1 && s.l >= 2);
   if (clutch && !(backEv && backEv.t > clutch.t)) out.push(`${who(clutch.aliveW[0])} venceu um 1 contra ${clutch.l}.`);
 
   // 3b. ressurreição no time que venceu (ultimate da Sage ou da Clove): explica um jogador "morto" que volta a jogar
-  if (back) out.push(`${who(back)} voltou ao round ${reviveHow(match.players, back)}.`);
+  if (backEv) {
+    out.push(backEv.actor === backEv.target ? `${who(backEv.target)} voltou ao round com a própria ultimate.`
+      : `${who(backEv.actor)} reviveu ${who(backEv.target)} com a ultimate.`);
+    mentioned.add(backEv);
+  }
 
   // 4. desarme no limite
   const defuse = live.find((e) => e.type === "defuse");
@@ -112,7 +122,7 @@ export function roundStory(match: Match, round: Round): string[] {
   // 5. a jogada que mais aumentou a chance do time que venceu, se ainda não apareceu (a do perdedor não decidiu o round)
   const top = live.filter((e) => e.actor && !e.teamkill && P.get(e.actor)?.color === W && e.wpa > 0).sort((a, b) => b.wpa - a.wpa)[0];
   if (top && !mentioned.has(top)) {
-    const what = top.type === "plant" ? "plantou a spike" : top.type === "defuse" ? "desarmou a spike" : `matou ${nick(P.get(top.victim ?? "")?.name)}`;
+    const what = playVerb(top, match.players);
     out.push(`Jogada que mais pesou para a vitória: ${who(top.actor)} ${what} (${pp(top.wpa)} de chance).`);
   }
   return out.slice(0, 3);

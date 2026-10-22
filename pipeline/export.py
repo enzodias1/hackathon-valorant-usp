@@ -122,9 +122,7 @@ def export_matches(t, names):
     pos = pd.read_parquet(P / "positions.parquet")
     pos["view"] = pos["view"].round(2)
     pos_by = {k: g for k, g in pos.groupby("match_id")}
-    # revives (Sage/Clove ultimates): who shows up alive again at each record, see etl.py
-    rv = pd.read_parquet(P / "revives.parquet")
-    revived_at = {k: g.puuid.tolist() for k, g in rv.groupby(["match_id", "round_num", "event", "event_idx"])}
+    agent_of = pm.set_index(["match_id", "puuid"]).agent.to_dict()
     gear_by = {k: g.set_index(["round_num", "puuid"]) for k, g in pr.groupby("match_id")}
     weapon_icon = {w["name"]: w["icon"] for w in LOOKUP["weapons"].values() if w.get("icon")}
     p0 = st[st.kind == "start"].set_index(["match_id", "round_num"]).p_atk
@@ -167,6 +165,15 @@ def export_matches(t, names):
             events = []
             kg = kl_by.get(key)
             for e in ev_by.get(key, pd.DataFrame()).itertuples(index=False):
+                if e.event == "revive":
+                    # ressurreição (ultimate da Sage num aliado ou da Clove nela mesma): aconteceu desde o registro anterior
+                    ab = t["agents_by_name"].get(agent_of.get((mid, e.actor)), {}).get("abilities", {}).get("Ultimate", {})
+                    events.append({"t": e.t_round_ms, "type": "revive", "actor": e.actor, "target": e.target,
+                                   "from": max([x["t"] for x in events if x["type"] != "revive"], default=0),
+                                   "weapon": ab.get("name"), "weapon_icon": ab.get("icon"),
+                                   "wp_red_before": to_red(e.p_atk_before), "wp_red_after": to_red(e.p_atk_after), "wpa": e.wpa * 100,
+                                   "after_round_end": bool(e.post_end), "pos": []})
+                    continue
                 item = {"t": e.t_round_ms, "type": e.event, "actor": e.actor, "wp_red_before": to_red(e.p_atk_before),
                         "wp_red_after": to_red(e.p_atk_after), "wpa": e.wpa * 100, "after_round_end": bool(e.post_end)}
                 if e.event == "kill":
@@ -177,9 +184,6 @@ def export_matches(t, names):
                                  "victim_xy": [k.victim_x, k.victim_y], "killer_xy": None if pd.isna(k.killer_x) else [k.killer_x, k.killer_y],
                                  "assistants": [a for a in k.assistants.split(",") if a]})
                 item["pos"] = frames.get((r.round_num, e.event, int(e.kill_idx) if e.event == "kill" else -1), [])
-                back = revived_at.get((mid, r.round_num, e.event, int(e.kill_idx) if e.event == "kill" else -1))
-                if back:
-                    item["revived"] = back
                 events.append(item)
             # what each player carried (aligned with `players`): [weapon, armor, loadout value]
             round_gear = []
@@ -559,7 +563,9 @@ def export_players(t, names):
         before, after = (e.mine_before_actor, e.mine_after_actor) if who == "actor" else (e.mine_before_victim, e.mine_after_victim)
         return {"match_id": e.match_id, "round": e.round_num + 1, "t": e.t_round_ms, "event": e.event, "map": mt["map"],
                 "weapon": e.weapon if isinstance(e.weapon, str) else None,
-                "other": t["player_name"].get(e.victim if who == "actor" else e.actor),
+                # revive: quem voltou (vazio quando a Clove volta sozinha)
+                "other": (None if e.event == "revive" and e.target == e.actor
+                          else t["player_name"].get(e.target if e.event == "revive" else e.victim if who == "actor" else e.actor)),
                 "wpa": e.wpa * 100 if who == "actor" else e.death_cost, "wp_before": before, "wp_after": after}
 
     index = []
@@ -671,7 +677,7 @@ def export_players(t, names):
                        | {k: int(stints[k].sum()) for k in ("kills", "deaths", "assists", "fk", "fd", "clutch_att", "clutch_won", "plants", "defuses")},
             "impact": {"wpa_total": float(stints.wpa_total.sum()), "wpa_per_round": float(stints.wpa_total.sum() / rounds),
                        "wpa_pr_atk": p.wpa_pr_atk, "wpa_pr_def": p.wpa_pr_def,
-                       "breakdown": {k: float(stints[f"wpa_{k}"].sum()) for k in ("kill", "assist", "death", "plant", "defuse") if f"wpa_{k}" in stints},
+                       "breakdown": {k: float(stints[f"wpa_{k}"].sum()) for k in ("kill", "assist", "death", "plant", "defuse", "revive") if f"wpa_{k}" in stints},
                        "per_kill": comps["kill_value"]["value"], "per_death": comps["death_cost"]["value"],
                        "league_per_kill": league["kill_value"], "league_per_death": league["death_cost"]},
             "percentiles": {c: percentile(c, p[c]) for c in PERCENTILE_COLS} if p.role_eligible else None,

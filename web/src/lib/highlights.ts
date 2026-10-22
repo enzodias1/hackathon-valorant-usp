@@ -6,6 +6,9 @@ import { ROUND_TIMER_MS } from "@/lib/minimap";
 import { dur, roundStory } from "@/lib/roundStory";
 
 const SPIKE_MS = 45_000;
+/** No máximo 3 desarmes na lista: o modelo só vê o desarme quando ele termina e credita os 7 s de uma vez, então sem limite a
+ *  lista seria só de desarmes no limite do tempo ou com inimigos vivos. */
+export const MAX_DEFUSES = 3;
 
 /** Chance de vitória do time `color`, a partir da chance do Red. */
 export const teamWp = (wpRed: number, color: Color): number => (color === "Blue" ? 1 - wpRed : wpRed);
@@ -37,6 +40,7 @@ export interface PlayHighlight {
   /** chance de vitória do time de quem agiu, antes e depois (0–1) */
   wpBefore: number;
   wpAfter: number;
+  type: RoundEvent["type"];
   /** impacto, em pontos de chance */
   wpa: number;
   /** a situação na hora: "1 contra 2 · faltando 0,4 segundo para a explosão" */
@@ -74,6 +78,7 @@ const matchInfo = (m: Match): MatchInfo => ({
 const describe = (e: RoundEvent, players: Map<string, MatchPlayer>): string => {
   if (e.type === "plant") return "plantou a spike";
   if (e.type === "defuse") return "desarmou a spike";
+  if (e.type === "revive") return e.actor === e.target ? "voltou ao round com a própria ultimate" : `reviveu ${nick(players.get(e.target ?? "")?.name)} com a ultimate`;
   const victim = nick(players.get(e.victim ?? "")?.name);
   return e.weapon ? `matou ${victim} com ${e.weapon}` : `matou ${victim}`;
 };
@@ -89,9 +94,9 @@ function aliveCounts(m: Match, r: Round) {
   const before: Record<Color, number>[] = [];
   const after: Record<Color, number>[] = [];
   for (const e of r.events) {
-    for (const id of e.revived ?? []) {
-      const c = color.get(id);
-      if (c) alive[c].add(id);
+    if (e.type === "revive" && e.target) {
+      const c = color.get(e.target);
+      if (c) alive[c].add(e.target);
     }
     before.push(count());
     if (e.type === "kill" && e.victim) {
@@ -131,6 +136,7 @@ function playOf(m: Match, info: MatchInfo, r: Round, e: RoundEvent, players: Map
     action: describe(e, players),
     wpBefore: teamWp(e.wp_red_before, p.color),
     wpAfter: teamWp(e.wp_red_after, p.color),
+    type: e.type,
     wpa: e.wpa,
     context: situation(r, e, p.color, aliveBefore),
   };
@@ -186,7 +192,13 @@ export function computeHighlights(matches: Match[], n = 10): { plays: PlayHighli
   }
   plays.sort((a, b) => b.wpa - a.wpa || byPlace(a, b));
   comebacks.sort((a, b) => a.minWp - b.minWp || byPlace(a, b));
-  const top = plays.slice(0, n);
+  const top: PlayHighlight[] = [];
+  let defuses = 0;
+  for (const p of plays) {
+    if (top.length >= n) break;
+    if (p.type === "defuse" && ++defuses > MAX_DEFUSES) continue;
+    top.push(p);
+  }
   const shown = new Set(top.map((p) => `${p.match.id}:${p.round}`));
   return { plays: top, comebacks: comebacks.filter((c) => !shown.has(`${c.match.id}:${c.round}`)).slice(0, n) };
 }

@@ -168,9 +168,10 @@ Referências da liga inteira (taxas médias dos times, vitória por tipo de comp
           "weapon_icon": "<url killfeed>" | null, "kill_kind": "weapon | ability | melee | spike | fall | other",
           // em todo evento: todos os vivos naquele instante (a vítima de uma kill vem em victim_xy)
           "pos": [ [i, x, y, view] ],  // i = índice em `players`; view = direção da mira em radianos, atan2(dy, dx) nos eixos do jogo
-          // só quando alguém morto reaparece vivo neste registro (ultimate da Sage num aliado, ou da Clove nela mesma);
-          // a volta aconteceu entre o registro anterior e este, no lugar do corpo
-          "revived": ["<puuid>"]
+          // type "revive": ressurreição (ultimate da Sage num aliado, ou da Clove nela mesma). actor = quem reviveu, target = quem
+          // voltou (iguais na Clove); aconteceu entre `from` e `t` (o registro em que ele reaparece), no lugar do corpo.
+          // weapon / weapon_icon = nome e ícone da ultimate; wpa = chance com e sem o revivido, creditada a quem reviveu; pos vazio
+          "target": "<puuid>", "from": 75710
       } ]
   } ],
   "weapon_icons": { "Vandal": "<url killfeed>" }   // ícones das armas que aparecem em `gear`

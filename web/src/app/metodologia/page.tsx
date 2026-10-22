@@ -168,8 +168,9 @@ export default async function MethodologyPage() {
               Isso acontece em 0,9% dos trechos e se concentra em quem tem mobilidade (Iso 6,6%, Neon 5,3%, Yoru 2,6%) contra ~0,3% nos demais.
               Casos que os dados não revelam, como uma ultimate dentro de um intervalo longo, entram como <b className="text-ink">anotação da equipe</b>, sempre identificada.
               <b className="text-ink"> Ressurreições</b> (ultimate da Sage num aliado, ou da Clove nela mesma) aparecem nos dados: quem morreu volta à
-              lista de vivos da Riot. São 95 em 91 rounds; o jogador volta a contar como vivo na chance de vitória a partir desse registro e
-              reaparece no replay onde morreu.
+              lista de vivos da Riot. São 95 em 91 rounds. Cada uma vira uma jogada de quem reviveu (a Sage do time, ou a própria Clove):
+              vale a diferença na chance de vitória com e sem o jogador de volta (em média, +19 pontos). O momento exato não vem nos dados,
+              só o intervalo entre dois registros, e o replay mostra esse intervalo.
             </Method>
             <Method title="O que os dados não têm">
               O momento de uso de cada habilidade (smokes, flashes, drones): a Riot informa só o total por partida, que mostramos por agente.

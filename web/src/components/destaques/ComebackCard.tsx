@@ -18,7 +18,8 @@ export default function ComebackCard({ item, rank }: { item: ComebackHighlight; 
         <span className="font-display tabular text-2xl leading-none text-lime">{chance(item.minWp)}</span>{" "}
         <span className="text-ink">e venceu</span>
         <span className="block text-xs text-muted">
-          menor chance aos {clock(item.t)}, com {item.aliveThen[0]} contra {item.aliveThen[1]} · resultado: {item.result}
+          menor chance aos {clock(item.t)}, {item.aliveThen[0] === 0 ? `sem ninguém vivo contra ${item.aliveThen[1]}` : `com ${item.aliveThen[0]} ${item.aliveThen[0] === 1 ? "vivo" : "vivos"} contra ${item.aliveThen[1]}`}
+          {" "}· resultado: {item.result}
         </span>
       </p>
       {item.story.length > 0 && <p className="pr-2 text-sm leading-relaxed text-ink-2">{item.story.join(" ")}</p>}

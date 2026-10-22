@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ puuid: st
     `${p.team_name} · ${stats}. Impacto real de cada jogada, o papel que joga de fato e os parceiros que cobrem suas mortes.`);
 }
 
-const BREAKDOWN_LABEL: Record<string, string> = { kill: "Kills", assist: "Assistências", plant: "Plants", defuse: "Desarmes", death: "Mortes" };
+const BREAKDOWN_LABEL: Record<string, string> = { kill: "Kills", assist: "Assistências", plant: "Plants", defuse: "Desarmes", revive: "Ressurreições", death: "Mortes" };
 
 export default async function PlayerPage({ params }: { params: Promise<{ puuid: string }> }) {
   const p: Player = await getPlayer((await params).puuid);
@@ -241,7 +241,8 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
 
 function MomentList({ items, kind }: { items: Moment[]; kind: "play" | "death" }) {
   if (!items.length) return <p className="text-sm text-ink-2">Sem registros.</p>;
-  const verb = (m: Moment) => m.event === "plant" ? "Plantou a spike" : m.event === "defuse" ? "Desarmou a spike" : kind === "play" ? `Matou ${nick(m.other)}${m.weapon ? ` (${m.weapon})` : ""}` : `Morreu para ${nick(m.other)}`;
+  const verb = (m: Moment) => m.event === "plant" ? "Plantou a spike" : m.event === "defuse" ? "Desarmou a spike"
+    : m.event === "revive" ? (m.other ? `Reviveu ${nick(m.other)} com a ultimate` : "Voltou ao round com a própria ultimate") : kind === "play" ? `Matou ${nick(m.other)}${m.weapon ? ` (${m.weapon})` : ""}` : `Morreu para ${nick(m.other)}`;
   return (
     <ul className="divide-y divide-line/50">
       {items.map((m) => (

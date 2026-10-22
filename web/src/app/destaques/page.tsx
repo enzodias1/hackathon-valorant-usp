@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import { getIndex, getMatch } from "@/lib/data";
-import { computeHighlights } from "@/lib/highlights";
+import { computeHighlights, MAX_DEFUSES } from "@/lib/highlights";
 import { PageBand, SectionHead } from "@/components/analise/ui";
 import HighlightPlayCard from "@/components/destaques/HighlightPlayCard";
 import ComebackCard from "@/components/destaques/ComebackCard";
@@ -29,7 +29,9 @@ export default async function HighlightsPage() {
         <section>
           <SectionHead n="01" title="Jogadas de maior impacto" info={<ChanceInfo />} />
           <p className="-mt-2 mb-4 text-sm text-ink-2">
-            Kills, plants e desarmes que mais aumentaram a chance de vitória do time de quem agiu, antes → depois, com a situação na hora.
+            Kills, plants, desarmes e ressurreições que mais aumentaram a chance de vitória do time de quem agiu, antes → depois, com a
+            situação na hora. No máximo {MAX_DEFUSES} desarmes: o modelo só percebe o desarme quando ele termina e credita os 7 segundos
+            de uma vez, então, sem limite, a lista seria só de desarmes no último segundo ou com inimigos vivos.
           </p>
           <ol className="grid gap-4 md:grid-cols-2">
             {plays.map((p, i) => (

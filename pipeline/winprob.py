@@ -45,7 +45,7 @@ def build_timelines():
     side = pr.set_index(["match_id", "round_num", "puuid"])["side"].to_dict()
     kills_by_round = {k: g for k, g in kl.groupby(["match_id", "round_num"])}
     players_by_round = {k: g["puuid"].tolist() for k, g in pr.groupby(["match_id", "round_num"])}
-    revives_by_round = {k: list(zip(g.t_round_ms, g.puuid)) for k, g in rv.groupby(["match_id", "round_num"])}
+    revives_by_round = {k: list(g.itertuples(index=False)) for k, g in rv.groupby(["match_id", "round_num"])}
 
     states, events = [], []
     for r in rd.itertuples(index=False):
@@ -53,8 +53,6 @@ def build_timelines():
         y = int(r.winner_side == "Ataque")
         alive = {pu: True for pu in players_by_round[key]}
         planted, plant_t = False, None
-        # revives (Sage/Clove ultimates): alive again from the record where the player shows up again (see etl.py)
-        revives = sorted(revives_by_round.get(key, []))
 
         def snap(t):
             s = {"atk_alive": 0, "def_alive": 0, "atk_lo": 0, "def_lo": 0}
@@ -80,9 +78,13 @@ def build_timelines():
             timeline.append(("plant", r.plant_time_ms, None))
         if r.defused:
             timeline.append(("defuse", r.defuse_time_ms, None))
-        # plant before a kill at the same ms; defuse last
-        order = {"plant": 0, "kill": 1, "defuse": 2}
-        timeline.sort(key=lambda e: (e[1], order[e[0]], e[2].kill_idx if e[2] is not None else 0))
+        # revives (Sage/Clove ultimates) are events of their own, credited to whoever revived: alive again from the record
+        # where the player shows up again (see etl.py); the exact moment is somewhere since the previous record
+        for rv_row in revives_by_round.get(key, []):
+            timeline.append(("revive", rv_row.t_round_ms, rv_row))
+        # a revive before the record that shows it; plant before a kill at the same ms; defuse last
+        order = {"revive": -1, "plant": 0, "kill": 1, "defuse": 2}
+        timeline.sort(key=lambda e: (e[1], order[e[0]], getattr(e[2], "kill_idx", 0) if e[2] is not None else 0))
 
         # the round is decided at the defuse, at the detonation (spike timer 45 s) or when the round timer runs out (100 s after
         # the barrier drops); events after that change nothing (e.g. a plant completed at 100.04 s in a round lost on time)
@@ -94,11 +96,11 @@ def build_timelines():
         seq = 1
         for kind, t, k in timeline:
             post_end = end_t is not None and t > end_t
-            while revives and revives[0][0] <= t:
-                alive[revives.pop(0)[1]] = True
             before = snap(t)
             if kind == "kill":
                 alive[k.victim] = False
+            elif kind == "revive":
+                alive[k.puuid] = True
             elif kind == "plant":
                 planted, plant_t = True, t
             after = snap(t) if kind != "defuse" else None
@@ -107,12 +109,14 @@ def build_timelines():
                 states.append({**base, "seq": seq + 1, "kind": f"post_{kind}", "post_end": post_end, **after})
             events.append({
                 **base, "pre_seq": seq, "post_seq": seq + 1 if after is not None else None, "event": kind, "t_round_ms": t, "post_end": post_end,
-                "actor": (k.killer if kind == "kill" else r.planter if kind == "plant" else r.defuser),
+                "actor": (k.killer if kind == "kill" else r.planter if kind == "plant" else k.by if kind == "revive" else r.defuser),
                 "victim": k.victim if kind == "kill" else None,
+                "target": k.puuid if kind == "revive" else None,
                 "kill_idx": k.kill_idx if kind == "kill" else None,
                 "assistants": k.assistants if kind == "kill" else "",
                 "teamkill": bool(k.teamkill or k.self_kill) if kind == "kill" else False,
-                "actor_side": (k.killer_side if kind == "kill" else "Ataque" if kind == "plant" else "Defesa"),
+                "actor_side": (k.killer_side if kind == "kill" else "Ataque" if kind == "plant" else "Defesa" if kind == "defuse"
+                               else side[key + (k.puuid,)]),
             })
             seq += 2
     return pd.DataFrame(states), pd.DataFrame(events)
@@ -127,10 +131,36 @@ def terminal_rules(df):
     df.loc[m, "p_atk"] = df.loc[m, "p_atk"].clip(upper=0.01)
 
 
+SPIKE_BANDS = [-1, 3.5, 5, 7, 8, 10, 15, 46]  # seconds of spike left
+
+
+def spike_rule(fit, apply, pred):
+    """Attackers all dead with the spike planted: the defense only has to defuse in time. Too few of these states (~1,300,
+    150 with under 10 s left) for the model to learn the 7 s defuse limit (it gave the attack 67% with under 3.5 s left,
+    where it wins 100%), so they take the empirical rate of their band of spike time left, from `fit` (smoothed)."""
+    def band(d):
+        return pd.cut((45 - d.t_since_plant).clip(-0.5, 45.5), SPIKE_BANDS)
+    sel = lambda d: (d.atk_alive == 0) & (d.planted == 1)
+    f = fit[sel(fit)]
+    rates = f.groupby(band(f), observed=False).y.agg(["sum", "size"])
+    rates = (rates["sum"] + 0.5) / (rates["size"] + 1)
+    m = sel(apply).to_numpy()
+    if m.any():
+        pred[m] = band(apply[m]).map(rates).astype(float).to_numpy()
+    return pred
+
+
 def evaluate_and_predict(states):
-    # train only on live states: anomalous rounds and states after the round was decided are excluded
-    train = states[~states.anomalous & ~states.post_end].reset_index(drop=True)
+    # train only on live states: anomalous rounds and states after the round was decided are excluded. The instant a defuse
+    # completes is excluded too: the defense always wins from there (the defuse in progress is not in the data), so those
+    # states taught the model that "attackers dead, little spike time" favors the defense, the opposite of when the last
+    # attacker dies. They still get out-of-fold predictions (the "before" of each defuse).
+    live = ~states.anomalous & ~states.post_end
+    train = states[live & (states.kind != "pre_defuse")].reset_index(drop=True)
+    extra = states[live & (states.kind == "pre_defuse")].reset_index(drop=True)
     X, y, groups = train[FEATS].to_numpy(float), train["y"].to_numpy(), train["match_id"].to_numpy()
+    Xe = extra[FEATS].to_numpy(float)
+    extra_pred = {}
     models = {
         "logistic": lambda: make_pipeline(SimpleImputer(strategy="constant", fill_value=0), StandardScaler(), LogisticRegression(max_iter=2000)),
         "gbm": lambda: HistGradientBoostingClassifier(max_iter=300, learning_rate=0.05, max_leaf_nodes=31, l2_regularization=1.0,
@@ -140,10 +170,15 @@ def evaluate_and_predict(states):
     report, oof = {}, {}
     for name, mk in models.items():
         pred = np.zeros(len(train))
+        epred = np.zeros(len(extra))
         for tr, te in gkf.split(X, y, groups):
             m = mk().fit(X[tr], y[tr])
-            pred[te] = m.predict_proba(X[te])[:, 1]
+            pred[te] = spike_rule(train.iloc[tr], train.iloc[te], m.predict_proba(X[te])[:, 1])
+            em = extra.match_id.isin(set(groups[te])).to_numpy()
+            if em.any():
+                epred[em] = spike_rule(train.iloc[tr], extra[em], m.predict_proba(Xe[em])[:, 1])
         oof[name] = pred
+        extra_pred[name] = epred
         bins = pd.cut(pred, np.linspace(0, 1, 11), include_lowest=True)
         cal = pd.DataFrame({"p": pred, "y": y, "bin": bins}).groupby("bin", observed=True).agg(p=("p", "mean"), y=("y", "mean"), n=("y", "size"))
         report[name] = {
@@ -163,15 +198,17 @@ def evaluate_and_predict(states):
     report["n_states"], report["n_rounds"], report["n_matches"] = int(len(train)), int(train.groupby(["match_id", "round_num"]).ngroups), int(train.match_id.nunique())
     train["p_atk"] = oof[best]
     terminal_rules(train)
+    extra["p_atk"] = extra_pred[best]
+    terminal_rules(extra)
 
     # anomalous rounds still get predictions (from a model fit on everything else) so the UI can show them, flagged;
     # after the round is decided the probability is simply the outcome (so post-round kills carry zero WPA)
     rest = states[states.anomalous | states.post_end].copy()
     if len(rest):
-        rest["p_atk"] = models[best]().fit(X, y).predict_proba(rest[FEATS].to_numpy(float))[:, 1]
+        rest["p_atk"] = spike_rule(train, rest, models[best]().fit(X, y).predict_proba(rest[FEATS].to_numpy(float))[:, 1])
         terminal_rules(rest)
         rest.loc[rest.post_end, "p_atk"] = rest.loc[rest.post_end, "y"].astype(float)
-    return pd.concat([train, rest], ignore_index=True), report
+    return pd.concat([train, extra, rest], ignore_index=True), report
 
 
 def credit_events(states, events):

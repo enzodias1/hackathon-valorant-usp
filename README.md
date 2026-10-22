@@ -39,7 +39,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 .venv/Scripts/python pipeline/zones.py                        # onde cada time morre (regiões do mapa + grade de calor)
 .venv/Scripts/python pipeline/navgrid.py                      # chão caminhável de cada mapa + spawns (movimento do replay)
 .venv/Scripts/python pipeline/export.py                       # JSON do site em web/public/data (formato em web/DADOS.md)
-.venv/Scripts/python pipeline/checks.py                       # 40 checagens de consistência (falha se algum número não fechar)
+.venv/Scripts/python pipeline/checks.py                       # 41 checagens de consistência (falha se algum número não fechar)
 .venv/Scripts/python pipeline/teams_sheet.py                  # planilha de nomes dos times (para_equipe/)
 ```
 
@@ -56,7 +56,10 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
   conta: duas kills no mesmo instante listam a vítima uma da outra (a volta mais rápida da base, da Clove, leva 0,8 s). Antes, só o
   revivido que morria de novo era corrigido, e no instante da segunda morte; no round 6 de Azure Bears Golden × USP Stars, o modelo
   dava 100% ao Azure num 1 contra 1, com a Killjoy revivida contada como morta. Também não conta como clutch o 1 contra N em que
-  alguém do time volta depois.
+  alguém do time volta depois. Cada ressurreição é uma **jogada de quem reviveu** (a Sage do time, 49; ou a própria Clove, 46), com
+  o ícone da ultimate no replay: vale a chance com o revivido de volta menos a chance sem ele, no registro em que ele reaparece
+  (média de +19 pontos, máximo +43), e entra no impacto do jogador. O momento exato não vem nos dados, só o intervalo entre dois
+  registros (mediana de 6,5 s).
 - **Fim do round por tempo:** o tempo acaba 100 s depois da queda da barreira. Em 58 rounds que terminaram por tempo há 79 eventos
   depois disso (70 kills e 9 plants completados tarde demais, como um aos 100,04 s no round 20 de Wolf Gaming × Axis Anteaters): eles
   não mudam o resultado e contam como "depois do fim" (impacto zero), como os eventos depois de um desarme ou explosão. O relógio dos
@@ -106,12 +109,17 @@ Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela veloc
 (`data/meta/replay_notes.json`, com o motivo), mostradas no replay como "anotação da equipe", separadas do que vem dos dados.
 
 ## Decisões de métrica (validadas com os dados)
-- **Probabilidade de vitória do round:** gradient boosting com validação cruzada por partida (AUC 0,888; erro de calibração 1,3%).
+- **Probabilidade de vitória do round:** gradient boosting com validação cruzada por partida (AUC 0,885; erro de calibração 1,2%).
   O impacto (WPA) de cada partida é calculado por um modelo que nunca viu aquela partida.
   O equipamento de um lado sem ninguém vivo fica ausente, não zero (21/10): com zero, o modelo lia "equipamento 0" como "time
   inteiro morto" (as duas coisas sempre vinham juntas) e um jogador vivo que não comprou nada (eco, só a pistola grátis) parecia um
   time morto. No único 1 contra 1 pós-plant da base com um atacante assim (round 14 de UFMG Fênix B × CAAP Malditos), o atacante
   aparecia com 0,25% de chance; agora, 18%.
+  O instante em que um desarme termina fica fora do treino: dali a defesa sempre vence (o desarme em andamento não vem nos
+  dados), e esses estados ensinavam que "ataque todo morto com pouco tempo de spike" favorece a defesa, o contrário do instante em
+  que o último atacante morre (com até 3,5 s de spike, o ataque vence 100%; o modelo dava 67%). A chance nesse instante continua
+  calculada por um modelo que não viu a partida. Para "ataque todo morto com a spike plantada" (só ~1.300 estados), a chance é a
+  taxa real da faixa de tempo de spike restante, como as outras regras de estados terminais: com até 3,5 s, 98,9% para o ataque.
 - **Trade:** morte vingada por um aliado em até 5 s.
 - **Morte isolada:** aliado vivo mais próximo a mais de 3.000 unidades (~30 m). A chance de ser trocado cai de 41% (< 5 m) para 6% (> 30 m).
 - **Papéis por comportamento** (percentis na liga, mín. 60 rounds): Entry, Support, Lurker, Clutch.
@@ -141,4 +149,4 @@ com ~100%; ADR, KAST e K/D da liga em faixas plausíveis; coordenadas do minimap
 no replay, quem mata está olhando para a vítima (valida a direção da mira), as posições caem no chão da grade do mapa e toda kill diz o
 que matou; somando todos os jogadores, os duelos vencidos são iguais aos perdidos; os vivos que o modelo considera em cada evento
 batem com os vivos registrados pela Riot (99,95%, com as ressurreições); em rounds que acabaram por tempo, nada depois dos 100 s conta
-como jogada. Hoje: **40/40 ok**.
+como jogada; toda ressurreição tem quem reviveu. Hoje: **41/41 ok**.

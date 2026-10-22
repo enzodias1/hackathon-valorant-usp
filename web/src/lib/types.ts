@@ -78,7 +78,8 @@ export interface MatchPlayer {
 
 export interface RoundEvent {
   t: number;
-  type: "kill" | "plant" | "defuse";
+  /** revive: ressurreição (ultimate da Sage num aliado, ou da Clove nela mesma); actor = quem reviveu, target = quem voltou */
+  type: "kill" | "plant" | "defuse" | "revive";
   actor: string | null;
   wp_red_before: number;
   wp_red_after: number;
@@ -98,9 +99,9 @@ export interface RoundEvent {
   kill_kind?: KillKind;
   /** todos os vivos no instante do evento (a vítima de uma kill vem em victim_xy) */
   pos?: PosEntry[];
-  /** quem voltou a aparecer vivo neste registro depois de morrer (ultimate da Sage, ou da Clove nela mesma); a volta
-   *  aconteceu entre o registro anterior e este */
-  revived?: string[];
+  /** só em revive: quem voltou ao round e o registro anterior (a volta aconteceu entre `from` e `t`) */
+  target?: string;
+  from?: number;
 }
 
 export type KillKind = "weapon" | "ability" | "melee" | "spike" | "fall" | "other";
@@ -336,7 +337,7 @@ export interface Moment {
   match_id: string;
   round: number;
   t: number;
-  event: "kill" | "plant" | "defuse";
+  event: "kill" | "plant" | "defuse" | "revive";
   map: string;
   weapon: string | null;
   other: string | null;
@@ -358,7 +359,7 @@ export interface Player {
   };
   impact: {
     wpa_total: number; wpa_per_round: number; wpa_pr_atk: number | null; wpa_pr_def: number | null;
-    breakdown: Partial<Record<"kill" | "assist" | "death" | "plant" | "defuse", number>>;
+    breakdown: Partial<Record<"kill" | "assist" | "death" | "plant" | "defuse" | "revive", number>>;
     per_kill: number | null; per_death: number | null; league_per_kill: number; league_per_death: number;
   };
   percentiles: Record<"kd" | "kpr" | "adr" | "acs" | "kast" | "hs_pct" | "wpa_per_round" | "opening_rate" | "clutch_rate", number | null> | null;

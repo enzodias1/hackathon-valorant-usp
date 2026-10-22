@@ -8,6 +8,7 @@ import MatchView from "@/components/analise/MatchView";
 import { PageBand, PlayerLink, Section, Td, Th, WpaBar } from "@/components/analise/ui";
 import { agentArt, mapSplash } from "@/lib/art";
 import { CHANCE_EXPLAINED } from "@/components/analise/ChanceInfo";
+import { playVerb } from "@/lib/roundStory";
 
 // só as páginas geradas no build existem; outro id vira 404 (site 100% estático)
 export const dynamicParams = false;
@@ -57,7 +58,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
             {key.map(({ r, e }, i) => {
               const p = name[e.actor!];
               const mine = p?.color === "Blue" ? [1 - e.wp_red_before, 1 - e.wp_red_after] : [e.wp_red_before, e.wp_red_after];
-              const what = e.type === "plant" ? "plantou a spike" : e.type === "defuse" ? "desarmou a spike" : `matou ${nick(name[e.victim ?? ""]?.name)}${e.weapon ? ` (${e.weapon})` : ""}`;
+              const what = playVerb(e, match.players, true);
               return (
                 <li key={i}>
                   <a href={`#round-${r.n}@${(e.t / 1000).toFixed(1)}`} className="flex items-center justify-between gap-3 py-2 text-sm hover:bg-surface-2">

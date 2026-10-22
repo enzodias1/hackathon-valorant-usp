@@ -4,10 +4,10 @@
 // fica em lib/replay; aqui é o desenho: mapa, chance de vitória ao vivo, sequência do round e elencos.
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Color, Match, MatchPlayer, Round, RoundEvent } from "@/lib/types";
-import { clock, nick, pct, pp } from "@/lib/format";
+import { chance, clock, nick, pct, pp } from "@/lib/format";
 import { roundEndMs, SPIKE_TIMER_MS, toMinimap, type UV } from "@/lib/minimap";
 import { decodeNavGrid, lineOfSight, type NavGrid, type NavGridRaw } from "@/lib/navgrid";
-import { reviveHow, roundStory } from "@/lib/roundStory";
+import { playVerb, roundStory } from "@/lib/roundStory";
 import ChanceInfo from "./ChanceInfo";
 import { buildTracks, deadAt, nearestAlly, poseAt, wpAt, type Pose, type Track } from "@/lib/replay";
 import MinimapBase from "@/components/MinimapBase";
@@ -360,12 +360,12 @@ function WinBar({ match, wp, swing, byId }: { match: Match; wp: number; swing: R
         <span className="label-caps truncate text-right text-team-blue">{match.teams.Blue.name}</span>
       </div>
       <div className="mt-1.5 flex items-center gap-3">
-        <span className="font-display tabular w-14 text-2xl leading-none text-ink">{pct(wp)}</span>
+        <span className="font-display tabular w-16 text-2xl leading-none text-ink">{chance(wp, true)}</span>
         <div className="relative h-3 flex-1 overflow-hidden rounded-full bg-team-blue" role="img" aria-label={`${match.teams.Red.name} ${pct(wp)}, ${match.teams.Blue.name} ${pct(1 - wp)}`}>
           <div className="h-full bg-team-red" style={{ width: `${wp * 100}%` }} />
           <span className="absolute inset-y-0 left-1/2 w-px bg-bg/70" aria-hidden />
         </div>
-        <span className="font-display tabular w-14 text-right text-2xl leading-none text-ink">{pct(1 - wp)}</span>
+        <span className="font-display tabular w-16 text-right text-2xl leading-none text-ink">{chance(1 - wp, true)}</span>
       </div>
       <p className="mt-1.5 h-4 text-xs text-ink-2">
         {swing && actor && (
@@ -380,9 +380,7 @@ function WinBar({ match, wp, swing, byId }: { match: Match; wp: number; swing: R
 }
 
 function describeShort(e: RoundEvent, byId: Map<string, MatchPlayer>) {
-  if (e.type === "plant") return "plantou a spike";
-  if (e.type === "defuse") return "desarmou a spike";
-  return `matou ${nick(byId.get(e.victim ?? "")?.name)}${e.weapon ? ` (${e.weapon})` : ""}`;
+  return playVerb(e, [...byId.values()], true);
 }
 
 function Cone({ pose, fill }: { pose: Pose; fill: string }) {
@@ -515,6 +513,8 @@ function SequenceRow({ i, e, byId, past, current, decisive, onSeek }: {
 }) {
   const actor = e.actor ? byId.get(e.actor) : undefined;
   const victim = e.victim ? byId.get(e.victim) : undefined;
+  const target = e.target ? byId.get(e.target) : undefined;
+  const self = e.type === "revive" && e.actor === e.target;
   const mine = actor?.color === "Blue" ? [1 - e.wp_red_before, 1 - e.wp_red_after] : [e.wp_red_before, e.wp_red_after];
   return (
     <li data-i={i} className={`border-b border-line/60 last:border-b-0 ${past ? "" : "opacity-45"}`}>
@@ -530,30 +530,33 @@ function SequenceRow({ i, e, byId, past, current, decisive, onSeek }: {
                 <KillIcon e={e} />
                 <AgentDot p={victim} dim />
               </>
+            ) : e.type === "revive" ? (
+              <>
+                <KillIcon e={e} />
+                {!self && <AgentDot p={target} />}
+                <span className="label-caps whitespace-nowrap text-[10px] text-lime">↺ {self ? "voltou" : "ressurreição"}</span>
+              </>
             ) : (
               <span className="label-caps whitespace-nowrap text-[10px] text-warn">◆ {e.type === "plant" ? "plant" : "desarme"}</span>
             )}
           </span>
           <span className="mt-1 block break-words text-xs text-ink-2">
             {nick(actor?.name)}
-            {e.type === "kill" ? <> → {nick(victim?.name)}</> : e.type === "plant" ? " plantou" : " desarmou"}
+            {e.type === "kill" ? <> → {nick(victim?.name)}</> : e.type === "plant" ? " plantou" : e.type === "defuse" ? " desarmou"
+              : self ? " voltou com a própria ultimate" : <> reviveu {nick(target?.name)}</>}
+            {e.type === "revive" && e.from !== undefined && <span className="text-muted"> · entre {clock(e.from)} e {clock(e.t)}</span>}
             {e.first_blood && <span className="text-muted"> · first blood</span>}
             {e.is_trade && <span className="text-muted"> · trade</span>}
             {e.after_round_end && <span className="text-muted"> · após o fim</span>}
             {decisive && <span className="font-semibold text-lime"> · maior impacto</span>}
           </span>
-          {e.revived?.map((id) => (
-            <span key={id} className="mt-1 block text-xs text-lime">
-              ↺ {nick(byId.get(id)?.name)} voltou ao round {reviveHow([...byId.values()], id)}
-            </span>
-          ))}
         </span>
         <span className="tabular text-right text-xs">
           {e.after_round_end ? (
             <span className="text-muted">sem efeito</span>
           ) : (
             <>
-              <span className="text-ink-2">{pct(mine[0])} → {pct(mine[1])}</span>
+              <span className="text-ink-2">{chance(mine[0], true)} → {chance(mine[1], true)}</span>
               <span className={`block font-semibold ${e.wpa >= 0 ? "text-good" : "text-bad"}`}>{pp(e.wpa)}</span>
             </>
           )}
@@ -567,7 +570,7 @@ function KillIcon({ e }: { e: RoundEvent }) {
   if (e.weapon_icon) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={e.weapon_icon} alt={e.weapon ?? ""} title={e.weapon ?? ""}
-                className={`shrink-0 object-contain ${e.kill_kind === "ability" ? "h-5 w-5" : "h-4 w-12 -scale-x-100"}`} />;
+                className={`shrink-0 object-contain ${e.kill_kind === "ability" || e.type === "revive" ? "h-5 w-5" : "h-4 w-12 -scale-x-100"}`} />;
   }
   return <span className="label-caps shrink-0 rounded-sm bg-surface-2 px-1 py-0.5 text-[9px] text-ink-2">{e.weapon ?? "?"}</span>;
 }

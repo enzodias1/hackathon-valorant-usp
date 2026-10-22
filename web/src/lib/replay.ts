@@ -66,10 +66,8 @@ export function buildTracks(match: Match, round: Round, nav: NavGrid | null, sta
   for (const e of round.events) {
     for (const [i, x, y, view] of e.pos ?? []) tracks[i]?.samples.push({ t: e.t, x, y, view });
     if (e.pos?.length) posAt.set(e.t, [...(posAt.get(e.t) ?? []), ...e.pos]);
-    for (const id of e.revived ?? []) {
-      const i = idx.get(id);
-      if (i !== undefined) revives.set(i, [...(revives.get(i) ?? []), e.t]);
-    }
+    const back = e.type === "revive" && e.target ? idx.get(e.target) : undefined;
+    if (back !== undefined) revives.set(back, [...(revives.get(back) ?? []), e.t]);
     const v = e.type === "kill" && e.victim ? idx.get(e.victim) : undefined;
     if (v !== undefined && e.victim_xy) {
       tracks[v].samples.push({ t: e.t, x: e.victim_xy[0], y: e.victim_xy[1], view: null });

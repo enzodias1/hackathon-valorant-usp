@@ -60,6 +60,13 @@ def main():
 
     # ---------------------------------------------------------------- probabilidade de vitória / impacto
     check("probabilidades entre 0 e 1", st.p_atk.between(0, 1).all())
+    rvv = ev[ev.event == "revive"]
+    rv_agent = pm.set_index(["match_id", "puuid"]).agent
+    by_agent = rv_agent.reindex(pd.MultiIndex.from_arrays([rvv.match_id, rvv.actor])).to_numpy()
+    tg_agent = rv_agent.reindex(pd.MultiIndex.from_arrays([rvv.match_id, rvv.target])).to_numpy()
+    ok_rv = ((by_agent == "Sage") & (tg_agent != "Sage")) | ((by_agent == "Clove") & (rvv.actor.to_numpy() == rvv.target.to_numpy()))
+    check("toda ressurreição tem quem reviveu (a Sage do time ou a própria Clove)", len(rvv) > 0 and ok_rv.all(),
+          f"{len(rvv)} ressurreições, {int((~ok_rv).sum())} sem autor")
     # vivos que o modelo considera em cada evento = vivos registrados pela Riot naquele instante (ressurreições da Sage e da
     # Clove incluídas). Sobram só kills no mesmo milissegundo (o registro ainda lista a outra vítima) e agentes dentro de
     # uma ultimate (Omen, Yoru...), que somem do registro por um instante

@@ -8,6 +8,7 @@ import type { NavGridRaw } from "@/lib/navgrid";
 import { clock, nick, pct, RESULT_PT } from "@/lib/format";
 import RoundReplay from "@/components/analise/RoundReplay";
 import ChanceInfo from "@/components/analise/ChanceInfo";
+import { playVerb } from "@/lib/roundStory";
 
 const ROUND_SPAN_MS = 145_000; // ~100 s de round + 45 s de spike: posição do evento dentro do "slot" do round
 
@@ -44,12 +45,7 @@ export default function MatchView({ match, nav }: { match: Match; nav: NavGridRa
     setStartT(undefined);
   };
 
-  const describe = (e: RoundEvent) => {
-    const who = e.actor ? nick(players[e.actor]?.name) : "?";
-    if (e.type === "plant") return `${who} plantou a spike`;
-    if (e.type === "defuse") return `${who} desarmou a spike`;
-    return `${who} matou ${nick(players[e.victim ?? ""]?.name)}${e.weapon ? ` (${e.weapon})` : ""}`;
-  };
+  const describe = (e: RoundEvent) => `${e.actor ? nick(players[e.actor]?.name) : "?"} ${playVerb(e, match.players, true)}`;
 
   const data: Pt[] = useMemo(() => {
     const pts: Pt[] = [];

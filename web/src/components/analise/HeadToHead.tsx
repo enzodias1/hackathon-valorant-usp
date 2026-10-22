@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { Color, Match, Round, RoundEvent, Team } from "@/lib/types";
 import { date, nick, num, pp } from "@/lib/format";
-import { roundStory } from "@/lib/roundStory";
+import { playVerb, roundStory } from "@/lib/roundStory";
 import ChanceInfo from "./ChanceInfo";
 
 type Key = { round: Round; e: RoundEvent };
@@ -72,8 +72,7 @@ export default function HeadToHead({ A, B, ids }: { A: Team; B: Team; ids: strin
           const won = m.winner === ca;
           const k = decisive(m);
           const actor = k ? m.players.find((p) => p.puuid === k.e.actor) : undefined;
-          const victim = k?.e.victim ? m.players.find((p) => p.puuid === k.e.victim) : undefined;
-          const what = !k ? "" : k.e.type === "plant" ? "plantou a spike" : k.e.type === "defuse" ? "desarmou a spike" : `matou ${nick(victim?.name)}`;
+          const what = k ? playVerb(k.e, m.players) : "";
           return (
             <li key={m.id} className="grid gap-3 py-4 md:grid-cols-[12rem_minmax(0,1fr)_auto] md:items-start">
               <Link href={`/partidas/${m.id}`} className="group">

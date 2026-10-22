@@ -105,6 +105,7 @@ def parse_match(path: Path, data_root: Path, T):
 
     players = [p for p in d["players"] if not p["isObserver"]]
     color_of = {p["puuid"]: p["teamId"] for p in players}
+    agent_of = {p["puuid"]: LOOKUP["agents"].get((p["characterId"] or "").lower(), {}).get("name") for p in players}
     for p in players:
         a = LOOKUP["agents"].get((p["characterId"] or "").lower(), {})
         s = p["stats"]
@@ -154,7 +155,10 @@ def parse_match(path: Path, data_root: Path, T):
             for pu in seen:
                 if not alive.get(pu, True) and t - died_at[pu] >= REVIVE_MIN_MS:
                     alive[pu] = True
-                    round_revives.append({"match_id": mid, "round_num": rn, "puuid": pu, "color": color_of.get(pu),
+                    # who revived: Clove revives herself; anyone else, the team's Sage (the only agent that revives others)
+                    by = pu if agent_of.get(pu) == "Clove" else next(
+                        (x for x in color_of if color_of[x] == color_of.get(pu) and agent_of.get(x) == "Sage" and x != pu), None)
+                    round_revives.append({"match_id": mid, "round_num": rn, "puuid": pu, "color": color_of.get(pu), "by": by,
                                           "t_round_ms": t, "event": ev, "event_idx": idx})
 
         kills, alive_after_sets = [], []

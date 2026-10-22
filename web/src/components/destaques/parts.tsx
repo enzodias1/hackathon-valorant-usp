@@ -1,15 +1,10 @@
 // Peças comuns aos cards da página "Destaques": moldura com o splash do mapa, linha da partida e botão do replay.
 import Link from "next/link";
-import { date, pct } from "@/lib/format";
+import { date } from "@/lib/format";
 import { mapSplash } from "@/lib/art";
 import type { MatchInfo } from "@/lib/highlights";
 
-/** Chance de vitória com uma casa decimal perto dos extremos (0,4% e 99,6% em vez de 0% e 100%); abaixo de 0,1%, "menos de 0,1%". */
-export const chance = (x: number) => {
-  if (x > 0 && x < 0.001) return "menos de 0,1%";
-  if (x > 0.999 && x < 1) return "mais de 99,9%";
-  return pct(x, x < 0.01 || (x > 0.99 && x < 1) ? 1 : 0);
-};
+export { chance } from "@/lib/format";
 
 export const teamColor = (c: "Red" | "Blue") => (c === "Red" ? "text-team-red" : "text-team-blue");
 
