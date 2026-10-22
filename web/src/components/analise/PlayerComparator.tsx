@@ -19,26 +19,39 @@ function Picker({ label, value, options, other, onPick }: {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const cur = options.find((o) => o.puuid === value);
-  const hits = useMemo(() => {
-    const w = fold(q).trim();
-    return options.filter((o) => o.puuid !== other && (!w || fold(`${o.name} ${o.team_name}`).includes(w)))
-      .sort((x, y) => Number(y.eligible) - Number(x.eligible) || y.rounds - x.rounds).slice(0, 8);
+  // todos os jogadores, agrupados por time (times em ordem alfabética; no time, quem jogou mais rounds primeiro); digitar filtra
+  const groups = useMemo(() => {
+    const words = fold(q).trim().split(/\s+/).filter(Boolean);
+    const byTeam = new Map<string, PlayerOption[]>();
+    for (const o of options) {
+      if (o.puuid === other || !words.every((w) => fold(`${o.name} ${o.team_name}`).includes(w))) continue;
+      byTeam.set(o.team_name, [...(byTeam.get(o.team_name) ?? []), o]);
+    }
+    return [...byTeam.entries()].sort((x, y) => x[0].localeCompare(y[0], "pt-BR"))
+      .map(([team, list]) => [team, list.sort((x, y) => y.rounds - x.rounds)] as const);
   }, [q, options, other]);
   return (
     <label className="relative flex flex-1 flex-col gap-1">
       <span className="text-xs uppercase tracking-wide text-muted">{label}</span>
-      <input value={open ? q : cur ? `${nick(cur.name)} · ${cur.team_name}` : q} placeholder="Digite o nick ou o time…"
+      <input value={open ? q : cur ? `${nick(cur.name)} · ${cur.team_name}` : q} placeholder="Escolha na lista ou digite o nick ou o time…"
              onFocus={() => { setOpen(true); setQ(""); }} onBlur={() => setTimeout(() => setOpen(false), 150)} onChange={(e) => setQ(e.target.value)}
              className="rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none" />
       {open && (
-        <ul className="absolute left-0 right-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-line bg-surface-2 py-1 shadow-2xl">
-          {hits.length ? hits.map((o) => (
-            <li key={o.puuid}>
-              <button type="button" onMouseDown={(e) => { e.preventDefault(); onPick(o.puuid); setOpen(false); }}
-                      className="block w-full px-3 py-1.5 text-left hover:bg-surface">
-                <span className="text-sm text-ink">{nick(o.name)}</span>
-                <span className="ml-2 text-xs text-muted">{o.team_name} · {o.rounds} rounds</span>
-              </button>
+        <ul className="absolute left-0 right-0 top-full z-30 mt-1 max-h-80 overflow-y-auto rounded-lg border border-line bg-surface-2 pb-1 shadow-2xl">
+          {groups.length ? groups.map(([team, list]) => (
+            <li key={team}>
+              <p className="label-caps sticky top-0 bg-surface-2 px-3 pb-1 pt-2 text-[10px] text-muted">{team}</p>
+              <ul>
+                {list.map((o) => (
+                  <li key={o.puuid}>
+                    <button type="button" onMouseDown={(e) => { e.preventDefault(); onPick(o.puuid); setOpen(false); }}
+                            className={`flex w-full items-baseline justify-between gap-3 px-3 py-1.5 text-left hover:bg-surface ${o.puuid === value ? "bg-surface" : ""}`}>
+                      <span className="truncate text-sm text-ink">{nick(o.name)}</span>
+                      <span className="shrink-0 text-xs text-muted">{o.rounds} rounds{o.agent_role ? ` · ${o.agent_role}` : ""}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </li>
           )) : <li className="px-3 py-2 text-sm text-ink-2">Nenhum jogador encontrado.</li>}
         </ul>

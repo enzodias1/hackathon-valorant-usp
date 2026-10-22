@@ -1,10 +1,10 @@
-// Apresentação do projeto (o "link da apresentação" que o edital pede, além do vídeo e do protótipo): 8 telas na ordem do
+// Apresentação do projeto (o edital fala em "link da apresentação"; vai no "material complementar" do formulário): 7 telas na ordem do
 // roteiro do vídeo. Os números vêm dos mesmos dados do site; os poucos fixos dizem de onde saíram.
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getIndex, getModel } from "@/lib/data";
 import { num, pct } from "@/lib/format";
-import { PRODUCT_NAME, SITE_URL, TAGLINE, TEAM, pageMeta } from "@/lib/site";
+import { PRODUCT_NAME, SITE_URL, TAGLINE, pageMeta } from "@/lib/site";
 import Deck from "@/components/site/Deck";
 
 export const metadata: Metadata = pageMeta(`Apresentação · ${PRODUCT_NAME}`,
@@ -176,21 +176,6 @@ export default async function PresentationPage() {
           </p>
         </Slide>
 
-        <Slide brand n="07" kicker="Equipe" title={<>Obrigado!</>}>
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {TEAM.map((m) => (
-              <li key={m.name} className="rounded-xl bg-white/10 p-4">
-                <p className="font-display text-2xl uppercase tracking-wide text-white">{m.name}</p>
-                <p className="mt-1 text-sm text-white/80">{m.role}</p>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/" className="label-caps bg-lime px-5 py-3 text-xs text-bg hover:opacity-90">Abrir o protótipo</Link>
-            <Link href="/como-funciona" className="label-caps border border-white/40 px-5 py-3 text-xs text-white hover:border-white">Como usar</Link>
-            <Link href="/metodologia" className="label-caps border border-white/40 px-5 py-3 text-xs text-white hover:border-white">Metodologia</Link>
-          </div>
-        </Slide>
       </Deck>
     </main>
   );

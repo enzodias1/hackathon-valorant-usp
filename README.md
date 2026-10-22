@@ -12,8 +12,9 @@ Viabilidade, Usabilidade, Protótipo/apresentação. Análise **coletiva** é "e
 "O analista que times universitários não têm": um modelo de probabilidade de vitória do round mede o **impacto real** de cada jogada,
 e a partir dele mostramos os momentos decisivos da partida, o replay 2D de cada round e a sinergia do time (quem cobre quem).
 
-**Apresentação (o "link da apresentação" do formulário): https://analista-univava.vercel.app/apresentacao**, 8 telas na ordem do
-roteiro (setas para passar, F para tela cheia). O edital pede esse link além do vídeo; o protótipo vai como material complementar.
+**Apresentação: https://analista-univava.vercel.app/apresentacao**, 7 telas na ordem do roteiro (setas para passar, F para tela
+cheia). O formulário de entrega tem três campos: nome da equipe, vídeo do pitch e material complementar; neste último vão o link
+do protótipo e o da apresentação.
 
 Páginas: partidas (replay 2D de cada round), times, jogadores, comparar times e **comparar jogadores** (`/comparar/jogadores`:
 duelos diretos ou a parceria no mesmo time, estatísticas lado a lado), destaques, como usar, metodologia. **Busca rápida** no menu
