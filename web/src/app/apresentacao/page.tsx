@@ -133,7 +133,7 @@ export default async function PresentationPage() {
             <Feature title="Jogador" href={braim ? `/jogadores/${braim.puuid}` : "/jogadores"} cta="Ver um jogador"
                      items={["Impacto por round, além do K/D", "Duelos: contra quem e contra quais agentes ganha e perde", "Quando morre no round e uso das habilidades"]} />
             <Feature title="Comparar e destaques" href="/comparar?a=ufmt_turuna&b=macklogic_red" cta="Comparar dois times"
-                     items={["Favorito, mapas para escolher e vetar e o histórico do confronto", "Jogadas de maior impacto e maiores viradas do campeonato", "Tudo com link para o replay no instante exato"]} />
+                     items={["Time × time: favorito, mapas para escolher e vetar e o histórico do confronto", "Jogador × jogador: duelos diretos e estatísticas lado a lado", "Jogadas de maior impacto e maiores viradas, com link para o replay"]} />
           </div>
         </Slide>
 

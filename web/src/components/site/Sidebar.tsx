@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import QuickSearch from "./QuickSearch";
 
 const NAV = [
   { href: "/", label: "Início" },
@@ -73,7 +74,8 @@ export default function Sidebar() {
       {/* desktop: barra lateral fixa */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line bg-bg px-4 py-6 lg:flex">
         <Logo />
-        <nav aria-label="Navegação principal" className="mt-10 flex-1"><NavList /></nav>
+        <div className="mt-6"><QuickSearch hotkey /></div>
+        <nav aria-label="Navegação principal" className="mt-6 flex-1"><NavList /></nav>
         <p className="label-caps px-3 text-[10px] leading-relaxed text-muted">Dados · Univavá + Rush Series · 2026</p>
       </aside>
 
@@ -93,7 +95,8 @@ export default function Sidebar() {
               <Logo />
               <button type="button" onClick={() => setOpen(false)} aria-label="Fechar menu" className="grid h-9 w-9 place-items-center rounded-md border border-line text-ink">✕</button>
             </div>
-            <nav aria-label="Navegação principal" className="mt-8"><NavList onNavigate={() => setOpen(false)} /></nav>
+            <div className="mt-5"><QuickSearch onNavigate={() => setOpen(false)} /></div>
+            <nav aria-label="Navegação principal" className="mt-6"><NavList onNavigate={() => setOpen(false)} /></nav>
           </div>
         </div>
       )}

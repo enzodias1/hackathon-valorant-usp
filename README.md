@@ -12,6 +12,13 @@ Viabilidade, Usabilidade, Protótipo/apresentação. Análise **coletiva** é "e
 "O analista que times universitários não têm": um modelo de probabilidade de vitória do round mede o **impacto real** de cada jogada,
 e a partir dele mostramos os momentos decisivos da partida, o replay 2D de cada round e a sinergia do time (quem cobre quem).
 
+**Apresentação (o "link da apresentação" do formulário): https://analista-univava.vercel.app/apresentacao**, 8 telas na ordem do
+roteiro (setas para passar, F para tela cheia). O edital pede esse link além do vídeo; o protótipo vai como material complementar.
+
+Páginas: partidas (replay 2D de cada round), times, jogadores, comparar times e **comparar jogadores** (`/comparar/jogadores`:
+duelos diretos ou a parceria no mesmo time, estatísticas lado a lado), destaques, como usar, metodologia. **Busca rápida** no menu
+(Ctrl+K ou "/"): times, jogadores e partidas.
+
 ## Regras do edital que afetam o código
 - Dados de partida **somente** dos JSONs fornecidos pela organização. Nada de APIs da Riot, scraping ou dados externos de partidas.
 - Metadados estáticos do jogo (nomes/ícones de agentes, armas, mapas) ficam em `data/meta/` (liberado pela equipe).
