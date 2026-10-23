@@ -756,7 +756,9 @@ def export_players(t, names):
 
         doc = {
             "puuid": puuid, "name": p["name"], "team": slug, "team_name": names.get(slug, {}).get("name", slug),
-            "teams": [{"slug": s.team, "name": names.get(s.team, {}).get("name", s.team), "rounds": int(s.rounds)} for s in stints.itertuples(index=False)],
+            # cada time por que jogou (o principal primeiro), com rounds, mapas e campeonatos: 24 jogadores jogaram por 2+ times
+            "teams": [{"slug": s.team, "name": names.get(s.team, {}).get("name", s.team), "rounds": int(s.rounds), "maps": int(s.maps),
+                       "competitions": sorted(g_pm[g_pm.team == s.team].competition.unique().tolist())} for s in stints.itertuples(index=False)],
             "sample": {"rounds": rounds, "maps": int(stints.maps.sum()), "eligible": bool(p.role_eligible)},
             "summary": {k: float(p[k]) if pd.notna(p[k]) else None for k in ("kd", "kpr", "dpr", "apr", "adr", "acs", "kast", "hs_pct")}
                        | {k: int(stints[k].sum()) for k in ("kills", "deaths", "assists", "fk", "fd", "clutch_att", "clutch_won", "plants", "defuses")},
@@ -778,7 +780,8 @@ def export_players(t, names):
         }
         write(OUT / "players" / f"{puuid}.json", doc)
         index.append({"puuid": puuid, "name": p["name"], "team": slug, "rounds": rounds, "agent_role": p.main_agent_role, "kd": p.kd,
-                      "wpa_per_round": doc["impact"]["wpa_per_round"], "eligible": bool(p.role_eligible)})
+                      "wpa_per_round": doc["impact"]["wpa_per_round"], "eligible": bool(p.role_eligible)}
+                     | ({"other_teams": [{"slug": t_["slug"], "name": t_["name"]} for t_ in doc["teams"][1:]]} if len(doc["teams"]) > 1 else {}))
     return index, league
 
 

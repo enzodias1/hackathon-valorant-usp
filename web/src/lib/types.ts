@@ -44,6 +44,8 @@ export interface PlayerSummary {
   kd: number;
   wpa_per_round: number;
   eligible: boolean;
+  /** outros times por que jogou (só quando jogou por mais de um; o principal é `team`) */
+  other_teams?: { slug: string; name: string }[];
 }
 
 export interface DataIndex {
@@ -356,7 +358,8 @@ export interface Player {
   name: string;
   team: string;
   team_name: string;
-  teams: { slug: string; name: string; rounds: number }[];
+  /** cada time por que jogou, o principal (mais rounds) primeiro; as estatísticas da página somam todos */
+  teams: { slug: string; name: string; rounds: number; maps: number; competitions: string[] }[];
   sample: { rounds: number; maps: number; eligible: boolean };
   summary: {
     kd: number; kpr: number; dpr: number; apr: number; adr: number; acs: number; kast: number; hs_pct: number;

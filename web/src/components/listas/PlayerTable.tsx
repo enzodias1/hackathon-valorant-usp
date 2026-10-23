@@ -15,7 +15,7 @@ const ROLES: AgentRole[] = ["Duelista", "Iniciador", "Controlador", "Sentinela"]
 export default function PlayerTable({ players }: { players: PlayerRow[] }) {
   const router = useRouter();
   const { filters, set, clear } = useUrlFilters(KEYS);
-  const teams = [...new Map(players.map((p) => [p.team, p.team_name]))]
+  const teams = [...new Map(players.flatMap((p) => [[p.team, p.team_name] as const, ...(p.other_teams ?? []).map((o) => [o.slug, o.name] as const)]))]
     .map(([value, label]) => ({ value, label }))
     .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
   // a escala da barra ignora amostras pequenas, que têm valores extremos
@@ -24,7 +24,7 @@ export default function PlayerTable({ players }: { players: PlayerRow[] }) {
   const q = fold(filters.busca.trim());
   const shown = players.filter((p) =>
     (!q || fold(p.name).includes(q)) &&
-    (!filters.time || p.team === filters.time) &&
+    (!filters.time || p.team === filters.time || (p.other_teams ?? []).some((o) => o.slug === filters.time)) &&
     (!filters.funcao || p.agent_role === filters.funcao));
 
   return (
@@ -56,9 +56,12 @@ export default function PlayerTable({ players }: { players: PlayerRow[] }) {
                   <Link href={`/jogadores/${p.puuid}`} onClick={(e) => e.stopPropagation()} className="font-medium text-ink hover:underline hover:underline-offset-4">
                     {nick(p.name)}
                   </Link>
-                  <div className="text-xs text-muted sm:hidden">{p.team_name}{p.agent_role && ` · ${p.agent_role}`}</div>
+                  <div className="text-xs text-muted sm:hidden">{p.team_name}{p.other_teams && ` +${p.other_teams.length}`}{p.agent_role && ` · ${p.agent_role}`}</div>
                 </Td>
-                <Td className="hidden sm:table-cell text-ink-2">{p.team_name}</Td>
+                <Td className="hidden sm:table-cell text-ink-2">
+                  {p.team_name}
+                  {p.other_teams && <span className="block text-xs text-muted">e {p.other_teams.map((o) => o.name).join(", ")}</span>}
+                </Td>
                 <Td className="hidden sm:table-cell text-ink-2">{p.agent_role ?? "—"}</Td>
                 <Td right className="hidden sm:table-cell">{p.rounds}</Td>
                 <Td right>{num(p.kd, 2)}</Td>

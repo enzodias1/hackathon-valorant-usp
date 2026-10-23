@@ -60,11 +60,24 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
                 actions={<><BandButton href={`/times/${p.team}`} primary>Ver {p.team_name}</BandButton><ExportPdf title={nick(p.name)} /></>}>
         <p className="text-sm">
           {mainAgent && <>Mais jogado: <b>{mainAgent}</b> · </>}{p.sample.rounds} rounds em {p.sample.maps} mapas
-          {p.teams.length > 1 && <span className="text-white/60"> · também jogou por {p.teams.slice(1).map((t) => t.name).join(", ")}</span>}
+          {p.teams.length > 1 && <span className="text-white/60"> · {p.teams.length} times</span>}
         </p>
       </PageBand>
 
       <div className="mx-auto max-w-6xl space-y-4 px-4 py-8 sm:px-8">
+        {p.teams.length > 1 && (
+          <p className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink-2">
+            <span className="font-bold text-accent">i</span> Jogou por {p.teams.length} times:{" "}
+            {p.teams.map((tm, i) => (
+              <span key={tm.slug}>
+                {i > 0 && (i === p.teams.length - 1 ? " e " : ", ")}
+                <Link href={`/times/${tm.slug}`} className="font-semibold text-ink underline decoration-line underline-offset-4 hover:decoration-ink-2">{tm.name}</Link>
+                {" "}({tm.rounds} rounds em {tm.maps} {tm.maps === 1 ? "mapa" : "mapas"}: {listPt(tm.competitions)})
+              </span>
+            ))}
+            . As estatísticas desta página somam os times; as de cada time estão no elenco dele.
+          </p>
+        )}
         {!p.sample.eligible && (
           <p className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink-2">
             <span className="font-bold text-warn">!</span> Amostra pequena ({p.sample.rounds} rounds): a comparação com a liga aparece a partir de 60 rounds.
@@ -267,4 +280,9 @@ function MomentList({ items, kind }: { items: Moment[]; kind: "play" | "death" }
       ))}
     </ul>
   );
+}
+
+/** "a", "a e b", "a, b e c" */
+function listPt(xs: string[]) {
+  return xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} e ${xs[xs.length - 1]}`;
 }
