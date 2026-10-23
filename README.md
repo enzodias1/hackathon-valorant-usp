@@ -50,6 +50,7 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirem
 .venv/Scripts/python pipeline/navgrid.py                      # chão caminhável de cada mapa + spawns (movimento do replay)
 .venv/Scripts/python pipeline/export.py                       # JSON do site em web/public/data (formato em web/DADOS.md)
 .venv/Scripts/python pipeline/checks.py                       # 42 checagens de consistência (falha se algum número não fechar)
+.venv/Scripts/python pipeline/map_calibration.py              # (opcional, ~1 min) fator da chance por mapa do comparador
 .venv/Scripts/python pipeline/teams_sheet.py                  # planilha de nomes dos times (para_equipe/)
 ```
 
@@ -148,6 +149,10 @@ Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela veloc
 - **Controle de falsos positivos:** toda afirmação de "ponto forte/fraco" ou "mudou" passa por Benjamini-Hochberg (q = 10%) dentro
   da página (time ou jogador). Sem isso, com 15 métricas por time, ~1–2 insights por time seriam ruído.
 - **Força dos times:** Bradley-Terry nos rounds, descontando a economia (regularizado: times com poucos mapas ficam perto da média).
+- **Chance de vencer o mapa (comparador, 23/10):** a conta "primeiro a 13" com rounds independentes exagera a confiança, porque os
+  rounds não são independentes (economia, lado, momento). `map_calibration.py` prevê cada mapa da base com a força calculada sem ele:
+  quando a conta dava 90–100%, o favorito venceu 90%; com logit × 0,742, 88% vira 81% e o erro (Brier) cai de 0,1665 para 0,1644.
+  Usa todos os mapas de cada time (não o mapa do jogo: há poucos jogos por mapa); o rendimento por mapa fica na seção "Mapas".
 - **Evolução:** primeira × segunda metade dos mapas de cada time, com o esperado de cada evento ajustado pela força do adversário
   e pela economia (senão todo time "piora" na Fase de Grupos, onde os adversários são mais fortes). Só times com ≥ 8 mapas.
 - **Tipos de compra, como no jogo (22/10):** `etl.classify_buys`, pelo que cada jogador comprou e pelo dinheiro que o time

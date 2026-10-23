@@ -9,6 +9,11 @@ import InfoTip from "./InfoTip";
 import HeadToHead from "./HeadToHead";
 
 const sigmoid = (x: number) => 1 / (1 + Math.exp(-x));
+const logit = (p: number) => Math.log(p / (1 - p));
+// mapWinProb supõe rounds independentes, e eles não são (economia, lado, momento): o azarão vence mapas mais do que a conta diz
+// (quando ela dava 90–100%, o favorito venceu 90%). pipeline/map_calibration.py prevê cada mapa da base com a força calculada
+// sem ele e ajusta logit(chance) × fator: 88% vira 81%, 52% fica em 51%.
+const MAP_CALIBRATION = 0.742;
 
 /** Chance de vencer o mapa (primeiro a 13; no 12–12, prorrogação por 2 rounds de vantagem) com chance p por round. */
 function mapWinProb(p: number) {
@@ -77,7 +82,7 @@ export default function Comparator({ teams, styleTerms }: {
 
 function Comparison({ A, B, styleTerms }: { A: Team; B: Team; styleTerms: [string, string][] }) {
   const pRound = sigmoid(A.strength.theta - B.strength.theta);
-  const pMap = mapWinProb(pRound);
+  const pMap = sigmoid(MAP_CALIBRATION * logit(mapWinProb(pRound)));
   const h2h = A.matches.filter((m) => m.opponent === B.slug);
   const fav = pMap >= 0.5 ? A : B;
   const unreliable = !A.strength.reliable || !B.strength.reliable;
@@ -107,7 +112,8 @@ function Comparison({ A, B, styleTerms }: { A: Team; B: Team; styleTerms: [strin
           <p className="mt-1 text-2xl font-semibold text-ink">{fav.name} <span className="text-ink-2">vence {pct(fav === A ? pMap : 1 - pMap)} dos mapas</span></p>
           <p className="mt-1 text-sm text-ink-2">
             Pela força dos times ({A.name}: {A.strength.rank}º · {B.name}: {B.strength.rank}º de {A.strength.of}), {A.name} vence {pct(pRound)} dos rounds contra {B.name} com economia parecida.
-            Isso vira {pct(pMap)} de chance de vencer um mapa.
+            Isso vira {pct(pMap)} de chance de vencer um mapa, já ajustada pelo histórico da base: os rounds de um mapa não são
+            independentes (economia, lado, momento).
           </p>
           {unreliable && <p className="mt-2 text-xs text-warn">! Um dos times tem menos de 100 rounds: estimativa imprecisa.</p>}
         </div>
@@ -182,7 +188,7 @@ function Comparison({ A, B, styleTerms }: { A: Team; B: Team; styleTerms: [strin
           <ul className="mt-3 space-y-2 text-sm">
             {ecoShare != null && ecoB!.n >= 5 && (
               <li className="rounded-lg bg-surface-2 p-3 text-ink">
-                💰 Depois de perder o pistol, fez eco em {ecoB!.decisions.Eco?.n ?? 0} de {ecoB!.n} vezes
+                Depois de perder o pistol, fez eco em {ecoB!.decisions.Eco?.n ?? 0} de {ecoB!.n} vezes
                 {ecoShare <= 0.3 ? ": costuma forçar no round 2 e no 14, então não subestime o round seguinte ao pistol." : "."}
               </li>
             )}

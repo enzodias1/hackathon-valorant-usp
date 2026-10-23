@@ -99,7 +99,7 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
 
 ## Números de reserva (se precisar trocar algum exemplo)
 - Modelo: AUC 0,885; erro de calibração 1,2%; validado com 5 grupos de partidas.
-- Uma vantagem de 55% por round vira ~70% de chance de vencer o mapa.
+- Uma vantagem de 55% por round vira ~65% de chance de vencer o mapa (já ajustada pelo histórico: os rounds não são independentes).
 - "K/D engana" com mais contraste que o BRaim (31% → 63%): **LHC JF** (Liga Vulkanica), melhor que 23% da liga em K/D e que
   **74%** em impacto (sentinela); **sunevj** (FEI Whiteowls), 42% em K/D e **85%** em impacto (iniciador).
 - Replay: a mira de quem mata aponta para a vítima em 99% das 45.440 kills; 99,97% das posições ficam no chão do mapa.
