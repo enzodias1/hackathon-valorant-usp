@@ -50,7 +50,7 @@ export default function RootLayout({
           <footer className="border-t border-line">
             <div className="mx-auto max-w-4xl space-y-2 px-4 py-6 text-center text-xs text-muted">
               <p className="leading-relaxed text-ink-2">
-                {PRODUCT_NAME} · Protótipo do Hackathon VALORANT (USP São Carlos / SEMCOMP 2026) · Desenvolvido por{" "}
+                {PRODUCT_NAME} · Desenvolvido por{" "}
                 {TEAM.map((m, i) => (
                   <Fragment key={m.name}>
                     {i > 0 && (i === TEAM.length - 1 ? " e " : ", ")}
