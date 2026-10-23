@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Anton, Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
+import { Fragment } from "react";
 import HashOpener from "@/components/site/HashOpener";
 import PrintHeader from "@/components/site/PrintHeader";
 import Sidebar from "@/components/site/Sidebar";
-import { PRODUCT_NAME, SITE_URL, TAGLINE, pageMeta } from "@/lib/site";
+import { PRODUCT_NAME, SITE_URL, TAGLINE, TEAM, pageMeta } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -46,15 +46,22 @@ export default function RootLayout({
         <div data-print-main className="flex min-h-screen flex-col lg:pl-60 lg:has-[[data-landing]]:pl-0">
           <PrintHeader />
           <div className="flex-1">{children}</div>
+          {/* rodapé: o produto e quem fez (cada nome leva ao LinkedIn) e, embaixo, o aviso da política da Riot */}
           <footer className="border-t border-line">
-            <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-xs text-muted sm:flex-row sm:justify-between">
-              <div className="space-y-2">
-                <p className="label-caps text-[10px]">{PRODUCT_NAME} · protótipo do Hackathon VALORANT (USP São Carlos / SEMCOMP 2026)</p>
-                <p className="label-caps flex gap-4 text-[10px]">
-                  <Link href="/metodologia" className="text-ink-2 hover:text-lime">Metodologia</Link>
-                </p>
-              </div>
-              <p className="max-w-xl sm:text-right">
+            <div className="mx-auto max-w-4xl space-y-2 px-4 py-6 text-center text-xs text-muted">
+              <p className="leading-relaxed text-ink-2">
+                {PRODUCT_NAME} · Protótipo do Hackathon VALORANT (USP São Carlos / SEMCOMP 2026) · Desenvolvido por{" "}
+                {TEAM.map((m, i) => (
+                  <Fragment key={m.name}>
+                    {i > 0 && (i === TEAM.length - 1 ? " e " : ", ")}
+                    <a href={m.href} target="_blank" rel="noopener noreferrer"
+                       className="whitespace-nowrap font-semibold text-ink underline decoration-ink-2/50 underline-offset-4 transition-colors hover:text-lime hover:decoration-lime">
+                      {m.name}
+                    </a>
+                  </Fragment>
+                ))}
+              </p>
+              <p className="mx-auto max-w-3xl text-[11px] leading-relaxed">
                 {PRODUCT_NAME} foi criado sob a política “Legal Jibber Jabber” da Riot Games, usando recursos de propriedade da Riot Games.
                 A Riot Games não endossa nem patrocina este projeto. Dados das partidas fornecidos pela organização do hackathon.
               </p>
