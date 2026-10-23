@@ -1,6 +1,6 @@
 <div align="center">
 
-<a href="https://espreitador-gg.vercel.app"><img src="https://espreitador-gg.vercel.app/opengraph-image?v=2" alt="Espreitador: o analista que os times universitários não têm" width="760"></a>
+<a href="https://espreitador-gg.vercel.app"><img src="https://espreitador-gg.vercel.app/opengraph-image?v=3" alt="Espreitador: o analista que os times universitários não têm" width="760"></a>
 
 # Espreitador
 
