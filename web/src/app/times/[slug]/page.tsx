@@ -48,7 +48,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
 
   return (
     <main>
-      <PageBand back={{ href: "/times", label: "Times" }} kicker={`Força ${team.strength.rank}º de ${team.strength.of}`} title={team.name}
+      <PageBand back={{ href: "/times", label: "Times" }} kicker={`Força geral ${team.strength.rank}º de ${team.strength.of}`} title={team.name}
                 actions={<>
                   <BandButton href={`/comparar?a=${team.slug}`} primary>Comparar com outro time</BandButton>
                   <BandButton href={`/partidas?time=${team.slug}`}>Ver partidas</BandButton>
@@ -73,7 +73,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
           <StatTile label="Rounds além da economia" value={`${wae.diff >= 0 ? "+" : "−"}${num(Math.abs(wae.diff))}`}
                     tone={wae.significant ? (wae.diff > 0 ? "good" : "bad") : undefined}
                     sub={`${wae.per100 >= 0 ? "+" : ""}${num(wae.per100, 1)} a cada 100 rounds${wae.significant ? "" : " · não conclusivo"}`} />
-          <StatTile label="Força na liga" value={`${team.strength.rank}º de ${team.strength.of}`}
+          <StatTile label="Força geral" value={`${team.strength.rank}º de ${team.strength.of}`}
                     info={<TermList terms={[g.strength]} className="" />} infoAlign="right"
                     sub={team.strength.reliable ? `vence ${pct(team.strength.p_vs_avg)} dos rounds contra um time médio` : "poucos rounds: estimativa imprecisa"} />
         </div>

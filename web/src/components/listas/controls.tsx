@@ -66,6 +66,8 @@ export function useUrlFilters<K extends string>(keys: readonly K[]) {
   return {
     filters,
     set: (k: K, v: string) => update({ ...filters, [k]: v }),
+    /** vários de uma vez (duas chamadas de set seguidas se sobrescreveriam) */
+    setMany: (patch: Partial<Record<K, string>>) => update({ ...filters, ...patch }),
     clear: () => update(empty),
   };
 }

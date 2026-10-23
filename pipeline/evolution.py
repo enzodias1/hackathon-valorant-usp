@@ -8,7 +8,8 @@ Evolution (per team): for each stage of the championship, rounds won above/below
 opponent's strength and the economy -> "playing above your own level"; plus first-half vs second-half
 comparisons of the collective metrics (two-proportion z-tests) -> "what changed".
 
-Writes data/processed/: team_strength.parquet, team_strength_comp.parquet (força por campeonato), team_stage.parquet,
+Writes data/processed/: team_strength.parquet, team_strength_comp.parquet (força por campeonato), team_strength_stage.parquet
+(por fase do Univavá), team_stage.parquet,
 team_changes.parquet, player_stage.parquet
 """
 import math
@@ -173,18 +174,27 @@ def main():
                                                                kills=("kills", "sum"), deaths=("died", "sum")).reset_index()
 
     # ---- força dentro de cada campeonato, só com as partidas dele (abas de /times): mesmo modelo, outra amostra
-    trc = tr.merge(m[["match_id", "competition"]], on="match_id")
-    comp_rows = []
-    for comp, gc in trc.groupby("competition"):
-        th, _ = fit_strength(gc)
-        n_rounds = gc.groupby("team").size()
-        comp_rows += [{"competition": comp, "team": tm, "theta": float(v), "rounds": int(n_rounds.get(tm, 0))} for tm, v in th.items()]
-    cs = pd.DataFrame(comp_rows)
-    cs["p_vs_avg"] = expit(cs.theta)
-    cs["rank"] = cs.groupby("competition").theta.rank(ascending=False, method="min").astype(int)
-    cs["of"] = cs.groupby("competition").team.transform("size")
+    # e dentro de cada fase do Univavá (Classificatórias 1–4, Fase de Grupos): o filtro de fase da aba Univavá
+    trc = tr.merge(m[["match_id", "competition", "stage"]], on="match_id")
+
+    def strength_by(groups, key):
+        rows = []
+        for k, gc in groups:
+            th, _ = fit_strength(gc)
+            n_rounds = gc.groupby("team").size()
+            rows += [{key: k, "team": tm, "theta": float(v), "rounds": int(n_rounds.get(tm, 0))} for tm, v in th.items()]
+        out = pd.DataFrame(rows)
+        out["p_vs_avg"] = expit(out.theta)
+        out["rank"] = out.groupby(key).theta.rank(ascending=False, method="min").astype(int)
+        out["of"] = out.groupby(key).team.transform("size")
+        return out
+
+    cs = strength_by(trc.groupby("competition"), "competition")
     cs.to_parquet(P / "team_strength_comp.parquet", index=False)
     print("força por campeonato:", cs.groupby("competition").team.size().to_dict())
+    ss = strength_by(trc[(trc.competition == "Univavá") & trc.stage.notna()].groupby("stage"), "stage")
+    ss.to_parquet(P / "team_strength_stage.parquet", index=False)
+    print("força por fase do Univavá:", ss.groupby("stage").team.size().to_dict())
 
     strength.to_parquet(P / "team_strength.parquet", index=False)
     stage.to_parquet(P / "team_stage.parquet", index=False)

@@ -96,7 +96,7 @@ def load():
     pmx["ult_ok"] = ~((pmx.agent == "Chamber") & ((ver[0] > 13) | ((ver[0] == 13) & (ver[1] >= 2)))).to_numpy()
     tdf = t["kills"][t["kills"].weapon == "Tour de Force"].groupby(["match_id", "killer"]).round_num.nunique()
     pmx["ult_rounds"] = tdf.reindex(pd.MultiIndex.from_frame(pmx[["match_id", "puuid"]])).fillna(0).astype(int).to_numpy()
-    for n in ("team_strength", "team_strength_comp", "team_stage", "team_changes", "player_stage", "economy_team"):
+    for n in ("team_strength", "team_strength_comp", "team_strength_stage", "team_stage", "team_changes", "player_stage", "economy_team"):
         t[n] = pd.read_parquet(P / f"{n}.parquet")
     t["economy"] = json.loads((P / "economy.json").read_text(encoding="utf-8"))
     t["wpa_pm"] = t["wp_credits"].groupby(["match_id", "puuid"]).wpa.sum() * 100
@@ -237,20 +237,29 @@ def export_matches(t, names):
 
 
 # ----------------------------------------------------------------------------------------------- teams
+def record_in(ms, st):
+    """Resultado de um time num grupo de partidas (campeonato ou fase) e a força dele só com elas."""
+    rounds = sum(x["score_for"] + x["score_against"] for x in ms)
+    return {"maps": len(ms), "map_wins": sum(x["won"] for x in ms), "rounds": int(rounds),
+            "round_win": sum(x["score_for"] for x in ms) / rounds if rounds else None,
+            "strength_rank": int(st["rank"].iloc[0]) if len(st) else None,
+            "strength": float(st.p_vs_avg.iloc[0]) if len(st) else None,
+            "of": int(st["of"].iloc[0]) if len(st) else None}
+
+
 def by_competition(t, slug, mlist):
     """Resultado e força do time em cada campeonato, só com as partidas dele (abas de /times)."""
     cs = t["team_strength_comp"]
-    out = {}
-    for comp in sorted({x["competition"] for x in mlist}):
-        ms = [x for x in mlist if x["competition"] == comp]
-        rounds = sum(x["score_for"] + x["score_against"] for x in ms)
-        st = cs[(cs.competition == comp) & (cs.team == slug)]
-        out[comp] = {"maps": len(ms), "map_wins": sum(x["won"] for x in ms), "rounds": int(rounds),
-                     "round_win": sum(x["score_for"] for x in ms) / rounds if rounds else None,
-                     "strength_rank": int(st["rank"].iloc[0]) if len(st) else None,
-                     "strength": float(st.p_vs_avg.iloc[0]) if len(st) else None,
-                     "of": int(st["of"].iloc[0]) if len(st) else None}
-    return out
+    return {comp: record_in([x for x in mlist if x["competition"] == comp], cs[(cs.competition == comp) & (cs.team == slug)])
+            for comp in sorted({x["competition"] for x in mlist})}
+
+
+def by_stage(t, slug, mlist):
+    """O mesmo, em cada fase do Univavá (filtro de fase da aba Univavá)."""
+    ss = t["team_strength_stage"]
+    stages = sorted({x["stage"] for x in mlist if x["competition"] == "Univavá" and x["stage"]})
+    return {stg: record_in([x for x in mlist if x["competition"] == "Univavá" and x["stage"] == stg], ss[(ss.stage == stg) & (ss.team == slug)])
+            for stg in stages}
 
 
 def export_teams(t, names):
@@ -416,7 +425,7 @@ def export_teams(t, names):
                         "rounds": team_rounds_n, "round_win": doc["record"]["round_win"],
                         "competitions": sorted({x["competition"] for x in mlist}),
                         "strength_rank": doc["strength"]["rank"], "strength": doc["strength"]["p_vs_avg"],
-                        "by_competition": by_competition(t, slug, mlist)})
+                        "by_competition": by_competition(t, slug, mlist), "by_stage": by_stage(t, slug, mlist)})
     league = {"team_rates": league_rate, "buy_win": league_buy.to_dict(), "map_atk_win": league_map_atk.to_dict(),
               "pair_trade_rate": league_pair_trade}
     return summary, league
