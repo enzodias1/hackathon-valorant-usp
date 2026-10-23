@@ -107,3 +107,7 @@ Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e9
   impacto por round entre os jogadores com 60+ rounds.
 - Evolução: o Azure Bears Black melhorou o jogo de trade e a conversão do first blood mesmo enfrentando adversários mais fortes.
 - Rounds "jogados fora" acontecem em proporção parecida em todos os times: é mais azar que padrão (por isso não acusamos ninguém disso).
+- **Se perguntarem do desarme** (o do round 12 vale +92 pontos): os dados só registram quando o desarme **termina**, não quando começa,
+  então o modelo credita o desarme de uma vez. Como ele leva 7 segundos, o site mostra quando começou: no round 12, por volta de 1:23,
+  num 3 contra 4 com 15 s de spike. Ou seja, o Cypher já estava desarmando quando o UFMT chegou aos 99%, e os dados não mostram isso.
+  É uma limitação dos dados, e o site avisa no replay ("começou por volta de...") e nos destaques.

@@ -166,6 +166,9 @@ Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela veloc
   É evidência observacional. **Removido da interface (20/10):** poucos casos de force (42 com horizonte completo depois do pistol), sinal de seleção
   (quem força vence até o round 4 bem mais) e custo real ao perder o force (round 3: 47% × 58%). O site mostra só o descritivo
   (o que o time fez e o que aconteceu depois), sem recomendação.
+- **Início do desarme (23/10):** os dados só trazem o fim do desarme (`defuseRoundTime`), então o modelo credita o desarme de uma
+  vez (nos destaques, um 0,2% → 100%). O replay e os cartões de desarme dos destaques mostram o início estimado: 7 s antes do fim,
+  com os vivos e o tempo de spike nesse instante. É estimativa: um desarme interrompido na metade (3,5 s) e retomado começa antes.
 - **Variação só pelo tempo:** entre um evento e outro, a chance de vitória muda só porque o relógio corre (ex.: defesa segurando até o
   tempo acabar). Essa parte não é creditada a ninguém; o impacto de cada jogada é a mudança no instante do evento.
 - **Métricas sem sinal entre times** (hoje: rounds jogados fora): a dispersão entre os times é a do acaso (dp(z) = 0,92), então elas

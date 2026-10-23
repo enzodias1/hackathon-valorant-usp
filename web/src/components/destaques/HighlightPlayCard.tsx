@@ -19,12 +19,13 @@ export default function HighlightPlayCard({ item, rank }: { item: PlayHighlight;
         </p>
       </div>
 
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
-        <p className="text-sm text-ink-2">
+      <div className="flex items-end justify-between gap-4">
+        <p className="min-w-0 text-sm text-ink-2">
           Chance do time: <span className="tabular text-ink">{chance(item.wpBefore)} → {chance(item.wpAfter)}</span>
           <span className="block text-xs text-muted">{item.context}</span>
+          {item.defuseStart && <span className="mt-1 block text-xs text-ink-2">{item.defuseStart}</span>}
         </p>
-        <p className="font-display tabular text-2xl leading-none text-good">{pp(item.wpa)}</p>
+        <p className="font-display tabular shrink-0 text-2xl leading-none text-good">{pp(item.wpa)}</p>
       </div>
 
       <MatchLine match={item.match} />

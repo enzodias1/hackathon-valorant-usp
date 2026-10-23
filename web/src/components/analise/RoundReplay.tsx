@@ -16,6 +16,7 @@ import MinimapBase from "@/components/MinimapBase";
 const TEAM_VAR: Record<Color, string> = { Red: "var(--team-red)", Blue: "var(--team-blue)" };
 const SPEEDS = [1, 2, 4];
 const ISOLATED_M = 30; // mesma régua de "morte isolada" do resto do site
+const DEFUSE_MS = 7_000; // duração do desarme
 const SHOT_MS = 1600; // tempo (do round) em que a linha do tiro fica na tela
 const FOCUS_MS = 4000; // e a análise da morte (aliado mais próximo)
 const SWING_MS = 2500; // e o "+X pontos" da última jogada ao lado da chance de vitória
@@ -551,6 +552,8 @@ function SequenceRow({ i, e, byId, past, current, decisive, onSeek }: {
             {e.type === "kill" ? <> → {nick(victim?.name)}</> : e.type === "plant" ? " plantou" : e.type === "defuse" ? " desarmou"
               : self ? " voltou com a própria ultimate" : <> reviveu {nick(target?.name)}</>}
             {e.type === "revive" && e.from !== undefined && <span className="text-muted"> · entre {clock(e.from)} e {clock(e.t)}</span>}
+            {/* os dados só registram o fim do desarme; ele leva 7 s */}
+            {e.type === "defuse" && <span className="text-muted"> · começou por volta de {clock(e.t - DEFUSE_MS)}</span>}
             {e.first_blood && <span className="text-muted"> · first blood</span>}
             {e.is_trade && <span className="text-muted"> · trade</span>}
             {e.defuse_margin !== undefined && (

@@ -33,7 +33,8 @@ export default async function HighlightsPage() {
           <p className="-mt-2 mb-4 text-sm text-ink-2">
             Kills, plants, desarmes e ressurreições que mais aumentaram a chance de vitória do time de quem agiu, antes → depois, com a
             situação na hora. No máximo {MAX_DEFUSES} desarmes: o modelo só percebe o desarme quando ele termina e credita os 7 segundos
-            de uma vez, então, sem limite, a lista seria só de desarmes no último segundo ou com inimigos vivos.
+            de uma vez, então, sem limite, a lista seria só de desarmes no último segundo ou com inimigos vivos. Por isso, nos desarmes, o cartão também
+            mostra quando o desarme começou (os dados só registram o fim; ele leva 7 segundos).
           </p>
           <ol className="grid gap-4 md:grid-cols-2">
             {plays.map((p, i) => (

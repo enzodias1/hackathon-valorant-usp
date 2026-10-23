@@ -1,7 +1,7 @@
 // Destaques do campeonato: as jogadas de maior impacto e as maiores viradas de todas as partidas da base.
 // Lógica pura (sem leitura de arquivo): recebe as partidas já carregadas e devolve tudo pronto para os cards.
 import type { Color, Match, MatchPlayer, Round, RoundEvent } from "@/lib/types";
-import { competitionLabel, nick, RESULT_PT } from "@/lib/format";
+import { clock, competitionLabel, nick, RESULT_PT } from "@/lib/format";
 import { ROUND_TIMER_MS } from "@/lib/minimap";
 import { dur, roundStory } from "@/lib/roundStory";
 
@@ -45,6 +45,8 @@ export interface PlayHighlight {
   wpa: number;
   /** a situação na hora: "1 contra 2 · faltando 0,4 segundo para a explosão" */
   context: string;
+  /** só nos desarmes: quando o desarme começou (estimado), com quantos vivos e quanto de spike */
+  defuseStart?: string;
 }
 
 export interface ComebackHighlight {
@@ -119,13 +121,26 @@ function situation(r: Round, e: RoundEvent, side: Color, n: Record<Color, number
   return bits.join(" · ");
 }
 
+const DEFUSE_MS = 7_000;
+
+/** Os dados só registram quando o desarme termina. Ele começa 7 s antes (estimativa: um desarme interrompido na metade, aos
+ *  3,5 s, e retomado depois começa mais cedo): quando foi, com quantos vivos de cada lado e quanto tempo de spike restava. */
+function defuseStartText(r: Round, e: RoundEvent, side: Color, before: Record<Color, number>[], after: Record<Color, number>[]) {
+  if (e.type !== "defuse" || !r.plant) return undefined;
+  const start = e.t - DEFUSE_MS;
+  let n = before[0] ?? { Red: 5, Blue: 5 };
+  r.events.forEach((x, j) => { if (!x.after_round_end && x.t <= start) n = after[j]; });
+  const other: Color = side === "Red" ? "Blue" : "Red";
+  return `Começou a desarmar por volta de ${clock(start)}, num ${n[side]} contra ${n[other]} com ${dur(r.plant.t + SPIKE_MS - start)} de spike.`;
+}
+
 /** Ordem estável para desempates: partida, depois round, depois instante. */
 const byPlace = (a: { match: MatchInfo; round: number; t: number }, b: { match: MatchInfo; round: number; t: number }) =>
   a.match.id.localeCompare(b.match.id) || a.round - b.round || a.t - b.t;
 
 /** Jogada candidata: evento válido de um round válido, com ator conhecido. */
 function playOf(m: Match, info: MatchInfo, r: Round, e: RoundEvent, players: Map<string, MatchPlayer>,
-                aliveBefore: Record<Color, number>): PlayHighlight | null {
+                alive: { before: Record<Color, number>[]; after: Record<Color, number>[] }, i: number): PlayHighlight | null {
   if (e.after_round_end || e.teamkill || !e.actor) return null;
   const p = players.get(e.actor);
   if (!p || !Number.isFinite(e.wpa)) return null;
@@ -140,7 +155,8 @@ function playOf(m: Match, info: MatchInfo, r: Round, e: RoundEvent, players: Map
     wpAfter: teamWp(e.wp_red_after, p.color),
     type: e.type,
     wpa: e.wpa,
-    context: situation(r, e, p.color, aliveBefore),
+    context: situation(r, e, p.color, alive.before[i]),
+    defuseStart: defuseStartText(r, e, p.color, alive.before, alive.after),
   };
 }
 
@@ -188,7 +204,7 @@ export function computeHighlights(matches: Match[], n = 10): { plays: PlayHighli
       const c = comebackOf(m, info, r, after);
       if (Number.isFinite(c.minWp)) comebacks.push(c);
       r.events.forEach((e, i) => {
-        const p = playOf(m, info, r, e, players, before[i]);
+        const p = playOf(m, info, r, e, players, { before, after }, i);
         if (p) plays.push(p);
       });
     }
