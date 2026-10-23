@@ -3,21 +3,21 @@
 **Prazo final: sexta 23/10, 23h59.** Este arquivo é o quadro oficial da equipe: cada tarefa diz **o que fazer, por que importa e como entregar**.
 Ele é atualizado a cada entrega. Na dúvida, chame o Enzo.
 
-🌐 **Protótipo no ar: https://analista-univava.vercel.app**, atualizado sozinho a cada merge na `main`.
+🌐 **Protótipo no ar: https://espreitador-gg.vercel.app**, atualizado sozinho a cada merge na `main`.
 
 > ⚠️ **(19/10) O Next.js foi atualizado por segurança (15.5.4 → 15.5.28).** Depois de `git merge main` na sua branch,
 > rode **`npm install`** dentro de `web/`, senão o site roda com a versão antiga.
 
 **Novidade (21/10): replay 2D do round.** Na página de cada partida, o round agora toca como um replay: cada jogador com o agente e
 a mira, a chance de vitória ao vivo, a sequência de eliminações com o impacto de cada uma e "Copiar link do momento". Abra o round 12
-de [UFMT Turuna × MackLogic RED](https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@84.1)
+de [UFMT Turuna × MackLogic RED](https://espreitador-gg.vercel.app/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@84.1)
 para ver. Ele é o centro da demonstração do vídeo.
 
 **Novidades (23/10):** o produto agora se chama **Espreitador** (referência à habilidade da Fade); a capa da apresentação tem a Fade,
 e a página inicial, o Sova. Os tipos de compra seguem os do jogo (eco, meia compra, forçado, full buy).
 
 **Novidades (22/10):** o link do site agora **abre na apresentação** do
-projeto (setas para passar, F para tela cheia) e termina no "Bora testar?", que leva ao site; o menu ficou em grupos, [comparar jogadores](https://analista-univava.vercel.app/comparar/jogadores) e busca
+projeto (setas para passar, F para tela cheia) e termina no "Bora testar?", que leva ao site; o menu ficou em grupos, [comparar jogadores](https://espreitador-gg.vercel.app/comparar/jogadores) e busca
 rápida no menu (Ctrl+K). Os nomes dos times da planilha da Camila já estão no site.
 
 ## Quadro

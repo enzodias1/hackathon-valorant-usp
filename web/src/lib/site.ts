@@ -2,7 +2,7 @@
 import type { Metadata } from "next";
 
 export const PRODUCT_NAME = "Espreitador"; // a habilidade da Fade que persegue e revela o inimigo
-export const SITE_URL = "https://analista-univava.vercel.app";
+export const SITE_URL = "https://espreitador-gg.vercel.app";
 export const TAGLINE = "O analista que os times universitários não têm";
 export const SITE_DESCRIPTION =
   "Análise pós-partida do VALORANT universitário: impacto real de cada jogada, momentos decisivos, o replay 2D de cada round e a sinergia dos times.";

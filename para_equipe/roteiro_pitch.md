@@ -6,7 +6,7 @@ conferidos nos dados (21/10); se mudar algum, confira com o Enzo.
 
 - **Ritmo:** ~140 palavras por minuto. As falas abaixo somam ~610 palavras ≈ 4:20, sobrando só ~40 s para as falas das entrevistas e
   pausas. Está apertado: se passar de 5:00, os primeiros cortes são a frase dos 41% × 4% (time) e a do eco do MackLogic (comparar).
-- **Tela:** gravar o site rodando (https://analista-univava.vercel.app) com zoom do navegador em 110–125% para ler bem no vídeo. No replay,
+- **Tela:** gravar o site rodando (https://espreitador-gg.vercel.app) com zoom do navegador em 110–125% para ler bem no vídeo. No replay,
   use o botão **⛶ Tela cheia** (ou a tecla **F**): mostra o título do round, o resumo, o mapa grande e a sequência de eliminações.
 - **O que a banca vai pontuar** (lembrar ao gravar): Inovação · Impacto · Qualidade da análise · Viabilidade · Usabilidade · Apresentação.
 
@@ -15,7 +15,7 @@ conferidos nos dados (21/10); se mudar algum, confira com o Enzo.
 ## 0:00–0:25 · Gancho
 **Tela:** replay do round 12 de UFMT Turuna × MackLogic RED (Fase de Grupos) em tela cheia, tocando de 1:19 até o desarme, com o quadro
 "O que decidiu o round" no topo e a chance de vitória caindo de 99%.
-Link direto: https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@79
+Link direto: https://espreitador-gg.vercel.app/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@79
 
 > "Round 12. O UFMT está em 4 contra 2, com a spike plantada: 99% de chance de vencer. Em um segundo e meio, a Jett adversária faz
 > três kills, e o Cypher desarma a spike 55 milésimos de segundo antes de morrer. O placar mostra só um round perdido. Nós mostramos

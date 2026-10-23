@@ -93,7 +93,7 @@ export default async function PresentationDeck() {
       <Deck>
         <Slide brand kicker="Hackathon VALORANT · USP São Carlos / SEMCOMP 2026" title={PRODUCT_NAME}
                // Fade andando para a frente, com a capa de pesadelo do lado do nome (Espreitador é uma habilidade dela)
-               art={{ src: "/art/agents/fade_cover.webp", alt: "Fade, agente do VALORANT", place: "ml-16 h-[min(84dvh,62vw)] -translate-y-[31%]" }}>
+               art={{ src: "/art/agents/fade_cover.webp", alt: "Fade, agente do VALORANT", place: "ml-[10vw] h-[min(84dvh,62vw)] -translate-y-[31%]" }}>
           <p className="max-w-2xl text-xl leading-relaxed text-white/90">{TAGLINE}: análise pós-partida que mostra quais jogadas decidiram cada
             round, como o time joga junto e o que cada jogador pode melhorar, com os dados oficiais do UNIVAVÁ e da Rush Series.</p>
           <p className="mt-10 text-sm text-white/80">Role ou use as setas para conhecer o projeto · F para tela cheia</p>
