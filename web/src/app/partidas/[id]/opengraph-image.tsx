@@ -5,6 +5,7 @@ import path from "node:path";
 import { ImageResponse } from "next/og";
 import { getIndex, getMatch } from "@/lib/data";
 import { competitionLabel, date } from "@/lib/format";
+import { PRODUCT_NAME } from "@/lib/site";
 import type { Color } from "@/lib/types";
 import { OG_COLORS as C, OG_SIZE, nb, ogFonts } from "../../_og/og";
 
@@ -54,8 +55,7 @@ export default async function MatchOpenGraphImage({ params }: { params: Promise<
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "46px 64px", width: "100%" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ display: "flex", fontFamily: "Anton", fontSize: 34, letterSpacing: 1 }}>ANALISTA</div>
-              <div style={{ display: "flex", background: C.lime, color: C.bg, fontSize: 14, fontWeight: 700, letterSpacing: 3, padding: "3px 9px" }}>UNIVAVÁ</div>
+              <div style={{ display: "flex", fontFamily: "Anton", fontSize: 34, letterSpacing: 1 }}>{PRODUCT_NAME.toUpperCase()}</div>
             </div>
             <div style={{ display: "flex", fontSize: 24, fontWeight: 700, letterSpacing: 3, opacity: 0.85 }}>
               {nb(`${competitionLabel(m.competition, m.stage)} · ${date(m.date)}`.toUpperCase())}

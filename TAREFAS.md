@@ -13,6 +13,9 @@ a mira, a chance de vitória ao vivo, a sequência de eliminações com o impact
 de [UFMT Turuna × MackLogic RED](https://analista-univava.vercel.app/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@84.1)
 para ver. Ele é o centro da demonstração do vídeo.
 
+**Novidades (23/10):** o produto agora se chama **Espreitador** (referência à habilidade da Fade); a capa da apresentação tem a Fade,
+e a página inicial, o Sova. Os tipos de compra seguem os do jogo (eco, meia compra, forçado, full buy).
+
 **Novidades (22/10):** o link do site agora **abre na apresentação** do
 projeto (setas para passar, F para tela cheia) e termina no "Bora testar?", que leva ao site; o menu ficou em grupos, [comparar jogadores](https://analista-univava.vercel.app/comparar/jogadores) e busca
 rápida no menu (Ctrl+K). Os nomes dos times da planilha da Camila já estão no site.
@@ -119,7 +122,7 @@ selecionável e os gráficos nítidos, porque são SVG.
 2. **O botão:** um componente cliente (ex.: `web/src/components/site/ExportPdf.tsx`) colocado em `actions` da faixa roxa `PageBand`
    de cada página. Ao clicar, ele lê `document.querySelectorAll("[data-pdf-section]")` e monta a lista de checkboxes.
 3. **Ao confirmar:** coloque `data-pdf-hide` nas seções desmarcadas, abra todos os `<details>` (as seções recolhíveis) guardando o
-   estado anterior, troque o `document.title` por algo como `UFMT Turuna — Analista UNIVAVÁ — 22-10-2026` (vira o nome do arquivo)
+   estado anterior, troque o `document.title` por algo como `UFMT Turuna — Espreitador — 22-10-2026` (vira o nome do arquivo)
    e chame `window.print()`. No evento `afterprint`, desfaça tudo.
 4. **CSS de impressão** (`@media print` em `web/src/app/globals.css`): esconder menu lateral, botões, filtros e o "i" das explicações;
    `[data-pdf-hide] { display: none }`; `print-color-adjust: exact` para manter as cores do site; `break-inside: avoid` nas seções

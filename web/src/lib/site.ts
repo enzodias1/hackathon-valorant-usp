@@ -1,7 +1,7 @@
-// Constantes do site (nome provisório do produto) e metadados da prévia de link (Discord, WhatsApp...).
+// Constantes do site (nome do produto) e metadados da prévia de link (Discord, WhatsApp...).
 import type { Metadata } from "next";
 
-export const PRODUCT_NAME = "Analista UNIVAVÁ";
+export const PRODUCT_NAME = "Espreitador"; // a habilidade da Fade que persegue e revela o inimigo
 export const SITE_URL = "https://analista-univava.vercel.app";
 export const TAGLINE = "O analista que os times universitários não têm";
 export const SITE_DESCRIPTION =

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import ExportPdf from "@/components/site/ExportPdf";
-import { pageMeta } from "@/lib/site";
+import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import { getIndex, getModel, getPlayer } from "@/lib/data";
 import { glossary } from "@/lib/glossary";
 import { betterThan, clock, nick, num, pct, pp } from "@/lib/format";
@@ -22,7 +22,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ puuid: string }> }): Promise<Metadata> {
   const p = await getPlayer((await params).puuid);
   const stats = p.sample.eligible ? `impacto ${pp(p.impact.wpa_per_round)} por round · K/D ${num(p.summary.kd, 2)}` : `K/D ${num(p.summary.kd, 2)} em ${p.sample.rounds} rounds`;
-  return pageMeta(`${nick(p.name)} · Analista UNIVAVÁ`,
+  return pageMeta(`${nick(p.name)} · ${PRODUCT_NAME}`,
     `${p.team_name} · ${stats}. Impacto real de cada jogada, duelos, habilidades e os parceiros que cobrem suas mortes.`);
 }
 

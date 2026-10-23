@@ -12,8 +12,9 @@ const FIRST_BLOOD_PTS = 17;
 
 function Slide({ n, kicker, title, children, brand, art }: {
   n?: string; kicker?: string; title: React.ReactNode; children?: React.ReactNode; brand?: boolean;
-  /** arte de agente à direita do título, mirando nele (capa) */
-  art?: { src: string; alt: string };
+  /** arte de agente à direita do título (capa). `place`: altura, distância do nome e deslocamento vertical (o translate
+   *  alinha um ponto da arte ao meio do título). */
+  art?: { src: string; alt: string; place: string };
 }) {
   return (
     <section data-slide className={`relative isolate flex min-h-[100dvh] snap-start items-center overflow-hidden px-6 py-20 sm:px-12 ${brand ? "bg-brand" : "bg-bg"}`}>
@@ -24,11 +25,9 @@ function Slide({ n, kicker, title, children, brand, art }: {
           <div className="relative">
             <h2 className={`font-display mt-3 text-[clamp(2.4rem,5.5vw,4.4rem)] uppercase leading-[1.02] text-white ${art ? "lg:whitespace-nowrap" : ""}`}>{title}</h2>
             {art && (
-              // a ponta da flecha fica em (20,6%, 33,2%) da imagem: o translate a põe um pouco acima do meio do título,
-              // porque a flecha desce para a esquerda e a linha dela cruza o nome
               // eslint-disable-next-line @next/next/no-img-element
               <img src={art.src} alt={art.alt}
-                   className="pointer-events-none absolute left-full top-1/2 -z-10 ml-4 hidden h-[min(82dvh,60vw)] w-auto max-w-none translate-y-[calc(-33.2%-1.25rem)] drop-shadow-[0_20px_40px_rgba(0,0,0,0.35)] lg:block" />
+                   className={`pointer-events-none absolute left-full top-1/2 -z-10 hidden w-auto max-w-none drop-shadow-[0_20px_40px_rgba(0,0,0,0.35)] lg:block ${art.place}`} />
             )}
           </div>
           {children && <div className="mt-8">{children}</div>}
@@ -85,8 +84,7 @@ export default async function PresentationDeck() {
       {/* para quem já conhece: pular a apresentação */}
       <div className="pointer-events-none fixed inset-x-0 top-0 z-40 flex items-center justify-between px-4 py-3 sm:px-6">
         <Link href="/inicio" className="pointer-events-auto flex items-center gap-2" aria-label={`${PRODUCT_NAME}: ir para o site`}>
-          <span className="font-display text-2xl uppercase leading-none tracking-wide text-white">Analista</span>
-          <span className="rounded-[3px] bg-lime px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-bg">Univavá</span>
+          <span className="font-display text-2xl uppercase leading-none tracking-wide text-white">{PRODUCT_NAME}</span>
         </Link>
         <Link href="/inicio" className="label-caps pointer-events-auto rounded-full border border-white/40 bg-bg/40 px-4 py-2 text-[11px] text-white backdrop-blur hover:border-white">
           Ir para o site →
@@ -94,7 +92,8 @@ export default async function PresentationDeck() {
       </div>
       <Deck>
         <Slide brand kicker="Hackathon VALORANT · USP São Carlos / SEMCOMP 2026" title={PRODUCT_NAME}
-               art={{ src: "/art/agents/sova_cover.webp", alt: "Sova, agente do VALORANT, mirando o arco" }}>
+               // Fade andando para a frente, com a capa de pesadelo do lado do nome (Espreitador é uma habilidade dela)
+               art={{ src: "/art/agents/fade_cover.webp", alt: "Fade, agente do VALORANT", place: "ml-16 h-[min(84dvh,62vw)] -translate-y-[31%]" }}>
           <p className="max-w-2xl text-xl leading-relaxed text-white/90">{TAGLINE}: análise pós-partida que mostra quais jogadas decidiram cada
             round, como o time joga junto e o que cada jogador pode melhorar, com os dados oficiais do UNIVAVÁ e da Rush Series.</p>
           <p className="mt-10 text-sm text-white/80">Role ou use as setas para conhecer o projeto · F para tela cheia</p>

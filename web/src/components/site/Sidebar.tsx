@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import QuickSearch from "./QuickSearch";
+import { PRODUCT_NAME } from "@/lib/site";
 
 // ícones de traço (16 × 16), na cor do texto do item
 const ICONS: Record<string, React.ReactNode> = {
@@ -39,9 +40,8 @@ const GROUPS: { label?: string; items: NavItem[] }[] = [
 
 function Logo() {
   return (
-    <Link href="/inicio" className="flex items-center gap-2" aria-label="Analista UNIVAVÁ: início">
-      <span className="font-display text-2xl uppercase leading-none tracking-wide text-ink">Analista</span>
-      <span className="rounded-[3px] bg-lime px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-bg">Univavá</span>
+    <Link href="/inicio" className="flex items-center gap-2" aria-label={`${PRODUCT_NAME}: início`}>
+      <span className="font-display text-2xl uppercase leading-none tracking-wide text-ink">{PRODUCT_NAME}</span>
     </Link>
   );
 }

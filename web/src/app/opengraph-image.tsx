@@ -1,6 +1,6 @@
 // Imagem da prévia de link (Discord, WhatsApp, X...). Gerada no build; vale para todas as páginas.
-// Mesma identidade da página inicial: fundo roxo, título condensado (Anton), tarja verde-limão e o Veto (arte oficial, política
-// "Legal Jibber Jabber" da Riot).
+// Mesma identidade da apresentação, que é onde o link abre: fundo roxo, título condensado (Anton), tarja verde-limão e a Fade
+// (arte oficial, política "Legal Jibber Jabber" da Riot).
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
@@ -22,17 +22,16 @@ export default async function OpenGraphImage() {
     [index.players.length, "jogadores"],
   ] as const;
   const fonts = await ogFonts();
-  const agent = `data:image/png;base64,${(await readFile(path.join(process.cwd(), "src", "app", "_og", "veto_og.png"))).toString("base64")}`;
+  const agent = `data:image/png;base64,${(await readFile(path.join(process.cwd(), "src", "app", "_og", "fade_og.png"))).toString("base64")}`;
 
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: C.brand, color: C.white, fontFamily: "Geist", overflow: "hidden" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={agent} alt="" height={700} style={{ position: "absolute", right: -70, top: -10 }} />
+        <img src={agent} alt="" height={700} style={{ position: "absolute", right: 70, top: -10 }} />
         <div style={{ display: "flex", flexDirection: "column", padding: "46px 64px", width: 760 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ fontFamily: "Anton", fontSize: 40, letterSpacing: 1 }}>ANALISTA</div>
-            <div style={{ background: C.lime, color: C.bg, fontSize: 16, fontWeight: 700, letterSpacing: 3, padding: "4px 10px" }}>UNIVAVÁ</div>
+            <div style={{ fontFamily: "Anton", fontSize: 40, letterSpacing: 1 }}>{PRODUCT_NAME.toUpperCase()}</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", marginTop: 26, fontFamily: "Anton", fontSize: 72, lineHeight: 1.04 }}>
             {["O ANALISTA QUE", "OS TIMES UNIVERSITÁRIOS", "NÃO TÊM"].map((l) => <div key={l}>{nb(l)}</div>)}

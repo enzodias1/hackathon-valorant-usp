@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import ExportPdf from "@/components/site/ExportPdf";
-import { pageMeta } from "@/lib/site";
+import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import { getIndex, getModel, getNavGrid, getTeam, getZones } from "@/lib/data";
 import { glossary } from "@/lib/glossary";
 import { competitionLabel, date, nick, num, pct } from "@/lib/format";
@@ -20,7 +20,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const team = await getTeam((await params).slug);
   const r = team.record;
-  return pageMeta(`${team.name} · Analista UNIVAVÁ`,
+  return pageMeta(`${team.name} · ${PRODUCT_NAME}`,
     `${r.map_wins}V ${r.maps - r.map_wins}D em ${r.maps} mapas · ${pct(r.round_win)} dos rounds · ${team.strength.rank}º de ${team.strength.of} em força. ` +
     "Diagnóstico comparado com a liga, quem cobre quem e os rounds que decidiram os jogos.");
 }

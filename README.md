@@ -9,6 +9,9 @@ Viabilidade, Usabilidade, Protótipo/apresentação. Análise **coletiva** é "e
 📋 **Tarefas da equipe e como entregar: [TAREFAS.md](TAREFAS.md)**
 
 ## O produto
+**Espreitador** (nome decidido pela equipe em 23/10): referência à habilidade da Fade, a criatura que persegue o inimigo.
+A capa da apresentação tem a Fade, e a página inicial do site, o Sova (pose de maestria).
+
 "O analista que times universitários não têm": um modelo de probabilidade de vitória do round mede o **impacto real** de cada jogada,
 e a partir dele mostramos os momentos decisivos da partida, o replay 2D de cada round e a sinergia do time (quem cobre quem).
 

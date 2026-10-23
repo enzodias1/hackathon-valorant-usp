@@ -8,7 +8,7 @@ export default function PrintHeader() {
 
   useEffect(() => {
     const update = () => setInfo({
-      // durante o "Exportar PDF" o título vira "Nome — Analista UNIVAVÁ — data"; numa impressão comum, "Nome · Analista UNIVAVÁ"
+      // durante o "Exportar PDF" o título vira "Nome — Espreitador — data"; numa impressão comum, "Nome · Analista UNIVAVÁ"
       title: document.title.includes(" — ") ? document.title.split(" — ")[0] : document.title.replace(` · ${PRODUCT_NAME}`, ""),
       date: new Date().toLocaleDateString("pt-BR"),
       // com a busca: no comparar, ?a=...&b=... são os times escolhidos
