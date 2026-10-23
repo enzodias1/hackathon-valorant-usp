@@ -173,10 +173,10 @@ export function Sig({ c }: { c: Pick<Comparison, "significant" | "good"> }) {
 
 const INSIGHT_STYLE = {
   strengths: { icon: "✓", color: "text-good", title: "Pontos fortes" },
-  neutral_pos: { icon: "+", color: "text-muted", title: "Onde mais se destaca (sem confirmação)" },
-  weaknesses: { icon: "✕", color: "text-bad", title: "Pontos a melhorar" },
-  neutral: { icon: "–", color: "text-muted", title: "Onde tem menos folga (sem confirmação)" },
-  attention: { icon: "!", color: "text-warn", title: "Atenção (tendência, ainda não conclusiva)" },
+  neutral_pos: { icon: "+", color: "text-muted", title: "Onde mais se destaca" },
+  weaknesses: { icon: "✕", color: "text-bad", title: "Pontos fracos" },
+  neutral: { icon: "–", color: "text-muted", title: "Onde pode crescer" },
+  attention: { icon: "!", color: "text-warn", title: "Fique de olho!" },
   notes: { icon: "i", color: "text-accent", title: "Leituras do perfil" },
 } as const;
 

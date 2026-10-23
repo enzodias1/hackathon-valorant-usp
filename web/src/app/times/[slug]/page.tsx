@@ -81,8 +81,8 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
         <Section id="diagnostico" title="Diagnóstico" collapsible defaultOpen
                  info={<>Comparação com a média da liga, em três níveis:<TermList terms={[
                    ["✓ e ✕", "pontos fortes e fracos confirmados: a diferença passou no teste estatístico para o tamanho da amostra, já com controle de falsos positivos."],
-                   ["!", "atenção: abaixo da liga por uma margem maior que a de costume, mas que ainda pode ser acaso."],
-                   ["+ e –", "sem confirmação: onde o time mais se destaca e onde tem menos folga, só para mostrar a posição em relação à liga. Aparecem quando não há nada confirmado daquele lado."],
+                   ["!", "fique de olho: abaixo da liga por uma margem maior que a de costume, mas que ainda pode ser acaso."],
+                   ["+ e –", "sem confirmação: onde o time mais se destaca e onde pode crescer (as métricas mais perto da média), só para mostrar a posição em relação à liga. Aparecem quando não há nada confirmado daquele lado."],
                  ]} /></>}>
           <InsightPanel insights={team.insights} />
         </Section>
