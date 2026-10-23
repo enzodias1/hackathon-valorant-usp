@@ -173,6 +173,7 @@ export function Sig({ c }: { c: Pick<Comparison, "significant" | "good"> }) {
 
 const INSIGHT_STYLE = {
   strengths: { icon: "✓", color: "text-good", title: "Pontos fortes" },
+  neutral_pos: { icon: "+", color: "text-muted", title: "Pontos fortes" },
   weaknesses: { icon: "✕", color: "text-bad", title: "Pontos a melhorar" },
   neutral: { icon: "–", color: "text-muted", title: "Pontos a melhorar" },
   attention: { icon: "!", color: "text-warn", title: "Atenção (tendência, ainda não conclusiva)" },
@@ -180,7 +181,8 @@ const INSIGHT_STYLE = {
 } as const;
 
 export function InsightPanel({ insights, empty }: { insights: Insights; empty?: string }) {
-  const groups = (["strengths", "weaknesses", "neutral", "attention", "notes"] as const).filter((k) => (insights[k] ?? []).length > 0);
+  // os grupos "neutros" ocupam o lugar dos pontos fortes / a melhorar quando nada foi confirmado (não aparecem junto com eles)
+  const groups = (["strengths", "neutral_pos", "weaknesses", "neutral", "attention", "notes"] as const).filter((k) => (insights[k] ?? []).length > 0);
   if (!groups.length)
     return <p className="text-sm text-ink-2">{empty ?? "Nenhuma diferença em relação à liga passou no teste estatístico: nas métricas analisadas, o desempenho está dentro da faixa normal da liga (ou a amostra ainda é pequena para afirmar)."}</p>;
   return (
@@ -189,7 +191,9 @@ export function InsightPanel({ insights, empty }: { insights: Insights; empty?: 
         <div key={k}>
           <h3 className="mb-2 text-sm font-medium text-ink-2">{INSIGHT_STYLE[k].title}</h3>
           <ul className="space-y-2">
-            {(insights[k] as Insight[]).map((i) => (
+            {(insights[k] as Insight[]).map((i) => i.key === "intro" ? (
+              <li key={i.key} className="text-sm text-ink-2">{i.text}</li>
+            ) : (
               <li key={i.key} className="flex gap-3 rounded-lg bg-surface-2 p-3">
                 <span className={`mt-0.5 w-4 shrink-0 text-center font-bold ${INSIGHT_STYLE[k].color}`} aria-hidden>
                   {INSIGHT_STYLE[k].icon}

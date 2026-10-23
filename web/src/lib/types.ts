@@ -184,8 +184,10 @@ export interface Insights {
   strengths: Insight[];
   weaknesses: Insight[];
   attention: Insight[];
-  /** time sem ponto fraco nem atenção: a métrica de menos folga em relação à liga (linha neutra) */
+  /** time sem ponto fraco nem atenção: as métricas de menos folga em relação à liga (não confirmadas). O item "intro" abre o grupo. */
   neutral?: Insight[];
+  /** time sem ponto forte confirmado: onde ele mais se destaca, ainda dentro do acaso (ou que não fica à frente em nenhuma) */
+  neutral_pos?: Insight[];
   notes?: Insight[];
 }
 

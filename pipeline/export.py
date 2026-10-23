@@ -285,19 +285,31 @@ def export_teams(t, names):
                 ins["weaknesses"].insert(0, {**item, "text": f"Vencem {E - W:.0f} rounds a menos do que a economia previa ({br(wae['per100'])} a cada 100 rounds).",
                                              "tip": "Compare a tabela de economia: em qual tipo de compra o time rende abaixo do esperado?"})
         ins["strengths"], ins["weaknesses"] = ins["strengths"][:4], ins["weaknesses"][:4]
-        # sem ponto fraco nem atenção (e com rounds para dizer algo): uma linha neutra com a métrica de menos folga. O diagnóstico
-        # compara com a média da liga, então "nada abaixo da média" não quer dizer "time perfeito" (18 times em 23/10)
-        if not ins["weaknesses"] and not ins["attention"] and len(g) >= 100:
-            cand = [((c["z"] if TEAM_METRICS[k][1] else -c["z"]), k, c) for k, c in comps.items()
-                    if k in TEAM_TEXT and k not in NOISE_METRICS and c.get("z") is not None and c.get("value") is not None and c["n"] >= MIN_N]
-            if cand:
-                zd, k, c = min(cand, key=lambda x: x[0])
-                v, lg = pct(c["value"]), pct(c["league"])
-                # "atrás da liga" serve para os dois sentidos (em mortes isoladas, menos é melhor)
-                lead = ("Em nenhuma métrica o time fica atrás da liga. A de menos folga" if zd >= 0 or v == lg
-                        else "Nenhum ponto fraco confirmado. Onde o time fica mais atrás da liga, ainda dentro do acaso")
-                ins["neutral"] = [{"key": "closest", "z": round(zd, 2), "n": int(c["n"]),
-                                   "text": f"{lead}: {TEAM_METRICS[k][0].lower()}, {v} (liga: {lg})."}]
+        # todo time mostra os dois lados, mesmo sem nada confirmado (métricas com 15+ casos; o diagnóstico compara com a média
+        # da liga, então "nada abaixo da média" não quer dizer "time perfeito"):
+        # - sem ponto fraco nem atenção: as 4 métricas de menos folga em relação à média;
+        # - sem ponto forte: onde o time mais se destaca, ainda dentro do acaso (ou que não fica à frente em nenhuma).
+        # Os textos dizem que não são confirmados; o primeiro item ("intro") é a frase de abertura do grupo.
+        used = {x["key"] for part in ("strengths", "weaknesses", "attention") for x in ins[part]}
+        cand = sorted((((c["z"] if TEAM_METRICS[k][1] else -c["z"]), k, c) for k, c in comps.items()
+                       if k in TEAM_TEXT and k not in NOISE_METRICS and k not in used
+                       and c.get("z") is not None and c.get("value") is not None and c["n"] >= MIN_N), key=lambda x: x[0])
+        line = lambda zd, k, c: {"key": k, "z": round(zd, 2), "n": int(c["n"]), "text": f"{TEAM_METRICS[k][0]}: {pct(c['value'])} (liga: {pct(c['league'])})."}
+        intro = lambda text: {"key": "intro", "z": None, "text": text}
+        # primeiro onde o time se destaca (só métricas à frente da liga), depois as de menos folga com o que sobrou: assim uma
+        # métrica não aparece nos dois grupos, e "não fica à frente em nenhuma" só sai quando é verdade
+        if not ins["strengths"]:
+            ahead = [x for x in reversed(cand) if x[0] > 0 and pct(x[2]["value"]) != pct(x[2]["league"])][:4]
+            if ahead:
+                ins["neutral_pos"] = [intro("Nenhum ponto forte confirmado. Onde o time mais se destaca, ainda dentro do acaso:")] + [line(*x) for x in ahead]
+            elif cand:
+                ins["neutral_pos"] = [intro("Nenhum ponto forte confirmado: em nenhuma métrica o time fica à frente da liga.")]
+            else:
+                ins["neutral_pos"] = [intro("Nenhum ponto forte confirmado: poucos rounds para comparar com a liga.")]
+            cand = [x for x in cand if x not in ahead]
+        if not ins["weaknesses"] and not ins["attention"]:
+            ins["neutral"] = ([intro("Nada confirmado abaixo da liga. As métricas com menos folga em relação à média:")] + [line(*x) for x in cand[:4]]
+                              if cand else [intro("Nada confirmado abaixo da liga.")])
 
         order = ["Pistol", "Eco", "Meia compra", "Forçado", "Full buy"]
         buys.sort(key=lambda x: order.index(x["buy"]) if x["buy"] in order else 99)
