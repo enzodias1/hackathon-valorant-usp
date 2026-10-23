@@ -1,5 +1,5 @@
 // Página do jogador: duelos (contra quem e contra quais agentes) e quando morre no round.
-// Pedidos das entrevistas com jogadores (para_equipe/entrevistas_ufg.md): histórico de duelos e "você morre muito aos X".
+// Pedidos das entrevistas com 21 jogadores e jogadoras dos times da UFG no UNIVAVÁ: histórico de duelos e "você morre muito aos X".
 import { clock, nick, pct } from "@/lib/format";
 import type { DeathTiming, PlayerDuels } from "@/lib/types";
 import { PlayerLink } from "./ui";

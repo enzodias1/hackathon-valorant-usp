@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 P = ROOT / "data" / "processed"
 OUT = ROOT / "web" / "public" / "data"
 LOOKUP = json.loads((ROOT / "data" / "meta" / "lookup.json").read_text(encoding="utf-8"))
-SHEET = ROOT / "para_equipe" / "nomes_dos_times.xlsx"
+TEAM_NAMES = ROOT / "data" / "meta" / "team_names.csv"  # nome, sigla e instituição de cada time (o slug vem do nome dos arquivos)
 # team annotations on the replay (things the data cannot show, e.g. an ultimate teleport inside a long gap); always labeled as such
 NOTES = json.loads((ROOT / "data" / "meta" / "replay_notes.json").read_text(encoding="utf-8"))
 AXES = ["Entry", "Support", "Lurker", "Clutch", "Impacto"]
@@ -43,18 +43,9 @@ MIN_MAPS_ABILITIES = 2
 
 
 def team_names():
-    """slug -> {name, tag, institution}: the filled spreadsheet wins over the automatic suggestion."""
-    df = pd.read_excel(SHEET)
-    cols = list(df.columns)
-    slug, sug, fix, tag, inst = cols[0], cols[1], cols[2], cols[3], cols[4]
-    out = {}
-    for r in df.itertuples(index=False):
-        vals = dict(zip(cols, r))
-        filled = lambda c: isinstance(vals[c], str) and vals[c].strip()
-        name = vals[fix].strip() if filled(fix) else vals[sug]
-        out[vals[slug]] = {"name": name, "tag": vals[tag].strip() if filled(tag) else name,
-                           "institution": vals[inst].strip() if filled(inst) else None}
-    return out
+    """slug -> {name, tag, institution}, de data/meta/team_names.csv (nomes conferidos pela equipe)."""
+    df = pd.read_csv(TEAM_NAMES, dtype=str, keep_default_na=False, encoding="utf-8")
+    return {r.slug: {"name": r.name, "tag": r.tag or r.name, "institution": r.institution or None} for r in df.itertuples(index=False)}
 
 
 def clean(o):

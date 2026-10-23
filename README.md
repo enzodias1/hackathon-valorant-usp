@@ -1,199 +1,104 @@
-# Hackathon VALORANT — USP São Carlos / SEMCOMP 2026
+<div align="center">
 
-**Entrega: sexta 23/10/2026, 23h59 (BRT).** Vídeo pitch de até 5 min + link da apresentação + protótipo.
-Banca: Riot Games + AcadArena (organizadora do UNIVAVÁ). Critérios (1–5 cada): Inovação, Impacto, Qualidade da análise/uso dos dados,
-Viabilidade, Usabilidade, Protótipo/apresentação. Análise **coletiva** é "especialmente bem-vinda" pelo edital.
+<a href="https://espreitador-gg.vercel.app"><img src="https://espreitador-gg.vercel.app/opengraph-image" alt="Espreitador: o analista que os times universitários não têm" width="760"></a>
 
-🌐 **Protótipo no ar: https://espreitador-gg.vercel.app** (publicado automaticamente a cada push na `main`)
-O endereço antigo (analista-univava.vercel.app) redireciona para o novo.
+# Espreitador
 
-📋 **Tarefas da equipe e como entregar: [TAREFAS.md](TAREFAS.md)**
+**O analista que os times universitários não têm.**
 
-## O produto
-**Espreitador** (nome decidido pela equipe em 23/10): referência à habilidade da Fade, a criatura que persegue o inimigo.
-A capa da apresentação tem a Fade, e a página inicial do site, o Sova (pose de maestria).
+Análise pós-partida do VALORANT universitário: o impacto real de cada jogada, os momentos que decidiram cada round,
+o replay 2D de cada round e a sinergia dos times.
 
-"O analista que times universitários não têm": um modelo de probabilidade de vitória do round mede o **impacto real** de cada jogada,
-e a partir dele mostramos os momentos decisivos da partida, o replay 2D de cada round e a sinergia do time (quem cobre quem).
+### [espreitador-gg.vercel.app](https://espreitador-gg.vercel.app)
 
-**O link do site abre na apresentação** (https://espreitador-gg.vercel.app): telas na ordem do roteiro, em tela inteira, terminando
-no "Curtiu? Bora testar?", que leva à página inicial do site (`/inicio`); "Ir para o site" pula a apresentação. Setas para passar,
-F para tela cheia. O endereço antigo `/apresentacao` redireciona para a raiz. O formulário de entrega tem três campos: nome da equipe, vídeo do pitch e material complementar; neste último vão o link
-do protótipo e o da apresentação.
+</div>
 
-Páginas: partidas (replay 2D de cada round), times, jogadores, comparar times e **comparar jogadores** (`/comparar/jogadores`:
-duelos diretos ou a parceria no mesmo time, estatísticas lado a lado), destaques, metodologia e **as brabas** (`/as-brabas`, 23/10:
-só as 13 partidas da Rush Series Inclusivo, com o top 10 de impacto por round e os 7 times). **Abas por campeonato** nas listas de times e de jogadores (23/10): Geral, cada Rush Series e o Univavá (com filtro de fase), só com
-quem jogou e só com as partidas de cada um. **Busca rápida** no menu
-(Ctrl+K ou "/"): times, jogadores e partidas. A página "Como usar" saiu (22/10): o que cada número significa (impacto, trade, morte
-isolada, round jogado fora, virada, força) fica no botão "i" dos lugares onde o número aparece, com os textos em
-`web/src/lib/glossary.ts` e os limites tirados do `model.json`; `/como-funciona` redireciona para `/inicio`.
+Projeto do **Hackathon VALORANT da SEMCOMP (USP São Carlos)**, de 19 a 23 de outubro de 2026, feito com a base oficial de partidas
+do UNIVAVÁ e da Rush Series. O link abre na apresentação do projeto (setas para passar, F para tela cheia); "Ir para o site" leva
+direto ao produto.
 
-## Regras do edital que afetam o código
-- Dados de partida **somente** dos JSONs fornecidos pela organização. Nada de APIs da Riot, scraping ou dados externos de partidas.
-- Metadados estáticos do jogo (nomes/ícones de agentes, armas, mapas) ficam em `data/meta/` (liberado pela equipe).
-- Ferramenta pós-partida apenas: nada que dê vantagem em tempo real.
+## O problema
+
+K/D e ACS contam kills, mas não dizem **quais kills importaram** nem **o que fazer diferente**. Times profissionais têm alguém para
+rever cada round; os universitários, não.
+
+Ouvimos 21 jogadores e jogadoras dos 4 times da UFG que disputaram o UNIVAVÁ: 12 pediram um replay 2D com as mortes e as melhores
+jogadas, 7 querem entender o próprio desempenho e a evolução além do placar, e 2 querem saber como usaram as habilidades.
+
+## O que o Espreitador faz
+
+- **Impacto real de cada jogada.** A cada kill, plant e desarme, um modelo calcula a chance de cada time vencer o round. A variação
+  dessa chance é o impacto da jogada: um first blood vale muito; uma kill num round já decidido, quase nada.
+- **Replay 2D de cada round**, com o agente e a mira de cada jogador, a chance de vitória ao vivo, a sequência de eliminações e um
+  resumo do que decidiu o round, escrito a partir dos eventos. Dá para copiar o link de um instante e mandar no grupo do time.
+- **Times:** força (chance de vencer um round contra um time médio), pontos fortes e fracos contra toda a competição, onde o time
+  morre no mapa, economia, mapas, evolução ao longo do campeonato e quem cobre quem (sinergia).
+- **Jogadores:** impacto por round, duelos contra cada adversário e cada agente, quando morre no round, uso das habilidades, agentes
+  e mapas, comparados com toda a competição.
+- **Comparar times** (o histórico do confronto e a chance de vencer um mapa) e **comparar jogadores** (duelos diretos ou a parceria
+  no mesmo time).
+- **Rankings por campeonato** (geral, cada Rush Series e o UNIVAVÁ por fase), **Destaques** (as jogadas de maior impacto e as maiores
+  viradas, com link para o replay) e **As brabas** (a Rush Series Inclusivo).
+- Relatório em PDF da partida, do time, do jogador e das comparações, busca rápida (Ctrl+K) e filtros que ficam no link.
+
+## Como funciona
+
+```
+JSONs das partidas ──► pipeline/ (Python) ──► web/public/data (JSON estático) ──► web/ (Next.js, site estático)
+```
+
+1. **ETL:** os JSONs viram tabelas de rounds, kills, economia (tipos de compra como no jogo) e a posição e a mira de todos os
+   jogadores vivos em cada kill, plant e desarme.
+2. **Chance de vitória do round:** gradient boosting com jogadores vivos, equipamento, spike e relógio. Cada partida é avaliada por
+   um modelo que nunca a viu (validação cruzada por partida): AUC 0,885 e erro de calibração de 1,2%.
+3. **Análises:** força dos times (Bradley-Terry descontando a economia), trades e mortes isoladas, sinergia entre pares, regiões do
+   mapa e o chão caminhável de cada mapa, que guia o movimento do replay.
+4. **Sem conclusão tirada do ruído:** um ponto forte ou fraco só aparece se passar no teste estatístico, com correção de
+   Benjamini-Hochberg para as várias comparações de cada página.
+5. **Checagens:** 42 propriedades que precisam valer se os números estiverem certos (o impacto de cada kill soma zero entre os times,
+   quem planta é sempre do ataque, quem mata está olhando para a vítima no replay...). O pipeline falha se alguma não fechar.
+
+Cada decisão está explicada em [`pipeline/README.md`](pipeline/README.md) e na página
+[Metodologia](https://espreitador-gg.vercel.app/metodologia) do site.
+
+## Dados
+
+- **Partidas:** somente os JSONs fornecidos pela organização do hackathon. São 336 mapas (UNIVAVÁ: Classificatórias 1 a 4 e Fase de
+  Grupos; Rush Series: Esquenta, Esquenta 2 e Inclusivo), 68 times, 411 jogadores, 6.618 rounds e 46.753 kills. Os arquivos
+  originais não fazem parte deste repositório.
+- **Metadados estáticos do jogo** (agentes, armas, escudos e mapas): [valorant-api.com](https://valorant-api.com), com o uso liberado
+  pela organização. Ver [`data/meta/`](data/meta/README.md).
+- **Só pós-partida:** nada se conecta ao jogo nem dá vantagem durante uma partida.
 
 ## Estrutura
-```
-pipeline/      Python: dos JSONs brutos até os dados do site
-data/meta/     metadados do jogo (agentes, armas, mapas)
-web/           site (Next.js 15 + React 19 + Tailwind + Recharts), só JSON estático, sem backend
-para_equipe/   arquivos para a equipe preencher
-```
 
-## Pipeline (Python, venv em `.venv`)
-Os JSONs brutos ficam fora do repositório, em `../Dados .Json`.
-```
-python -m venv .venv && .venv/Scripts/python -m pip install -r pipeline/requirements.txt
-.venv/Scripts/python pipeline/meta.py                         # data/meta/lookup.json
-.venv/Scripts/python pipeline/etl.py "../Dados .Json"         # data/processed/*.parquet (+ checagens e tipos de compra)
-.venv/Scripts/python pipeline/winprob.py                      # modelo de prob. de vitória + impacto (WPA)
-.venv/Scripts/python pipeline/team.py                         # sinergia, perfil dos times e dos jogadores
-.venv/Scripts/python pipeline/evolution.py                    # força dos times (Bradley-Terry) e evolução no campeonato
-.venv/Scripts/python pipeline/economy.py                      # decisões de compra sem full buy (descritivo nos times)
-.venv/Scripts/python pipeline/zones.py                        # onde cada time morre (regiões do mapa + grade de calor)
-.venv/Scripts/python pipeline/navgrid.py                      # chão caminhável de cada mapa + spawns (movimento do replay)
-.venv/Scripts/python pipeline/export.py                       # JSON do site em web/public/data (formato em web/DADOS.md)
-.venv/Scripts/python pipeline/checks.py                       # 42 checagens de consistência (falha se algum número não fechar)
-.venv/Scripts/python pipeline/map_calibration.py              # (opcional, ~1 min) fator da chance por mapa do comparador
-.venv/Scripts/python pipeline/teams_sheet.py                  # planilha de nomes dos times (para_equipe/)
+| Pasta | O que tem |
+|---|---|
+| [`pipeline/`](pipeline/README.md) | Python: dos JSONs das partidas até os dados do site (modelo, análises e checagens) |
+| [`data/meta/`](data/meta/README.md) | metadados do jogo, nomes dos times e anotações do replay |
+| [`web/`](web/README.md) | o site: Next.js 15, React 19 e Tailwind, só páginas estáticas, sem backend |
+
+## Rodando localmente
+
+O site já vem com os dados processados (`web/public/data`):
+
+```bash
+cd web
+npm install
+npm run dev        # http://localhost:3000
 ```
 
-## Fatos da base
-336 mapas (UNIVAVÁ Classificatórias 1–4 + Fase de Grupos + 3 edições da Rush Series), 68 times, 411 jogadores, 6.618 rounds, 46.753 kills.
-- Mapas vêm com codinome interno (`Jam`=Lotus, `Triad`=Haven, `Bonsai`=Split, `Juliett`=Sunset, `Infinity`=Abyss, `Plummet`=Summit…).
-- O nome dos times só existe no nome do arquivo. Times da mesma organização (ex.: `azure_bears_black` / `golden`) são elencos diferentes.
-- Posições em unidades do jogo (~1 cm). Em cada kill há a posição de todos os vivos (exceto a vítima, que vem à parte).
-- 2 rounds com erro na própria base (mortes por bug de mapa) são marcados como `anomalous` e ficam fora do modelo.
-- **Ressurreições (21/10):** a ultimate da Sage (num aliado) e a da Clove (nela mesma) trazem um morto de volta. O uso não vem nos
-  dados, mas a Riot lista todos os vivos em cada kill, plant e desarme (completo em 99,9% dos registros; as falhas são agentes dentro
-  de uma ultimate, como o teleporte do Omen). Quem morreu e reaparece nessa lista foi revivido e volta a contar como vivo a partir
-  dali: **95 ressurreições em 91 rounds**, todas de Sage (com uma Sage no time) ou Clove. Um registro a menos de 0,5 s da morte não
-  conta: duas kills no mesmo instante listam a vítima uma da outra (a volta mais rápida da base, da Clove, leva 0,8 s). Antes, só o
-  revivido que morria de novo era corrigido, e no instante da segunda morte; no round 6 de Azure Bears Golden × USP Stars, o modelo
-  dava 100% ao Azure num 1 contra 1, com a Killjoy revivida contada como morta. Também não conta como clutch o 1 contra N em que
-  alguém do time volta depois. Cada ressurreição é uma **jogada de quem reviveu** (a Sage do time, 49; ou a própria Clove, 46), com
-  o ícone da ultimate no replay: vale a chance com o revivido de volta menos a chance sem ele, no registro em que ele reaparece
-  (média de +19 pontos, máximo +43), e entra no impacto do jogador. O momento exato não vem nos dados, só o intervalo entre dois
-  registros (mediana de 6,5 s).
-- **Fim do round por tempo:** o tempo acaba 100 s depois da queda da barreira. Em 58 rounds que terminaram por tempo há 79 eventos
-  depois disso (70 kills e 9 plants completados tarde demais, como um aos 100,04 s no round 20 de Wolf Gaming × Axis Anteaters): eles
-  não mudam o resultado e contam como "depois do fim" (impacto zero), como os eventos depois de um desarme ou explosão. O relógio dos
-  dados tem folga de até ~0,7 s (3 plants aos 100,4–100,6 s valeram), por isso a regra só vale para rounds que acabaram por tempo.
-- Em cada kill, plant e desarme vêm a posição e a direção da mira de todos os vivos (base do replay 2D). O uso de utilitárias não vem
-  nos dados, mas as kills por habilidade sim (2,6% das kills: ultimate, Q/E e granada), com o slot da habilidade.
-- Armas de habilidade no catálogo de armas: a Tour de Force (ultimate do Chamber) vem **sem ID** a partir do patch 13.02; identificada
-  por ser rara e ~100% com mira (`meta.py`). No mesmo patch, a Riot **deixa de contar a ultimate do Chamber**: a contagem cai de
-  ~1,8 para ~0,4 por mapa e vem zerada em 64–79% dos mapas, mesmo com kills de Tour de Force (nos outros agentes, em 503 mapas
-  com kill de ultimate, ela nunca vem zerada). Nesses mapas o placar mostra só o mínimo garantido ("≥1": rounds em que ele matou
-  com a ultimate) e a seção de habilidades compara a ultimate do Chamber só com mapas anteriores ao 13.02.
-- O relógio do round começa na queda da barreira (o round seguinte começa sempre 37 s depois da última kill: 7 s de fim de round + 30 s
-  de compra). Kills nos primeiros segundos são duelos de abertura, comuns perto do spawn da defesa.
+Para refazer os dados a partir dos JSONs das partidas, veja [`pipeline/README.md`](pipeline/README.md).
 
-## Página do jogador: duelos e quando morre (pedidos das entrevistas)
-Das entrevistas com 21 jogadores e jogadoras dos 4 times da UFG no UNIVAVÁ ([`para_equipe/entrevistas_ufg.md`](para_equipe/entrevistas_ufg.md): 12 pediram
-um replay 2D, 7 querem entender o próprio desempenho, 2 o uso das habilidades), dois pedidos viraram seções:
-- **Duelos:** placar contra cada adversário (3+ duelos) e duelos vencidos contra cada agente (10+), comparados com a média do próprio
-  jogador. "Confirmado" só quando passa no teste, com Benjamini-Hochberg na lista de agentes da página (34 de 2.812 comparações).
-- **Quando morre no round:** distribuição das mortes ao longo do round, mediana e parcela nos primeiros 20 s, contra a liga **na mesma
-  função** (duelistas morrem mais cedo: 25% das mortes nos primeiros 20 s, contra ~16% de iniciadores e controladores). Descritivo: na liga,
-  o time vence ~31% dos rounds em que o jogador morre, seja antes ou depois dos 20 s, então não afirmamos que morrer cedo é pior.
+## Equipe
 
-## Leitura automática e comparações (21/10)
-- **"O que decidiu o round":** até 3 frases geradas dos eventos e da chance de vitória: virada (o vencedor chegou a ≤ 20%) ou vitória
-  contra a economia, multi-kill, clutch, desarme no limite e a jogada de maior impacto. Sem texto escrito à mão.
-- **Quem podia trocar:** em cada morte, os aliados de quem morreu que tinham linha de visão até quem matou (até 45 m; paredes do mapa
-  bloqueiam; altura e smokes não entram, porque não vêm nos dados).
-- **Habilidades:** usos por round (C, Q, E) e ultimates por mapa, por agente, contra a média da liga no mesmo agente. A Riot informa só o
-  total por partida, não o momento de cada uso.
-- **Histórico do confronto** no comparador: placar, a jogada que mais pesou em cada mapa (com o resumo e o link para o replay) e o impacto
-  de cada jogador nesses mapas.
+[Enzo](https://www.linkedin.com/in/enzo-dias-3125ba341/) ·
+[Azi](https://www.linkedin.com/in/ana-bomfim/) ·
+[Brunno](https://www.linkedin.com/in/brunnobernardes/) ·
+[João Pedro](https://www.linkedin.com/in/jo%C3%A3o-pedro-matos-939919250/) ·
+[Camila](https://www.linkedin.com/in/camila-vuicik-dos-santos-b38a2826b/)
 
-## Replay 2D (movimento estimado)
-As posições existem só nos instantes de kill, plant e desarme; o primeiro registro do round sai, em mediana, aos 15,7 s (metade dos
-rounds entre 8,5 s e 26,9 s). Entre os registros, cada jogador anda pelo **chão do mapa** (grade de ~0,7 m tirada do minimapa oficial,
-em que as linhas brancas finas são paredes; 99,97% das posições registradas ficam no chão ou a até 1,4 m dele) pelo caminho mais curto
-(A*), no ritmo de corrida. Duas regras deixam o trajeto mais parecido com o de um jogador:
-- **Evita a visão dos inimigos:** em cada registro calculamos o que cada inimigo vivo enxerga (raios que param nas paredes, até 45 m);
-  passar por essas áreas custa 4× na busca de caminho, e a rota que desvia é usada se der tempo de percorrê-la correndo (até 3× a mais
-  curta). Desvia em 3,9% dos trechos, +10 m em média.
-- **Anda no momento mais seguro:** se a rota fica mais exposta no registro de chegada (os inimigos estão vindo), o jogador sai logo e
-  espera no destino (15% dos trechos); senão, segura a posição e anda a tempo de chegar (o time segura ângulo e rotaciona perto da
-  hora). No começo do round, sai do spawn assim que a barreira cai. O spawn é aproximado: na fase de compra os jogadores andam
-  dentro da área da barreira, que é grande (do ponto oficial, só 3–7% das posições dos primeiros segundos seriam alcançáveis a tempo);
-  quando não daria tempo, o jogador começa adiantado no caminho.
-No começo do round, sai do spawn do seu lado. Se o caminho exigir mais de 7,5 m/s (correndo não passa de ~6,75 m/s), o trecho é um
-**salto** (habilidade de movimento ou teleporte): o jogador some e reaparece, com o trajeto tracejado (↯). Isso ocorre em 0,9% dos
-trechos e se concentra em Iso (6,6%: arena da ultimate), Neon, Yoru, Waylay, Chamber, Jett e Omen; em agentes sem mobilidade fica em ~0,3%.
-Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela velocidade. Para esses casos há **anotações da equipe**
-(`data/meta/replay_notes.json`, com o motivo), mostradas no replay como "anotação da equipe", separadas do que vem dos dados.
+## Aviso legal
 
-## Decisões de métrica (validadas com os dados)
-- **Probabilidade de vitória do round:** gradient boosting com validação cruzada por partida (AUC 0,885; erro de calibração 1,2%).
-  O impacto (WPA) de cada partida é calculado por um modelo que nunca viu aquela partida.
-  O equipamento de um lado sem ninguém vivo fica ausente, não zero (21/10): com zero, o modelo lia "equipamento 0" como "time
-  inteiro morto" (as duas coisas sempre vinham juntas) e um jogador vivo que não comprou nada (eco, só a pistola grátis) parecia um
-  time morto. No único 1 contra 1 pós-plant da base com um atacante assim (round 14 de UFMG Fênix B × CAAP Malditos), o atacante
-  aparecia com 0,25% de chance; agora, 18%.
-  O instante em que um desarme termina fica fora do treino: dali a defesa sempre vence (o desarme em andamento não vem nos
-  dados), e esses estados ensinavam que "ataque todo morto com pouco tempo de spike" favorece a defesa, o contrário do instante em
-  que o último atacante morre (com até 3,5 s de spike, o ataque vence 100%; o modelo dava 67%). A chance nesse instante continua
-  calculada por um modelo que não viu a partida. Para "ataque todo morto com a spike plantada" (só ~1.300 estados), a chance é a
-  taxa real da faixa de **folga para desarmar**, medida quando o último atacante morre: tempo de spike restante − corrida do
-  defensor mais perto até a spike (linha reta a 5,5 m/s) − 7 s de desarme. Com 1 s ou mais de sobra, o ataque vence ~0%; com 3 s
-  ou mais faltando, 97%. A folga não muda até o desarme (o relógio corre enquanto o defensor vai e desarma), então a chance não
-  despenca antes de cada desarme: no round 6 de Azure Bears Golden × USP Stars, a Dioguera mata o último atacante com 13,8 s de
-  spike a 11 m dela (folga de 4,8 s; desarmou com 4,7 s restantes), e a defesa fica com 96% até o fim, em vez de cair para 14%.
-- **Trade:** morte vingada por um aliado em até 5 s.
-- **Morte isolada:** aliado vivo mais próximo a mais de 3.000 unidades (~30 m). A chance de ser trocado cai de 41% (< 5 m) para 4% (> 30 m; 6% só na faixa de 30–40 m).
-- **Papéis por comportamento (Entry, Support, Lurker, Clutch): removidos da interface (22/10).** Saíam de percentis de
-  comportamento (72% dos duelistas caíam em Entry e 71% dos sentinelas em Lurker, sem o modelo ver o agente), mas a equipe achou o
-  rótulo ambíguo ao lado da função do agente. `team.py` ainda calcula os eixos; o site mostra só a função do agente, e os percentis
-  aparecem como "melhor que X% da liga".
-- **Round "jogado fora":** o time chegou a ≥ 80% de probabilidade e perdeu. **Virada:** ≤ 20% e venceu.
-- **Controle de falsos positivos:** toda afirmação de "ponto forte/fraco" ou "mudou" passa por Benjamini-Hochberg (q = 10%) dentro
-  da página (time ou jogador). Sem isso, com 15 métricas por time, ~1–2 insights por time seriam ruído.
-- **Força dos times:** Bradley-Terry nos rounds, descontando a economia (regularizado: times com poucos mapas ficam perto da média).
-  Nas abas por campeonato de `/times`, a força é recalculada só com as partidas de cada campeonato (e de cada fase do Univavá).
-  **Posições ajustadas pela equipe (23/10)**, onde a força e o resultado discordam (`RANK_ORDER` em `export.py`): no Inclusivo,
-  Azure Bears White > USP Stars GC > PUC-Campinas Canaries (o Azure venceu a USP; a PUC-Campinas não venceu mapa), e no geral a
-  USP Stars GC troca de posição com a PUC-Campinas Canaries. A força (%) continua a do modelo; passando o mouse na posição, a lista explica o ajuste.
-- **Chance de vencer o mapa (comparador, 23/10):** a conta "primeiro a 13" com rounds independentes exagera a confiança, porque os
-  rounds não são independentes (economia, lado, momento). `map_calibration.py` prevê cada mapa da base com a força calculada sem ele:
-  quando a conta dava 90–100%, o favorito venceu 90%; com logit × 0,742, 88% vira 81% e o erro (Brier) cai de 0,1665 para 0,1644.
-  Usa todos os mapas de cada time (não o mapa do jogo: há poucos jogos por mapa); o rendimento por mapa fica na seção "Mapas".
-- **Evolução:** primeira × segunda metade dos mapas de cada time, com o esperado de cada evento ajustado pela força do adversário
-  e pela economia (senão todo time "piora" na Fase de Grupos, onde os adversários são mais fortes). Só times com ≥ 8 mapas.
-- **Tipos de compra, como no jogo (22/10):** `etl.classify_buys`, pelo que cada jogador comprou e pelo dinheiro que o time
-  guardou (antes era só o valor total do equipamento, com um "Semi-eco" que não existe no jogo e meias compras e forçados misturados).
-  Pistol: rounds 1 e 13. **Full buy:** 20 mil ou mais de equipamento, ou 4+ jogadores com kit completo (3.900: Vandal/Phantom +
-  escudo cheio). **Meia compra:** compra parcial (2+ jogadores com 2 mil ou mais) no round depois de ganhar o pistol, ou guardando o full buy
-  seguinte (4+ jogadores com dinheiro guardado + bônus da próxima derrota, 1.900/2.400/2.900 pela sequência, ≥ 3.900).
-  **Forçado:** abaixo do full buy, gastando (compra parcial ou 65%+ do dinheiro) sem garantir o full buy seguinte. **Eco:** o resto.
-  Rounds (os dois times): full buy 7.695, meia compra 1.729, pistol 1.344, eco 1.305, forçado 1.163. O modelo de chance de vitória usa o
-  valor do equipamento em números, não a categoria: a mudança só reagrupa os rounds (tabelas de compra, rótulos do replay).
-- **Economia (forçar ou economizar?):** rounds sem full buy depois de perder um round, pelo tipo de compra (eco, meia compra ou forçado).
-  Resultado: rounds vencidos neste e nos 2 seguintes, com controles (dinheiro, armas, adversário, força, lado, placar, round) e
-  bootstrap por partida, contra o eco. Depois de perder o pistol (592 ecos, 64 forçados), forçar: +0,75 round [+0,48; +1,02];
-  depois de perder um round sem full buy: forçado +0,32 [+0,18; +0,42], meia compra +0,12 [0,00; +0,21]. O forçado é robusto a
-  horizonte de 2/4 rounds e a confrontos equilibrados; a meia compra, não.
-  É evidência observacional. **Removido da interface (20/10):** poucos casos de force (42 com horizonte completo depois do pistol), sinal de seleção
-  (quem força vence até o round 4 bem mais) e custo real ao perder o force (round 3: 47% × 58%). O site mostra só o descritivo
-  (o que o time fez e o que aconteceu depois), sem recomendação.
-- **Início do desarme (23/10):** os dados só trazem o fim do desarme (`defuseRoundTime`), então o modelo credita o desarme de uma
-  vez (nos destaques, um 0,2% → 100%). O replay e os cartões de desarme dos destaques mostram o início estimado: 7 s antes do fim,
-  com os vivos e o tempo de spike nesse instante. É estimativa: um desarme interrompido na metade (3,5 s) e retomado começa antes.
-- **Variação só pelo tempo:** entre um evento e outro, a chance de vitória muda só porque o relógio corre (ex.: defesa segurando até o
-  tempo acabar). Essa parte não é creditada a ninguém; o impacto de cada jogada é a mudança no instante do evento.
-- **Métricas sem sinal entre times** (hoje: rounds jogados fora): a dispersão entre os times é a do acaso (dp(z) = 0,92), então elas
-  aparecem nas tabelas, mas nunca viram ponto forte/fraco nem "mudou". `checks.py` recalcula isso a cada execução.
-
-## Checagens de consistência (`pipeline/checks.py`)
-Propriedades que precisam valer se os números estiverem certos, por exemplo: quem planta é sempre do ataque; vitória após first blood +
-após first death = 100%; o impacto de cada kill soma zero entre os times; depois da última kill de um round de eliminação o vencedor está
-com ~100%; ADR, KAST e K/D da liga em faixas plausíveis; coordenadas do minimapa exportadas sem perda de precisão; nenhum link quebrado entre as páginas;
-no replay, quem mata está olhando para a vítima (valida a direção da mira), as posições caem no chão da grade do mapa e toda kill diz o
-que matou; somando todos os jogadores, os duelos vencidos são iguais aos perdidos; os vivos que o modelo considera em cada evento
-batem com os vivos registrados pela Riot (99,95%, com as ressurreições); em rounds que acabaram por tempo, nada depois dos 100 s conta
-como jogada; toda ressurreição tem quem reviveu. Hoje: **42/42 ok**.
+Espreitador foi criado sob a política "Legal Jibber Jabber" da Riot Games, usando recursos de propriedade da Riot Games. A Riot Games
+não endossa nem patrocina este projeto. Dados das partidas fornecidos pela organização do hackathon.
