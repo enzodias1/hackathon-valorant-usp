@@ -726,8 +726,8 @@ def export_players(t, names):
         if p.role_eligible:
             p_kd, p_wpa = percentile("kd", p.kd), percentile("wpa_per_round", p.wpa_per_round)
             if p_kd is not None and p_wpa is not None and abs(p_wpa - p_kd) >= 25:
-                # "melhor que X% da liga", como na página (betterThan em web/src/lib/format.ts)
-                better = lambda v: "é o melhor da liga" if v >= 100 else f"é melhor que {int(v)}% da liga"
+                # "melhor que X% geral", como na página (betterThan em web/src/lib/format.ts)
+                better = lambda v: "é o melhor geral" if v >= 100 else f"é melhor que {int(v)}% geral"
                 txt = (f"O impacto vale mais que o K/D: em impacto, {better(p_wpa)}; em K/D, só que {int(p_kd)}%. As jogadas acontecem nos momentos que decidem rounds."
                        if p_wpa > p_kd else
                        f"O K/D é melhor que o impacto: em K/D, {better(p_kd)}; em impacto, só que {int(p_wpa)}%. Parte das kills acontece com o round já decidido, ou as mortes custam caro.")

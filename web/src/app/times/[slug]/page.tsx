@@ -125,7 +125,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
           <Evolution team={team} />
         </Section>
 
-        <Section id="liga" title="Comparação com a liga" collapsible teaser={t.compare} aside={<CompareLegend />}
+        <Section id="liga" title="Comparação com toda a competição" collapsible teaser={t.compare} aside={<CompareLegend />}
                  info={<>Cada linha mostra o time (ponto) e a média da liga (traço). ▲/▼ marcam diferenças confirmadas estatisticamente.<TermList terms={[g.throw, g.comeback, g.trade, g.isolated]} /></>}>
           <div className="space-y-5">
             {GROUPS.map((g) => (

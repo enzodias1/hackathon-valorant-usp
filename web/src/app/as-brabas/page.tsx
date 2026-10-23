@@ -29,6 +29,7 @@ export default async function BrabasPage() {
 
   const players = new Map<string, Row>();
   const teams = new Map<string, { maps: number; wins: number; rw: number; rt: number }>();
+  const h2h = new Map<string, number>(); // "a|b" -> mapas que a venceu contra b
   matches.forEach((m, i) => {
     const slug: Record<Color, string> = { Red: list[i].red, Blue: list[i].blue };
     const rounds = m.score.Red + m.score.Blue;
@@ -37,6 +38,8 @@ export default async function BrabasPage() {
       t.maps += 1; t.wins += m.winner === c ? 1 : 0; t.rw += m.score[c]; t.rt += rounds;
       teams.set(slug[c], t);
     }
+    const w = slug[m.winner], l = slug[m.winner === "Red" ? "Blue" : "Red"];
+    h2h.set(`${w}|${l}`, (h2h.get(`${w}|${l}`) ?? 0) + 1);
     for (const p of m.players) {
       const r = players.get(p.puuid) ?? { puuid: p.puuid, name: p.name, team: slug[p.color], maps: 0, rounds: 0, kills: 0, deaths: 0, assists: 0, acsSum: 0, wpa: 0, agents: new Map() };
       r.maps += 1; r.rounds += rounds; r.kills += p.kills; r.deaths += p.deaths; r.assists += p.assists; r.acsSum += p.acs * rounds; r.wpa += p.wpa;
@@ -49,7 +52,10 @@ export default async function BrabasPage() {
   const ranked = [...players.values()].filter((r) => r.maps >= MIN_MAPS).sort((a, b) => b.wpa / b.rounds - a.wpa / a.rounds);
   const top = ranked.slice(0, TOP);
   const maxWpa = Math.max(...top.map((r) => Math.abs(r.wpa / r.rounds)), 0.1);
-  const teamRows = [...teams.entries()].sort((a, b) => b[1].wins / b[1].maps - a[1].wins / a[1].maps || b[1].rw / b[1].rt - a[1].rw / a[1].rt);
+  // vitórias, depois o confronto direto (o Azure venceu a USP), depois a % de rounds
+  const teamRows = [...teams.entries()].sort((a, b) => b[1].wins / b[1].maps - a[1].wins / a[1].maps
+    || (h2h.get(`${b[0]}|${a[0]}`) ?? 0) - (h2h.get(`${a[0]}|${b[0]}`) ?? 0)
+    || b[1].rw / b[1].rt - a[1].rw / a[1].rt);
   const teamName = (slug: string) => index.teams[slug]?.name ?? slug;
   const mainAgent = (r: Row) => [...r.agents.entries()].sort((a, b) => b[1].n - a[1].n)[0];
 

@@ -11,11 +11,11 @@ export const chance = (x: number, short = false) => {
   return pct(x, x < 0.01 || (x > 0.99 && x < 1) ? 1 : 0);
 };
 
-/** Posição na liga em vez de "percentil": "melhor que 92% da liga"; o primeiro da liga, "o melhor da liga". */
-/** posição na liga até o 10º lugar ("2º da liga"); dali em diante, o percentil ("melhor que 92% da liga") */
+/** Comparação com todos os jogadores da base (todos os campeonatos), por isso "geral": até o 10º lugar, a posição
+ *  ("2º geral"); dali em diante, o percentil ("melhor que 92% geral"). */
 export const TOP_RANK = 10;
-export const betterThan = (p: number | null | undefined, suffix = " da liga", rank?: number | null) =>
-  p == null ? "—" : rank != null && rank <= TOP_RANK ? `${rank}º da liga` : p >= 100 ? "o melhor da liga" : `melhor que ${Math.floor(p)}%${suffix}`;
+export const betterThan = (p: number | null | undefined, suffix = " geral", rank?: number | null) =>
+  p == null ? "—" : rank != null && rank <= TOP_RANK ? `${rank}º geral` : p >= 100 ? "o melhor geral" : `melhor que ${Math.floor(p)}%${suffix}`;
 
 /** impacto em pontos (percentuais) de chance de vitória, com sinal: "+12,3 pontos", "−1,5 ponto" */
 export const pp = (x: number | null | undefined, digits = 1) => {

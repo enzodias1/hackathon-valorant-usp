@@ -87,10 +87,10 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
         <div data-pdf-section="Resumo" className="grid grid-cols-2 gap-3 md:grid-cols-5">
           <StatTile label="Impacto por round" value={pp(imp.wpa_per_round)} tone={imp.wpa_per_round >= 0 ? "good" : "bad"}
                     info={<TermList terms={[g.impact, g.impactPerRound]} className="" />}
-                    sub={pc?.wpa_per_round != null ? betterThan(pc.wpa_per_round, " da liga", rk?.wpa_per_round) : `${p.sample.rounds} rounds`} />
-          <StatTile label="K/D" value={num(s.kd, 2)} sub={pc?.kd != null ? betterThan(pc.kd, " da liga", rk?.kd) : `${s.kills}/${s.deaths}`} />
-          <StatTile label="ACS" value={num(s.acs)} sub={pc?.acs != null ? betterThan(pc.acs, " da liga", rk?.acs) : undefined} />
-          <StatTile label="KAST" value={pct(s.kast)} sub={pc?.kast != null ? betterThan(pc.kast, " da liga", rk?.kast) : undefined} />
+                    sub={pc?.wpa_per_round != null ? betterThan(pc.wpa_per_round, " geral", rk?.wpa_per_round) : `${p.sample.rounds} rounds`} />
+          <StatTile label="K/D" value={num(s.kd, 2)} sub={pc?.kd != null ? betterThan(pc.kd, " geral", rk?.kd) : `${s.kills}/${s.deaths}`} />
+          <StatTile label="ACS" value={num(s.acs)} sub={pc?.acs != null ? betterThan(pc.acs, " geral", rk?.acs) : undefined} />
+          <StatTile label="KAST" value={pct(s.kast)} sub={pc?.kast != null ? betterThan(pc.kast, " geral", rk?.kast) : undefined} />
           <StatTile label="Rounds" value={p.sample.rounds} sub={`${p.sample.maps} mapas`} />
         </div>
 
@@ -99,9 +99,9 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
           <InsightPanel insights={p.insights} />
         </Section>
 
-        <Section id="perfil" title="Comparado com a liga" collapsible
-                 teaser={pc ? `Impacto: ${betterThan(pc.wpa_per_round, " da liga", rk?.wpa_per_round)} · K/D: ${betterThan(pc.kd, "", rk?.kd)}` : "Disponível a partir de 60 rounds"}
-                 info="Em cada estatística, a posição do jogador entre os jogadores da liga com 60 rounds ou mais: “melhor que 92%” quer dizer que ele supera 92% deles, e entre os 10 primeiros aparece a posição (“2º da liga”). A barra vai do pior (vazia) ao melhor da liga (cheia).">
+        <Section id="perfil" title="Comparado com toda a competição" collapsible
+                 teaser={pc ? `Impacto: ${betterThan(pc.wpa_per_round, " geral", rk?.wpa_per_round)} · K/D: ${betterThan(pc.kd, "", rk?.kd)}` : "Disponível a partir de 60 rounds"}
+                 info="Em cada estatística, a posição do jogador entre os jogadores de toda a competição com 60 rounds ou mais: “melhor que 92%” quer dizer que ele supera 92% deles, e entre os 10 primeiros aparece a posição (“2º geral”). A barra vai do pior (vazia) ao melhor da liga (cheia).">
           <div className="max-w-2xl">
             {pc ? (
               <div>
