@@ -184,6 +184,8 @@ export interface Insights {
   strengths: Insight[];
   weaknesses: Insight[];
   attention: Insight[];
+  /** time sem ponto fraco nem atenção: a métrica de menos folga em relação à liga (linha neutra) */
+  neutral?: Insight[];
   notes?: Insight[];
 }
 

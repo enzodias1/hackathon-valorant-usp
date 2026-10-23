@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from insights import (NOISE_METRICS, PLAYER_TEXT, TEAM_METRICS, TEAM_TEXT, Z_SIGNIFICANT, bh_adjust, binom, br, make_insights,
+from insights import (MIN_N, NOISE_METRICS, PLAYER_TEXT, TEAM_METRICS, TEAM_TEXT, Z_SIGNIFICANT, bh_adjust, binom, br, make_insights,
                       mean_test, pct, pp, team_counts)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -285,6 +285,19 @@ def export_teams(t, names):
                 ins["weaknesses"].insert(0, {**item, "text": f"Vencem {E - W:.0f} rounds a menos do que a economia previa ({br(wae['per100'])} a cada 100 rounds).",
                                              "tip": "Compare a tabela de economia: em qual tipo de compra o time rende abaixo do esperado?"})
         ins["strengths"], ins["weaknesses"] = ins["strengths"][:4], ins["weaknesses"][:4]
+        # sem ponto fraco nem atenção (e com rounds para dizer algo): uma linha neutra com a métrica de menos folga. O diagnóstico
+        # compara com a média da liga, então "nada abaixo da média" não quer dizer "time perfeito" (18 times em 23/10)
+        if not ins["weaknesses"] and not ins["attention"] and len(g) >= 100:
+            cand = [((c["z"] if TEAM_METRICS[k][1] else -c["z"]), k, c) for k, c in comps.items()
+                    if k in TEAM_TEXT and k not in NOISE_METRICS and c.get("z") is not None and c.get("value") is not None and c["n"] >= MIN_N]
+            if cand:
+                zd, k, c = min(cand, key=lambda x: x[0])
+                v, lg = pct(c["value"]), pct(c["league"])
+                # "atrás da liga" serve para os dois sentidos (em mortes isoladas, menos é melhor)
+                lead = ("Em nenhuma métrica o time fica atrás da liga. A de menos folga" if zd >= 0 or v == lg
+                        else "Nenhum ponto fraco confirmado. Onde o time fica mais atrás da liga, ainda dentro do acaso")
+                ins["neutral"] = [{"key": "closest", "z": round(zd, 2), "n": int(c["n"]),
+                                   "text": f"{lead}: {TEAM_METRICS[k][0].lower()}, {v} (liga: {lg})."}]
 
         order = ["Pistol", "Eco", "Meia compra", "Forçado", "Full buy"]
         buys.sort(key=lambda x: order.index(x["buy"]) if x["buy"] in order else 99)

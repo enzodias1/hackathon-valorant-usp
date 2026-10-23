@@ -174,12 +174,13 @@ export function Sig({ c }: { c: Pick<Comparison, "significant" | "good"> }) {
 const INSIGHT_STYLE = {
   strengths: { icon: "✓", color: "text-good", title: "Pontos fortes" },
   weaknesses: { icon: "✕", color: "text-bad", title: "Pontos a melhorar" },
+  neutral: { icon: "–", color: "text-muted", title: "Pontos a melhorar" },
   attention: { icon: "!", color: "text-warn", title: "Atenção (tendência, ainda não conclusiva)" },
   notes: { icon: "i", color: "text-accent", title: "Leituras do perfil" },
 } as const;
 
 export function InsightPanel({ insights, empty }: { insights: Insights; empty?: string }) {
-  const groups = (["strengths", "weaknesses", "attention", "notes"] as const).filter((k) => (insights[k] ?? []).length > 0);
+  const groups = (["strengths", "weaknesses", "neutral", "attention", "notes"] as const).filter((k) => (insights[k] ?? []).length > 0);
   if (!groups.length)
     return <p className="text-sm text-ink-2">{empty ?? "Nenhuma diferença em relação à liga passou no teste estatístico: nas métricas analisadas, o desempenho está dentro da faixa normal da liga (ou a amostra ainda é pequena para afirmar)."}</p>;
   return (
