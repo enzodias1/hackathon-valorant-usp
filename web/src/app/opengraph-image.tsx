@@ -22,11 +22,22 @@ export default async function OpenGraphImage() {
     [index.players.length, "jogadores"],
   ] as const;
   const fonts = await ogFonts();
-  const agent = `data:image/png;base64,${(await readFile(path.join(process.cwd(), "src", "app", "_og", "fade_og.png"))).toString("base64")}`;
+  const png = async (f: string) => `data:image/png;base64,${(await readFile(path.join(process.cwd(), "src", "app", "_og", f))).toString("base64")}`;
+  const [agent, tile] = await Promise.all([png("fade_og.png"), png("prowler_tile.png")]);
+  // fundo de espreitadores, como na capa da apresentação (ProwlerPattern): o ladrilho repetido a 14%
+  const TILE = 200;
+  const tiles = Array.from({ length: Math.ceil(OG_SIZE.height / TILE) }, (_, r) =>
+    Array.from({ length: Math.ceil(OG_SIZE.width / TILE) }, (_, c) => [r * TILE, c * TILE] as const)).flat();
 
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", position: "relative", background: C.brand, color: C.white, fontFamily: "Geist", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", opacity: 0.14 }}>
+          {tiles.map(([top, left]) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={`${top}-${left}`} src={tile} alt="" width={TILE} height={TILE} style={{ position: "absolute", top, left }} />
+          ))}
+        </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={agent} alt="" height={700} style={{ position: "absolute", right: 70, top: -10 }} />
         <div style={{ display: "flex", flexDirection: "column", padding: "46px 64px", width: 760 }}>
