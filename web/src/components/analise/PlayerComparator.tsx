@@ -202,26 +202,30 @@ export default function PlayerComparator({ players }: { players: PlayerOption[] 
             </div>
             <div className="mt-1 overflow-x-auto"><div className="min-w-[640px]">{rows.map((r) => <StatRow key={r.label} r={r} />)}</div></div>
             <p className="mt-3 text-xs text-muted">
-              Em todas as partidas de cada um. Em verde, o melhor da linha. “Melhor que X%” compara com os jogadores da liga com 60 rounds ou mais,
+              Em todas as partidas de cada um. Em amarelo, o melhor da linha. “Melhor que X%” compara com os jogadores da liga com 60 rounds ou mais,
               e a barra vai do pior ao melhor da liga.
             </p>
           </section>
 
           <section data-pdf-section="Agentes mais jogados" className="rounded-xl border border-line bg-surface p-5 sm:p-6">
             <h2 className="text-2xl tracking-wide text-ink">Agentes mais jogados</h2>
+            {/* o nome em cima de cada lista: no PDF (e no celular) as duas não ficam lado a lado como na tela */}
             <div className="mt-3 grid gap-6 md:grid-cols-2">
               {[A, B].map((p) => (
-                <ul key={p.puuid} className="space-y-2">
-                  {p.agents.slice(0, 3).map((g) => (
-                    <li key={g.agent} className="flex items-center gap-3 text-sm">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      {g.icon && <img src={g.icon} alt="" className="h-8 w-8 rounded" />}
-                      <span className="flex-1 text-ink">{g.agent} <span className="text-xs text-muted">{g.rounds} rounds</span></span>
-                      <span className="tabular text-xs text-ink-2">K/D {num(g.kd, 2)}</span>
-                      <span className={`tabular whitespace-nowrap text-right text-xs ${g.wpa_per_round >= 0 ? "text-good" : "text-bad"}`}>{pp(g.wpa_per_round)} por round</span>
-                    </li>
-                  ))}
-                </ul>
+                <div key={p.puuid} className="min-w-0">
+                  <p className="mb-2 text-sm font-semibold text-ink">{nick(p.name)}</p>
+                  <ul className="space-y-2">
+                    {p.agents.slice(0, 3).map((g) => (
+                      <li key={g.agent} className="flex items-center gap-3 text-sm">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        {g.icon && <img src={g.icon} alt="" className="h-8 w-8 rounded" />}
+                        <span className="flex-1 text-ink">{g.agent} <span className="text-xs text-muted">{g.rounds} rounds</span></span>
+                        <span className="tabular text-xs text-ink-2">K/D {num(g.kd, 2)}</span>
+                        <span className={`tabular whitespace-nowrap text-right text-xs ${g.wpa_per_round >= 0 ? "text-good" : "text-bad"}`}>{pp(g.wpa_per_round)} por round</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
             </div>
           </section>
