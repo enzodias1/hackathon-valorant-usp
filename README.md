@@ -23,7 +23,7 @@ do protótipo e o da apresentação.
 
 Páginas: partidas (replay 2D de cada round), times, jogadores, comparar times e **comparar jogadores** (`/comparar/jogadores`:
 duelos diretos ou a parceria no mesmo time, estatísticas lado a lado), destaques, metodologia e **as brabas** (`/as-brabas`, 23/10:
-só as 13 partidas da Rush Series Inclusivo, com o top 10 de impacto por round, os 7 times e as jogadas que mais pesaram). **Busca rápida** no menu
+só as 13 partidas da Rush Series Inclusivo, com o top 10 de impacto por round e os 7 times). **Busca rápida** no menu
 (Ctrl+K ou "/"): times, jogadores e partidas. A página "Como usar" saiu (22/10): o que cada número significa (impacto, trade, morte
 isolada, round jogado fora, virada, força) fica no botão "i" dos lugares onde o número aparece, com os textos em
 `web/src/lib/glossary.ts` e os limites tirados do `model.json`; `/como-funciona` redireciona para `/inicio`.

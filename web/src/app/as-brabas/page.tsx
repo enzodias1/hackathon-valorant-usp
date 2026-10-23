@@ -3,20 +3,18 @@
 import type { Metadata } from "next";
 import { getIndex, getMatch, getModel } from "@/lib/data";
 import { glossary } from "@/lib/glossary";
-import { computeHighlights } from "@/lib/highlights";
 import { nick, num, pct } from "@/lib/format";
 import { PRODUCT_NAME, pageMeta } from "@/lib/site";
 import type { Color } from "@/lib/types";
 import { PageBand, PlayerLink, SectionHead, Td, TeamLink, TermList, Th, WpaBar } from "@/components/analise/ui";
 import InfoTip from "@/components/analise/InfoTip";
-import HighlightPlayCard from "@/components/destaques/HighlightPlayCard";
 
 const COMPETITION = "Rush Series Inclusivo";
 const TOP = 10;
 const MIN_MAPS = 2; // duas jogaram só parte de um mapa (21 e 22 rounds)
 
 export const metadata: Metadata = pageMeta(`As brabas · ${PRODUCT_NAME}`,
-  "As 10 jogadoras de maior impacto da Rush Series Inclusivo, os times e as jogadas que mais pesaram.");
+  "As 10 jogadoras de maior impacto da Rush Series Inclusivo e os times.");
 
 type Row = {
   puuid: string; name: string; team: string; maps: number; rounds: number; kills: number; deaths: number; assists: number;
@@ -52,16 +50,14 @@ export default async function BrabasPage() {
   const top = ranked.slice(0, TOP);
   const maxWpa = Math.max(...top.map((r) => Math.abs(r.wpa / r.rounds)), 0.1);
   const teamRows = [...teams.entries()].sort((a, b) => b[1].wins / b[1].maps - a[1].wins / a[1].maps || b[1].rw / b[1].rt - a[1].rw / a[1].rt);
-  const { plays } = computeHighlights(matches, 4);
   const teamName = (slug: string) => index.teams[slug]?.name ?? slug;
   const mainAgent = (r: Row) => [...r.agents.entries()].sort((a, b) => b[1].n - a[1].n)[0];
 
   return (
     <main>
       <PageBand kicker={`${COMPETITION} · 2026`} title="As brabas">
-        Não dava para deixar de fora as brabas do cenário inclusivo. Com o Game Changers Championship, o mundial do VALORANT inclusivo,
-        acontecendo, separamos as {matches.length} partidas da {COMPETITION}: {teams.size} times e {players.size} jogadoras. Tudo aqui
-        vem só dessas partidas, mesmo de quem também jogou o UNIVAVÁ.
+        Não dava para deixar de fora as brabas do cenário inclusivo. Em homenagem ao Game Changers Championship acontecendo no Brasil,
+        separamos as {matches.length} partidas da {COMPETITION}: {teams.size} times, {players.size} jogadoras e muita mira envolvida.
       </PageBand>
 
       <div className="mx-auto max-w-6xl space-y-14 px-4 py-12 sm:px-8">
@@ -120,16 +116,6 @@ export default async function BrabasPage() {
           </div>
         </section>
 
-        {plays.length > 0 && (
-          <section>
-            <SectionHead n="03" title="As jogadas que mais pesaram" link={{ href: "/destaques", label: "Destaques de todos os campeonatos" }} />
-            <ol className="grid gap-4 md:grid-cols-2">
-              {plays.map((p, i) => (
-                <li key={`${p.match.id}-${p.round}-${p.t}`}><HighlightPlayCard item={p} rank={i + 1} /></li>
-              ))}
-            </ol>
-          </section>
-        )}
       </div>
     </main>
   );
