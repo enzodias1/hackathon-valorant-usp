@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import ExportPdf from "@/components/site/ExportPdf";
 import { pageMeta } from "@/lib/site";
 import { getIndex, getModel, getNavGrid, getTeam, getZones } from "@/lib/data";
-import { BUY_LEGEND, glossary } from "@/lib/glossary";
+import { glossary } from "@/lib/glossary";
 import { competitionLabel, date, nick, num, pct } from "@/lib/format";
 import type { Comparison, Team, TeamMetric } from "@/lib/types";
 import SynergyGraph from "@/components/analise/SynergyGraph";
@@ -158,7 +158,6 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
         <Section id="economia" title="Economia" collapsible teaser={t.economy}
                  info="Vitórias em cada tipo de compra comparadas com o esperado pelo modelo (que considera a compra dos dois lados), e o que o time comprou quando não fez full buy depois de perder um round, com o que aconteceu em seguida. É descritivo: mostra o que aconteceu, sem recomendar uma decisão.">
           <h3 className="label-caps mb-1 text-[10px] text-muted">Vitórias por tipo de compra</h3>
-          <p className="mb-2 text-xs text-ink-2">{BUY_LEGEND}</p>
           <div className="divide-y divide-line/50">
             {team.buys.map((b) => {
               const c: Comparison = { value: b.win, league: b.expected, n: b.rounds, z: b.z, significant: b.significant, good: b.significant ? b.z > 0 : null };
@@ -175,7 +174,7 @@ export default async function TeamPage({ params }: { params: Promise<{ slug: str
                     <table className="mt-2 w-full text-sm">
                       <thead><tr className="text-left text-xs text-muted"><th className="py-1">Decisão</th><th className="py-1 text-right">Vezes</th><th className="py-1 text-right">Venceu o round</th><th className="py-1 text-right">Rounds nos 3 seguintes</th></tr></thead>
                       <tbody>
-                        {(["Eco", "Semi-buy", "Forçada"] as const).map((d) => {
+                        {(["Eco", "Meia compra", "Forçado"] as const).map((d) => {
                           const x = e.decisions[d];
                           return (
                             <tr key={d} className="border-t border-line/50">

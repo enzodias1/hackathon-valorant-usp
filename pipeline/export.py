@@ -286,7 +286,7 @@ def export_teams(t, names):
                                              "tip": "Compare a tabela de economia: em qual tipo de compra o time rende abaixo do esperado?"})
         ins["strengths"], ins["weaknesses"] = ins["strengths"][:4], ins["weaknesses"][:4]
 
-        order = ["Pistol", "Eco", "Semi-buy", "Forçada", "Full buy"]
+        order = ["Pistol", "Eco", "Meia compra", "Forçado", "Full buy"]
         buys.sort(key=lambda x: order.index(x["buy"]) if x["buy"] in order else 99)
 
         maps = []
@@ -392,7 +392,7 @@ def team_economy(t, slug):
     """What the team did when it could not afford a full buy, and what happened next. Descriptive only:
     the league-wide "force vs save" comparison is not shown as a recommendation (observational, few force cases)."""
     lg, et = t["economy"]["contexts"], t["economy_team"]
-    verb = {"Eco": "fez eco", "Semi-buy": "fez semi-buy", "Forçada": "forçou"}
+    verb = {"Eco": "fez eco", "Meia compra": "fez meia compra", "Forçado": "forçou"}
     out = []
     for ctx in lg:
         rows = et[(et.team == slug) & (et.context == ctx)]

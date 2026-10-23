@@ -151,18 +151,18 @@ Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela veloc
 - **Evolução:** primeira × segunda metade dos mapas de cada time, com o esperado de cada evento ajustado pela força do adversário
   e pela economia (senão todo time "piora" na Fase de Grupos, onde os adversários são mais fortes). Só times com ≥ 8 mapas.
 - **Tipos de compra, como no jogo (22/10):** `etl.classify_buys`, pelo que cada jogador comprou e pelo dinheiro que o time
-  guardou (antes era só o valor total do equipamento, com um "Semi-eco" que não existe no jogo e semi-buys e forçadas misturados).
-  Pistol: rounds 1 e 13. **Full buy:** 20 mil ou mais de equipamento, ou 4+ jogadores com kit completo (3.900: rifle + colete
-  pesado). **Semi-buy:** compra parcial (2+ jogadores com 2 mil ou mais) no round depois de ganhar o pistol, ou guardando o full buy
+  guardou (antes era só o valor total do equipamento, com um "Semi-eco" que não existe no jogo e meias compras e forçados misturados).
+  Pistol: rounds 1 e 13. **Full buy:** 20 mil ou mais de equipamento, ou 4+ jogadores com kit completo (3.900: Vandal/Phantom +
+  escudo cheio). **Meia compra:** compra parcial (2+ jogadores com 2 mil ou mais) no round depois de ganhar o pistol, ou guardando o full buy
   seguinte (4+ jogadores com dinheiro guardado + bônus da próxima derrota, 1.900/2.400/2.900 pela sequência, ≥ 3.900).
-  **Forçada:** abaixo do full buy, gastando (compra parcial ou 65%+ do dinheiro) sem garantir o full buy seguinte. **Eco:** o resto.
-  Rounds (os dois times): full buy 7.695, semi-buy 1.729, pistol 1.344, eco 1.305, forçada 1.163. O modelo de chance de vitória usa o
+  **Forçado:** abaixo do full buy, gastando (compra parcial ou 65%+ do dinheiro) sem garantir o full buy seguinte. **Eco:** o resto.
+  Rounds (os dois times): full buy 7.695, meia compra 1.729, pistol 1.344, eco 1.305, forçado 1.163. O modelo de chance de vitória usa o
   valor do equipamento em números, não a categoria: a mudança só reagrupa os rounds (tabelas de compra, rótulos do replay).
-- **Economia (forçar ou economizar?):** rounds sem full buy depois de perder um round, pelo tipo de compra (eco, semi-buy ou forçada).
+- **Economia (forçar ou economizar?):** rounds sem full buy depois de perder um round, pelo tipo de compra (eco, meia compra ou forçado).
   Resultado: rounds vencidos neste e nos 2 seguintes, com controles (dinheiro, armas, adversário, força, lado, placar, round) e
-  bootstrap por partida, contra o eco. Depois de perder o pistol (592 ecos, 64 forçadas), forçar: +0,75 round [+0,48; +1,02];
-  depois de perder um round sem full buy: forçada +0,32 [+0,18; +0,42], semi-buy +0,12 [0,00; +0,21]. A forçada é robusta a
-  horizonte de 2/4 rounds e a confrontos equilibrados; o semi-buy, não.
+  bootstrap por partida, contra o eco. Depois de perder o pistol (592 ecos, 64 forçados), forçar: +0,75 round [+0,48; +1,02];
+  depois de perder um round sem full buy: forçado +0,32 [+0,18; +0,42], meia compra +0,12 [0,00; +0,21]. O forçado é robusto a
+  horizonte de 2/4 rounds e a confrontos equilibrados; a meia compra, não.
   É evidência observacional. **Removido da interface (20/10):** poucos casos de force (42 com horizonte completo depois do pistol), sinal de seleção
   (quem força vence até o round 4 bem mais) e custo real ao perder o force (round 3: 47% × 58%). O site mostra só o descritivo
   (o que o time fez e o que aconteceu depois), sem recomendação.

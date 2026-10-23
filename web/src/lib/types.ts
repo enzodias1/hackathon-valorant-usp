@@ -110,7 +110,7 @@ export interface RoundEvent {
 export type KillKind = "weapon" | "ability" | "melee" | "spike" | "fall" | "other";
 /** [índice em match.players, x, y, direção da visão em radianos (eixos do jogo: atan2(dy, dx))] */
 export type PosEntry = [number, number, number, number];
-/** o que o jogador levou no round: [arma, colete, valor do equipamento] */
+/** o que o jogador levou no round: [arma, escudo, valor do equipamento] */
 export type GearEntry = [string | null, string | null, number];
 
 export interface Round {
@@ -287,7 +287,7 @@ export interface TeamZones {
 }
 
 // ---------------------------------------------------------------- economia ("forçar ou economizar?")
-export type EcoDecision = "Eco" | "Semi-buy" | "Forçada";
+export type EcoDecision = "Eco" | "Meia compra" | "Forçado";
 
 export interface TeamEconomy {
   context: string;

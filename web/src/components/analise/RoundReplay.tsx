@@ -629,11 +629,12 @@ function Rosters({ match, round, poses, t, focus, onPick }: {
   );
 }
 
-/** Colete: escudo + valor (50 pesado, 25 leve, R regenerativo); o nome completo fica no title. */
+/** Escudo: ícone + valor (50 cheio, 25 leve, R regenerativo); o nome fica no title, com os termos dos jogadores. */
 function Armor({ a }: { a: string | null | undefined }) {
   const v = !a ? null : /pesad/i.test(a) ? "50" : /leve/i.test(a) ? "25" : /regenera/i.test(a) ? "R" : "?";
+  const name = !a ? "sem escudo" : v === "50" ? "Escudo cheio" : v === "25" ? "Escudo leve" : a;
   return (
-    <span title={a ?? "sem colete"} className="tabular flex w-9 shrink-0 items-center justify-end gap-1 text-muted">
+    <span title={name} className="tabular flex w-9 shrink-0 items-center justify-end gap-1 text-muted">
       {v && <svg viewBox="0 0 10 12" aria-hidden className="h-3 w-2.5 fill-current"><path d="M5 0 10 2v4c0 3-2.2 5.2-5 6C2.2 11.2 0 9 0 6V2z" /></svg>}
       {v ?? "—"}
     </span>

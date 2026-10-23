@@ -41,11 +41,11 @@ def half_of(rn):
     return "1º tempo" if rn < 12 else "2º tempo" if rn < 24 else "Prorrogação"
 
 
-# Tipos de compra como no jogo: pistol, eco, semi-buy, forçada e full buy. Economia do VALORANT: a derrota paga 1.900, 2.400
-# ou 2.900 conforme a sequência de derrotas (zera ao vencer e na troca de lado); o kit completo é rifle (2.900) + colete pesado
-# (1.000). O "loadout" de cada jogador já inclui as habilidades e o que ele carregou do round anterior.
-FULL_KIT = 3900            # rifle + colete pesado, por jogador
-PARTIAL_KIT = 2000         # acima disso, o jogador comprou mais que pistola e colete leve (Spectre, Bulldog, rifle sem colete...)
+# Tipos de compra como no jogo: pistol, eco, meia compra, forçado e full buy. Economia do VALORANT: a derrota paga 1.900, 2.400
+# ou 2.900 conforme a sequência de derrotas (zera ao vencer e na troca de lado); o kit completo é Vandal/Phantom (2.900) + escudo
+# cheio (1.000). O "loadout" de cada jogador já inclui as habilidades e o que ele carregou do round anterior.
+FULL_KIT = 3900            # Vandal/Phantom + escudo cheio, por jogador
+PARTIAL_KIT = 2000         # acima disso, o jogador comprou mais que pistola e escudo leve (Spectre, Bulldog, Vandal sem escudo...)
 FULL_BUY_TEAM = 20000      # ~4 mil por jogador, já com habilidades
 LOSS_BONUS = (1900, 2400, 2900)
 OT_ROUND = 24              # na prorrogação todo round começa com 5 mil para cada um: o full buy seguinte está sempre garantido
@@ -55,9 +55,9 @@ def classify_buys(rd, pr):
     """Tipo de compra de cada time em cada round, pelo que cada jogador comprou e pelo dinheiro que guardou.
     - Pistol: rounds 1 e 13.
     - Full buy: 20 mil ou mais de equipamento, ou 4+ jogadores com o kit completo.
-    - Semi-buy: compra parcial (2+ jogadores com 2 mil ou mais) no round depois de ganhar o pistol, ou guardando o full buy
+    - Meia compra: compra parcial (2+ jogadores com 2 mil ou mais) no round depois de ganhar o pistol, ou guardando o full buy
       do round seguinte: 4+ jogadores com dinheiro guardado + bônus da próxima derrota >= kit completo.
-    - Forçada: abaixo do full buy, gastando (compra parcial ou 65%+ do dinheiro) sem garantir o full buy seguinte.
+    - Forçado: abaixo do full buy, gastando (compra parcial ou 65%+ do dinheiro) sem garantir o full buy seguinte.
     - Eco: o resto (gastou pouco)."""
     pr = pr.sort_values(["match_id", "team_color", "round_num"])
     team = pr.groupby(["match_id", "team_color", "round_num"]).agg(
@@ -91,10 +91,10 @@ def classify_buys(rd, pr):
         bought = r.bought >= 2
         keeps = r.keeps_full_buy >= 4 or r.round_num >= OT_ROUND
         if bought and r.after_pistol_win:
-            return "Semi-buy"
+            return "Meia compra"
         if not keeps and (bought or r.spent >= 0.65 * (r.spent + r.bank)):
-            return "Forçada"
-        return "Semi-buy" if bought else "Eco"
+            return "Forçado"
+        return "Meia compra" if bought else "Eco"
 
     team["buy"] = team.apply(kind, axis=1)
     buy = team.set_index(["match_id", "round_num", "team_color"]).buy

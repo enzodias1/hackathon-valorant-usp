@@ -103,7 +103,7 @@ No código, carregue com `fetch("/data/index.json")` e `fetch(\`/data/matches/${
   "chosen": "gbm",
   "calibration": [ { "p": 0.75, "y": 0.74, "n": 8759 } ],         // previsto vs. real em 10 faixas → gráfico de calibração
   "trade_by_distance": [ { "distance": "0–5 m", "trade_rate": 0.41, "n": 7181 } ],   // a curva "41% vs 6%"
-  "buy_matchups": [ { "atk_buy": "Eco", "def_buy": "Semi-buy", "model": 0.11, "real": 0.12, "n": 261 } ],  // previsão por tipo de compra
+  "buy_matchups": [ { "atk_buy": "Eco", "def_buy": "Meia compra", "model": 0.11, "real": 0.12, "n": 261 } ],  // previsão por tipo de compra
   "definitions": { "trade_window_s", "isolated_distance_m", "throw_wp", "comeback_wp", "min_rounds_role", "significance" }
 }
 ```
@@ -114,7 +114,7 @@ quem vence de quem perde (1 = perfeito, 0,5 = moeda); **ECE / calibração** = q
 - `teams/<slug>.json`:
   - `strength`: `{ theta, p_vs_avg, rank, of, reliable }`. Força do time (ranking de 1 a 68; `p_vs_avg` = chance de vencer um round contra um time médio).
   - `economy`: lista por situação ("perdeu o pistol", "perdeu o round anterior") com as decisões do time
-    (`Eco` / `Semi-buy` / `Forçada` → `n`, `win_now`, `rounds_next3`), `league_best` e `insight` (texto pronto ou `null`).
+    (`Eco` / `Meia compra` / `Forçado` → `n`, `win_now`, `rounds_next3`), `league_best` e `insight` (texto pronto ou `null`).
   - `evolution`: `{ available, periods, stages[], changes[], players[] }`. `stages` = desempenho acima do próprio nível por etapa
     (`above_level_per100` ± 1,645 × `above_level_se100`); `changes` = 1ª × 2ª metade (`significant` já com Benjamini-Hochberg; `text` quando confirmada).
 - `players/<puuid>.json`: `stages` = impacto por etapa (`etapa`, `team`, `rounds`, `wpa_per_round`, `kd`).
@@ -144,13 +144,13 @@ Referências da liga inteira (taxas médias dos times, vitória por tipo de comp
       "n": 1, "half": "1º tempo", "attacker": "Red", "winner": "Red",
       "result": "Elimination | Defuse | Detonate | Timer",
       "score_before": { "Red": 0, "Blue": 0 },
-      "buy":     { "Red": "Pistol | Eco | Semi-buy | Forçada | Full buy", "Blue": "..." },   // como no jogo: etl.classify_buys
+      "buy":     { "Red": "Pistol | Eco | Meia compra | Forçado | Full buy", "Blue": "..." },   // como no jogo: etl.classify_buys
       "loadout": { "Red": 3550, "Blue": 3600 },
       "wp_red_start": 0.48,          // P(Red vence o round) antes do primeiro tiro (só economia)
       "plant":  { "t": 43125, "site": "B", "by": "<puuid>", "xy": [x, y] } | null,
       "defuse": { "t": 80000, "by": "<puuid>" } | null,
       "anomalous": false,            // round com erro na base (ignorar nas análises)
-      "gear": [ ["Vandal", "Armadura Pesada", 3900], null, ... ],   // por jogador, na ordem de `players`: arma, colete, valor do equipamento
+      "gear": [ ["Vandal", "Armadura Pesada", 3900], null, ... ],   // por jogador, na ordem de `players`: arma, escudo, valor do equipamento
       "notes": [ { "player": 6, "from": 54316, "to": 85749, "kind": "teleport", "label": "Ultimate do Omen", "why": "...", "by": "equipe" } ],
                                      // anotações da equipe (data/meta/replay_notes.json): o que os dados não mostram
       "events": [ {

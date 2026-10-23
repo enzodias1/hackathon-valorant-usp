@@ -1,8 +1,8 @@
 """Economy advisor: "force or save?" when the team cannot afford a full buy.
 
 Decision zone: non-pistol rounds of regulation without a full buy.
-Decision: the round's buy type (etl.classify_buys, as in the game): Eco · Semi-buy (partial buy keeping the next full buy,
-or the round after winning the pistol) · Forçada (spent without guaranteeing the next full buy).
+Decision: the round's buy type (etl.classify_buys, as in the game): Eco · Meia compra (partial buy keeping the next full buy,
+or the round after winning the pistol) · Forçado (spent without guaranteeing the next full buy).
 Outcome: rounds won in this round and the next 2 (same half; observations whose horizon is cut by the end of the
 map are dropped). Effects vs. Eco come from a linear model with controls (credits, carried equipment,
 opponent credits/equipment, strength difference, side, score, round number) and a match-level bootstrap.
@@ -20,7 +20,7 @@ from sklearn.linear_model import LinearRegression
 ROOT = Path(__file__).resolve().parents[1]
 P = ROOT / "data" / "processed"
 FULL_BUY = 20000
-DECISIONS = ["Eco", "Semi-buy", "Forçada"]
+DECISIONS = ["Eco", "Meia compra", "Forçado"]
 CONTEXTS = ["perdeu o pistol", "perdeu o round anterior"]
 BOOT = 1000
 CONTROLS = ["credits", "carried", "opp_credits", "opp_carried", "sdiff", "atk", "score_diff", "round_num"]
@@ -82,7 +82,7 @@ def build():
 def effects(d, y="w3", controls=CONTROLS, boot=BOOT, seed=1):
     """Adjusted difference vs Eco for each decision with >= 15 rows: estimate + 90% match-bootstrap CI."""
     d = d[d[y].notna()].reset_index(drop=True)
-    cols = [c for c in ("Semi-buy", "Forçada") if (d.decision == c).sum() >= 15]
+    cols = [c for c in ("Meia compra", "Forçado") if (d.decision == c).sum() >= 15]
     if (d.decision == "Eco").sum() < 15 or not cols:
         return {}, len(d)
     X = pd.get_dummies(d.decision).reindex(columns=cols, fill_value=0).astype(float)
@@ -111,7 +111,7 @@ def describe(d):
 
 def main():
     z = build()
-    league = {"definitions": {"full_buy_credits": FULL_BUY, "decision": "tipo de compra do round (eco, semi-buy ou forçada)",
+    league = {"definitions": {"full_buy_credits": FULL_BUY, "decision": "tipo de compra do round (eco, meia compra ou forçado)",
                               "horizon_rounds": 3, "controls": ["dinheiro do time", "armas carregadas", "dinheiro e armas do adversário",
                                                                "diferença de força dos times", "lado", "placar", "número do round"]},
               "contexts": {}}

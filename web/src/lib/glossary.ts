@@ -28,21 +28,14 @@ export function glossary(model: ModelInfo) {
 }
 
 /** Tipos de compra do time, como no jogo (pipeline/etl.py, classify_buys): pelo que cada jogador comprou e pelo dinheiro que
- *  o time guardou. Kit completo = rifle (2.900) + colete pesado (1.000); a derrota paga 1.900, 2.400 ou 2.900 conforme a sequência. */
+ *  o time guardou. Kit completo = Vandal/Phantom (2.900) + escudo cheio (1.000); a derrota paga 1.900, 2.400 ou 2.900 conforme a
+ *  sequência. Só a metodologia explica: na aba de economia do time, os tipos aparecem sem definição (os jogadores conhecem). */
 export const BUY_BASIS =
-  "O tipo de compra sai do que cada jogador comprou e do dinheiro que o time guardou. “Garantir o full buy seguinte” quer dizer que, mesmo perdendo o round, pelo menos 4 jogadores teriam os 3.900 créditos de rifle e colete pesado no próximo: a derrota paga 1.900, 2.400 ou 2.900, conforme a sequência de derrotas.";
-const BUY_TYPES: { name: string; short: string; what: string }[] = [
-  { name: "Eco", short: "gasta pouco para garantir o full buy seguinte",
-    what: "o time gasta pouco ou nada (pistola grátis, às vezes Sheriff ou Ghost e colete leve) para garantir o full buy do round seguinte." },
-  { name: "Semi-buy", short: "compra parcial guardando o full buy seguinte, ou o round depois do pistol ganho",
-    what: "compra intermediária (Spectre, Stinger ou Bulldog com colete leve, ou só parte do time com rifle) que guarda o dinheiro do full buy do round seguinte. Também é a compra do round depois de vencer o pistol." },
-  { name: "Forçada", short: "gasta sem garantir o full buy seguinte",
-    what: "o time gasta o dinheiro sem ter o suficiente para o full buy e, se perder, não terá o full buy no round seguinte. Comum para quebrar a sequência do adversário e no último round de cada metade." },
-  { name: "Full buy", short: "rifle e colete pesado",
-    what: "Vandal, Phantom ou Operator e colete pesado para o time: 3.900 créditos por jogador, fora as habilidades." },
+  "O tipo de compra sai do que cada jogador comprou e do dinheiro que o time guardou. “Garantir o full buy seguinte” quer dizer que, mesmo perdendo o round, pelo menos 4 jogadores teriam os 3.900 créditos de Vandal ou Phantom e escudo cheio no próximo: a derrota paga 1.900, 2.400 ou 2.900, conforme a sequência de derrotas.";
+export const BUY_TERMS: Term[] = [
+  ["Pistol", "os rounds 1 e 13, em que todo mundo começa com 800 créditos."],
+  ["Eco", "o time gasta pouco ou nada (pistola grátis, às vezes Sheriff ou Ghost e escudo leve) para garantir o full buy do round seguinte."],
+  ["Meia compra", "compra intermediária (Spectre, Stinger ou Bulldog com escudo leve, ou só parte do time com Vandal ou Phantom) que guarda o dinheiro do full buy do round seguinte. Também é a compra do round depois de vencer o pistol."],
+  ["Forçado", "o time gasta o dinheiro sem ter o suficiente para o full buy e, se perder, não terá o full buy no round seguinte. Comum para quebrar a sequência do adversário e no último round de cada metade."],
+  ["Full buy", "Vandal ou Phantom (ou Operator) e escudo cheio para o time: 3.900 créditos por jogador, fora as habilidades."],
 ];
-const PISTOL: Term = ["Pistol", "os rounds 1 e 13, em que todo mundo começa com 800 créditos."];
-/** Versão completa (metodologia). */
-export const BUY_TERMS: Term[] = [PISTOL, ...BUY_TYPES.map((b): Term => [b.name, b.what])];
-/** Versão de uma linha, ao lado da tabela de compras do time. */
-export const BUY_LEGEND = `${BUY_TYPES.map((b) => `${b.name}: ${b.short}`).join(" · ")}. Pistol: rounds 1 e 13.`;

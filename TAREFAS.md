@@ -52,7 +52,7 @@ Depois abra um **Pull Request** para `main` no GitHub e avise o Enzo. Ele revisa
 ## Jodão — Roteiro do vídeo pitch
 > **Atualização (22/10, troque se já adaptou estas falas):** no roteiro-base, "a mais de 30 metros, 6%" virou **4%** (os 6% eram
 > só da faixa de 30 a 40 m; acima de 30 m, só 4% das mortes são vingadas), e "o MackLogic economizou" virou "**fez eco**": os tipos de
-> compra do site agora seguem os do jogo (eco, semi-buy, forçada e full buy).
+> compra do site agora seguem os do jogo (eco, meia compra, forçado e full buy).
 >
 > **Entrevistas prontas:** use o resumo em [`para_equipe/entrevistas_ufg.md`](para_equipe/entrevistas_ufg.md) nos trechos **[ENTREVISTA]**
 > (ex.: 12 de 21 pediram um replay 2D com as mortes e as melhores jogadas, e o produto já tem). Os entrevistados são dos 4 times da UFG no UNIVAVÁ.
