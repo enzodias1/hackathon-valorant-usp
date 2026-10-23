@@ -14,8 +14,8 @@ export default async function ComparePage() {
   return (
     <main>
       <PageBand kicker="Preparação para o próximo jogo" title="Time × adversário" actions={<><BandButton href="/comparar/jogadores">Comparar jogadores</BandButton><ExportPdf /></>}>
-        Quem é favorito, em quais mapas cada um rende mais, como o adversário costuma jogar e quem são os jogadores que mais decidem rounds.
-        Tudo a partir das partidas já disputadas: é preparação antes do jogo, não ajuda durante a partida.
+        Escolha o seu time e o próximo adversário: quem é favorito, em quais mapas cada um rende mais, como o adversário costuma jogar e
+        quem são os jogadores que mais decidem rounds.
       </PageBand>
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
         <Comparator teams={index.team_list} styleTerms={[g.trade, g.isolated, g.throw]} />

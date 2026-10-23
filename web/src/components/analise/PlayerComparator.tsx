@@ -9,7 +9,6 @@ import { betterThan, nick, num, pct, pp } from "@/lib/format";
 export type PlayerOption = PlayerSummary & { team_name: string };
 
 // exemplo ao abrir sem escolha: a dupla de rivais com mais duelos diretos na base (43; greiN 24 × 19 Dante)
-const DEFAULT_A = "greiN#", DEFAULT_B = "Dante#";
 
 const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
@@ -108,12 +107,12 @@ export default function PlayerComparator({ players }: { players: PlayerOption[] 
   const [b, setB] = useState("");
   const [data, setData] = useState<{ a?: Player; b?: Player }>({});
 
+  // começa vazio, como o comparador de times; a e b na URL abrem uma comparação direto (ex.: o atalho da apresentação)
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
-    const byName = (prefix: string) => players.find((p) => p.name.startsWith(prefix))?.puuid ?? "";
-    setA(q.get("a") ?? byName(DEFAULT_A));
-    setB(q.get("b") ?? byName(DEFAULT_B));
-  }, [players]);
+    setA(q.get("a") ?? "");
+    setB(q.get("b") ?? "");
+  }, []);
 
   useEffect(() => {
     if (!a && !b) return;
@@ -158,7 +157,7 @@ export default function PlayerComparator({ players }: { players: PlayerOption[] 
       </div>
 
       {!A || !B ? (
-        <p className="rounded-xl border border-line bg-surface p-5 text-sm text-ink-2">{a && b ? "Carregando os dois jogadores…" : "Escolha dois jogadores."}</p>
+        <p className="rounded-xl border border-dashed border-line p-6 text-sm text-ink-2">{a && b ? "Carregando os dois jogadores…" : "Escolha os dois jogadores para comparar."}</p>
       ) : (
         <>
           <div data-pdf-section="Os dois jogadores" data-pdf-title={`${A.name.split("#")[0]} × ${B.name.split("#")[0]}`} className="grid gap-3 md:grid-cols-2">

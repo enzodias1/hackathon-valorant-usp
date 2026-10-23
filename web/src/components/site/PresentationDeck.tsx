@@ -190,7 +190,7 @@ export default async function PresentationDeck() {
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <Shortcut href="/partidas/11bcbdbd-ef01-409b-9e90-3d853e73b370#round-12@79" title="Um round no replay" text="Em um 4x2 com a spike plantada faltando 14 segundos para explodir, a UFMT tinha 99% de chance de vitória e perdeu." />
             <Shortcut href="/times" title="O seu time" text="Diagnóstico, sinergia, onde o time morre e os rounds para revisar." />
-            <Shortcut href="/comparar/jogadores" title="Jogador × jogador" text="Quem vence o duelo direto e as estatísticas lado a lado." />
+            <Shortcut href="/comparar/jogadores?a=6Ny-jKzYdIG6NNcruXAnjCT3wMCc3SUoJh6cAYPPFxD483ZkQLzZ1k8cEqgnmB5ZmtkjBhcFQ7tJ3A&b=Abyzg-ryjZq3nuI40Y9TDynjAVoUF96mK_brMKbjG3RqFOtvG4jcYOkclDuM77coCe6CtvFAilXgrA" title="Jogador × jogador" text="Quem vence o duelo direto e as estatísticas lado a lado." />
             <Shortcut href="/destaques" title="Destaques" text="As jogadas que mais mudaram rounds e as maiores viradas." />
           </div>
           <div className="mt-8 flex flex-wrap items-center gap-4">

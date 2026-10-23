@@ -50,11 +50,11 @@ export default function Comparator({ teams, styleTerms }: {
     return () => { alive = false; };
   }, [a, b]);
 
-  const select = (value: string, set: (v: string) => void, label: string, other: string) => (
+  const select = (value: string, set: (v: string) => void, label: string, other: string, placeholder: string) => (
     <label className="flex flex-1 flex-col gap-1">
       <span className="text-xs uppercase tracking-wide text-muted">{label}</span>
       <select value={value} onChange={(e) => set(e.target.value)} className="rounded-md border border-line bg-surface-2 px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none">
-        <option value="">Escolha um time…</option>
+        <option value="">{placeholder}</option>
         {sorted.map((t) => <option key={t.slug} value={t.slug} disabled={t.slug === other}>{t.name} ({t.maps} mapas)</option>)}
       </select>
     </label>
@@ -64,12 +64,12 @@ export default function Comparator({ teams, styleTerms }: {
   return (
     <div className="space-y-6">
       <div data-print-hide className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        {select(a, setA, "Time", b)}
+        {select(a, setA, "Seu time", b, "Escolha o seu time…")}
         <span className="hidden pb-2 text-muted sm:block">×</span>
-        {select(b, setB, "Adversário", a)}
+        {select(b, setB, "Adversário", a, "Escolha o adversário…")}
       </div>
       {A && B && A.slug === a && B.slug === b ? <Comparison A={A} B={B} styleTerms={styleTerms} /> : (
-        <p className="rounded-xl border border-dashed border-line p-6 text-sm text-ink-2">Escolha os dois times para comparar.</p>
+        <p className="rounded-xl border border-dashed border-line p-6 text-sm text-ink-2">Escolha o seu time e o adversário: a página mostra quem é favorito e o que esperar do adversário.</p>
       )}
     </div>
   );
