@@ -183,7 +183,7 @@ function Comparison({ A, B, styleTerms }: { A: Team; B: Team; styleTerms: [strin
             {ecoShare != null && ecoB!.n >= 5 && (
               <li className="rounded-lg bg-surface-2 p-3 text-ink">
                 💰 Depois de perder o pistol, fez eco em {ecoB!.decisions.Eco?.n ?? 0} de {ecoB!.n} vezes
-                {ecoShare >= 0.7 ? ": espere eco no round 2 e no 14 (dá para jogar pela vantagem de armas, sem se expor)." : ecoShare <= 0.3 ? ": costuma forçar no round 2 e no 14, então não subestime o round seguinte ao pistol." : "."}
+                {ecoShare <= 0.3 ? ": costuma forçar no round 2 e no 14, então não subestime o round seguinte ao pistol." : "."}
               </li>
             )}
             {[...B.insights.weaknesses, ...B.insights.attention].slice(0, 4).map((i) => (
