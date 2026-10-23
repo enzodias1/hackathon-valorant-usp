@@ -448,12 +448,21 @@ def team_evolution(t, slug, core):
 # ----------------------------------------------------------------------------------------------- players
 def export_players(t, names):
     pf, pm, cr, pr, ev, kl, dc, m, pairs = (t[k] for k in ("player_profile", "player_match", "wp_credits", "player_round", "wp_events", "kills", "death_context", "matches", "pairs"))
-    elig = pf[pf.role_eligible]
+    # uma linha por jogador: a do time em que ele jogou mais rounds, que é a que a página mostra (p, abaixo). Antes, quem jogou
+    # por dois times com 60+ rounds entrava duas vezes na comparação (14 jogadores), e a passagem pelo outro time ficava "à frente"
+    # de todo mundo sem aparecer na página (ex.: lule, K/D 2,68 em 89 rounds por um time; 1,13 em 132 pelo time principal)
+    main = pf.sort_values("rounds", ascending=False, kind="stable").drop_duplicates("puuid")
+    elig = main[main.role_eligible]
     pct_tables = {c: np.sort(elig[c].dropna().to_numpy()) for c in PERCENTILE_COLS}
 
     def percentile(c, v):
         arr = pct_tables[c]
         return None if v is None or pd.isna(v) or not len(arr) else float(np.searchsorted(arr, v, side="right") / len(arr) * 100)
+
+    def rank(c, v):
+        """Posição na liga (1 = maior valor) entre os mesmos jogadores do percentil; empates dividem a posição."""
+        arr = pct_tables[c]
+        return None if v is None or pd.isna(v) or not len(arr) else int(len(arr) - np.searchsorted(arr, v, side="right") + 1)
 
     kill_vals = cr[cr.kind == "kill"].wpa * 100
     death_vals = cr[cr.kind == "death"].wpa * 100
@@ -591,7 +600,7 @@ def export_players(t, names):
 
     index = []
     for puuid, stints in pf.groupby("puuid"):
-        stints = stints.sort_values("rounds", ascending=False)
+        stints = stints.sort_values("rounds", ascending=False, kind="stable")
         p = stints.iloc[0]
         slug = p.team
         rounds = int(stints.rounds.sum())
@@ -701,6 +710,7 @@ def export_players(t, names):
                        "per_kill": comps["kill_value"]["value"], "per_death": comps["death_cost"]["value"],
                        "league_per_kill": league["kill_value"], "league_per_death": league["death_cost"]},
             "percentiles": {c: percentile(c, p[c]) for c in PERCENTILE_COLS} if p.role_eligible else None,
+            "ranks": {c: rank(c, p[c]) for c in PERCENTILE_COLS} if p.role_eligible else None,
             # só a função do agente: o "papel em jogo" pelo comportamento saiu da interface (22/10), a equipe achou ambíguo
             "role": {"agent_role": p.main_agent_role},
             "comparisons": comps, "insights": ins,

@@ -220,7 +220,7 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
                   <span className="tabular font-semibold">{clock(t)}</span>
                   {spikeLeft !== null && spikeLeft > 0 && <span className="ml-2 text-warn">◆ spike no {planted?.site ?? "?"} · {clock(spikeLeft)}</span>}
                   <span className={`mt-0.5 block text-[10px] ${registered ? "text-lime" : "text-white/60"}`}>
-                    {registered ? "● posições registradas pela Riot"
+                    {registered ? "● posições registradas nos dados"
                       : !smooth && lastReg !== undefined ? `◌ posições do registro de ${clock(lastReg)}`
                       : `◌ posições estimadas${nextReg !== undefined ? ` · próximo registro ${clock(nextReg)}` : ""}`}
                   </span>
@@ -315,7 +315,7 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
           <label data-print-hide className={`flex items-start gap-2 text-xs text-muted ${full ? "hidden" : ""}`}>
             <input type="checkbox" checked={smooth} onChange={(e) => setSmooth(e.target.checked)} className="mt-0.5 accent-[var(--brand-2)]" />
             <span>
-              Movimento estimado. A Riot registra a posição e a mira de todos a cada kill, plant e desarme. Entre esses instantes, cada
+              Movimento estimado. Os dados registram a posição e a mira de todos a cada kill, plant e desarme. Entre esses instantes, cada
               jogador segura a posição e anda pelos corredores a tempo de chegar no próximo registro (no começo, sai do spawn assim que a
               barreira cai); <b className="text-lime">↯</b> marca um deslocamento rápido demais para correr (habilidade de movimento ou
               teleporte) ou uma <b className="text-lime">anotação da equipe</b>. Desmarque para ver só os instantes registrados. O uso de utilitárias não vem nos dados; kills por habilidade, sim, com o ícone da habilidade.

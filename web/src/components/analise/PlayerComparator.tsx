@@ -59,14 +59,16 @@ function Picker({ label, value, options, other, onPick }: {
   );
 }
 
-type Row = { label: string; a: number | null; b: number | null; fmt: (x: number) => string; pa?: number | null; pb?: number | null; hint?: string };
+type Row = { label: string; a: number | null; b: number | null; fmt: (x: number) => string; pa?: number | null; pb?: number | null;
+  /** posição na liga de cada um (até o 5º aparece no lugar do percentil) */
+  ra?: number | null; rb?: number | null; hint?: string };
 
 function StatRow({ r }: { r: Row }) {
   const better = r.a != null && r.b != null && r.a !== r.b ? (r.a > r.b ? "a" : "b") : null;
-  const cell = (v: number | null, p: number | null | undefined, side: "a" | "b") => (
+  const cell = (v: number | null, p: number | null | undefined, rank: number | null | undefined, side: "a" | "b") => (
     <div className={side === "a" ? "text-right" : "text-left"}>
       <span className={`tabular text-base ${better === side ? "font-semibold text-lime" : "text-ink"}`}>{v == null ? "—" : r.fmt(v)}</span>
-      {p != null && <span className="block text-[11px] text-muted">{betterThan(p, "")}</span>}
+      {p != null && <span className="block text-[11px] text-muted">{betterThan(p, "", rank)}</span>}
     </div>
   );
   // barras espelhadas pela posição na liga (0–100), quando os dois têm 60+ rounds
@@ -78,11 +80,11 @@ function StatRow({ r }: { r: Row }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,9rem)_8.5rem_minmax(0,9rem)_minmax(0,1fr)] items-center gap-3 border-b border-line/50 py-2.5"
          title={r.hint}>
-      {cell(r.a, r.pa, "a")}
+      {cell(r.a, r.pa, r.ra, "a")}
       {bar(r.pa, "a")}
       <span className="text-center text-xs uppercase tracking-wide text-ink-2">{r.label}</span>
       {bar(r.pb, "b")}
-      {cell(r.b, r.pb, "b")}
+      {cell(r.b, r.pb, r.rb, "b")}
     </div>
   );
 }
@@ -133,14 +135,14 @@ export default function PlayerComparator({ players }: { players: PlayerOption[] 
 
   const rate = (k: number, n: number) => (n > 0 ? k / n : null);
   const rows: Row[] = A && B ? [
-    { label: "Impacto / round", a: A.impact.wpa_per_round, b: B.impact.wpa_per_round, fmt: (x) => pp(x), pa: A.percentiles?.wpa_per_round, pb: B.percentiles?.wpa_per_round,
+    { label: "Impacto / round", a: A.impact.wpa_per_round, b: B.impact.wpa_per_round, fmt: (x) => pp(x), pa: A.percentiles?.wpa_per_round, pb: B.percentiles?.wpa_per_round, ra: A.ranks?.wpa_per_round, rb: B.ranks?.wpa_per_round,
       hint: "Quanto o jogador muda, em média, a chance de vitória do round" },
-    { label: "K/D", a: A.summary.kd, b: B.summary.kd, fmt: (x) => num(x, 2), pa: A.percentiles?.kd, pb: B.percentiles?.kd },
-    { label: "ACS", a: A.summary.acs, b: B.summary.acs, fmt: (x) => num(x), pa: A.percentiles?.acs, pb: B.percentiles?.acs },
-    { label: "ADR", a: A.summary.adr, b: B.summary.adr, fmt: (x) => num(x), pa: A.percentiles?.adr, pb: B.percentiles?.adr },
-    { label: "KAST", a: A.summary.kast, b: B.summary.kast, fmt: (x) => pct(x), pa: A.percentiles?.kast, pb: B.percentiles?.kast },
-    { label: "% headshot", a: A.summary.hs_pct, b: B.summary.hs_pct, fmt: (x) => pct(x), pa: A.percentiles?.hs_pct, pb: B.percentiles?.hs_pct },
-    { label: "Kills / round", a: A.summary.kpr, b: B.summary.kpr, fmt: (x) => num(x, 2), pa: A.percentiles?.kpr, pb: B.percentiles?.kpr },
+    { label: "K/D", a: A.summary.kd, b: B.summary.kd, fmt: (x) => num(x, 2), pa: A.percentiles?.kd, pb: B.percentiles?.kd, ra: A.ranks?.kd, rb: B.ranks?.kd },
+    { label: "ACS", a: A.summary.acs, b: B.summary.acs, fmt: (x) => num(x), pa: A.percentiles?.acs, pb: B.percentiles?.acs, ra: A.ranks?.acs, rb: B.ranks?.acs },
+    { label: "ADR", a: A.summary.adr, b: B.summary.adr, fmt: (x) => num(x), pa: A.percentiles?.adr, pb: B.percentiles?.adr, ra: A.ranks?.adr, rb: B.ranks?.adr },
+    { label: "KAST", a: A.summary.kast, b: B.summary.kast, fmt: (x) => pct(x), pa: A.percentiles?.kast, pb: B.percentiles?.kast, ra: A.ranks?.kast, rb: B.ranks?.kast },
+    { label: "% headshot", a: A.summary.hs_pct, b: B.summary.hs_pct, fmt: (x) => pct(x), pa: A.percentiles?.hs_pct, pb: B.percentiles?.hs_pct, ra: A.ranks?.hs_pct, rb: B.ranks?.hs_pct },
+    { label: "Kills / round", a: A.summary.kpr, b: B.summary.kpr, fmt: (x) => num(x, 2), pa: A.percentiles?.kpr, pb: B.percentiles?.kpr, ra: A.ranks?.kpr, rb: B.ranks?.kpr },
     { label: "Duelos vencidos", a: A.duels.win_rate, b: B.duels.win_rate, fmt: (x) => pct(x), hint: "Contra todos os adversários da base" },
     { label: "1º duelo vencido", a: rate(A.summary.fk, A.summary.fk + A.summary.fd), b: rate(B.summary.fk, B.summary.fk + B.summary.fd), fmt: (x) => pct(x),
       hint: "Dos rounds em que disputou o primeiro duelo" },
@@ -201,7 +203,7 @@ export default function PlayerComparator({ players }: { players: PlayerOption[] 
             </div>
             <div className="mt-1 overflow-x-auto"><div className="min-w-[640px]">{rows.map((r) => <StatRow key={r.label} r={r} />)}</div></div>
             <p className="mt-3 text-xs text-muted">
-              Em todas as partidas de cada um. Em amarelo, o melhor da linha. “Melhor que X%” compara com os jogadores da liga com 60 rounds ou mais,
+              Em todas as partidas de cada um. Em amarelo, o melhor da linha. “Melhor que X%” compara com os jogadores da liga com 60 rounds ou mais (do 1º ao 5º, aparece a posição),
               e a barra vai do pior ao melhor da liga.
             </p>
           </section>

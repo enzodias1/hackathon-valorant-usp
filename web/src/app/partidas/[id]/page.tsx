@@ -92,7 +92,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                     <col className="hidden sm:table-column sm:w-[10%]" /><col className="hidden sm:table-column sm:w-[10%]" />
                     <col className="hidden sm:table-column sm:w-[8%]" /><col className="sm:w-[24%]" />
                   </colgroup>
-                  <thead><tr><Th>Jogador</Th><Th right>K / D / A</Th><Th right className="hidden sm:table-cell">ACS</Th><Th right className="hidden sm:table-cell">ADR</Th><Th right className="hidden sm:table-cell"><span title="ultimates usadas na partida (Chamber a partir do patch 13.02: a Riot não conta; ≥ = rounds em que ele matou com a ultimate)">Ult.</span></Th><Th>Impacto <span className="normal-case">(pontos)</span></Th></tr></thead>
+                  <thead><tr><Th>Jogador</Th><Th right>K / D / A</Th><Th right className="hidden sm:table-cell">ACS</Th><Th right className="hidden sm:table-cell">ADR</Th><Th right className="hidden sm:table-cell"><span title="ultimates usadas na partida (Chamber a partir do patch 13.02: os dados não trazem; ≥ = rounds em que ele matou com a ultimate)">Ult.</span></Th><Th>Impacto <span className="normal-case">(pontos)</span></Th></tr></thead>
                   <tbody>
                     {match.players.filter((p) => p.color === c).sort((a, b) => b.wpa - a.wpa).map((p) => (
                       <tr key={p.puuid}>
@@ -107,7 +107,7 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
                         <Td right className="hidden sm:table-cell">{num(p.adr)}</Td>
                         <Td right className="hidden sm:table-cell">
                           {!p.casts ? "—" : p.casts[3] !== null ? p.casts[3]
-                            : <span title="A Riot não conta a ultimate do Chamber a partir do patch 13.02: este é o mínimo, os rounds em que ele matou com ela">{p.ult_min ? `≥${p.ult_min}` : "—"}</span>}
+                            : <span title="Os dados não trazem a ultimate do Chamber a partir do patch 13.02: este é o mínimo, os rounds em que ele matou com ela">{p.ult_min ? `≥${p.ult_min}` : "—"}</span>}
                         </Td>
                         <Td><WpaBar value={p.wpa} max={maxWpa} digits={0} compact /></Td>
                       </tr>

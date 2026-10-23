@@ -364,6 +364,8 @@ export interface Player {
     per_kill: number | null; per_death: number | null; league_per_kill: number; league_per_death: number;
   };
   percentiles: Record<"kd" | "kpr" | "adr" | "acs" | "kast" | "hs_pct" | "wpa_per_round" | "opening_rate" | "clutch_rate", number | null> | null;
+  /** posição na liga (1 = melhor) entre os mesmos jogadores do percentil (60+ rounds); empates dividem a posição */
+  ranks: Record<"kd" | "kpr" | "adr" | "acs" | "kast" | "hs_pct" | "wpa_per_round" | "opening_rate" | "clutch_rate", number | null> | null;
   role: { agent_role: AgentRole | null };
   comparisons: Record<string, Comparison>;
   insights: Insights;

@@ -12,8 +12,10 @@ export const chance = (x: number, short = false) => {
 };
 
 /** Posição na liga em vez de "percentil": "melhor que 92% da liga"; o primeiro da liga, "o melhor da liga". */
-export const betterThan = (p: number | null | undefined, suffix = " da liga") =>
-  p == null ? "—" : p >= 100 ? "o melhor da liga" : `melhor que ${Math.floor(p)}%${suffix}`;
+/** posição na liga até o 5º lugar ("2º da liga"); dali em diante, o percentil ("melhor que 92% da liga") */
+export const TOP_RANK = 5;
+export const betterThan = (p: number | null | undefined, suffix = " da liga", rank?: number | null) =>
+  p == null ? "—" : rank != null && rank <= TOP_RANK ? `${rank}º da liga` : p >= 100 ? "o melhor da liga" : `melhor que ${Math.floor(p)}%${suffix}`;
 
 /** impacto em pontos (percentuais) de chance de vitória, com sinal: "+12,3 pontos", "−1,5 ponto" */
 export const pp = (x: number | null | undefined, digits = 1) => {

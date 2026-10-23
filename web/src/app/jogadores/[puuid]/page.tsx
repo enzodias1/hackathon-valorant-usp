@@ -31,7 +31,7 @@ const BREAKDOWN_LABEL: Record<string, string> = { kill: "Kills", assist: "Assist
 export default async function PlayerPage({ params }: { params: Promise<{ puuid: string }> }) {
   const p: Player = await getPlayer((await params).puuid);
   const g = glossary(await getModel());
-  const s = p.summary, imp = p.impact, pc = p.percentiles;
+  const s = p.summary, imp = p.impact, pc = p.percentiles, rk = p.ranks;
   // por round, para ficar na mesma escala do "impacto por round"
   const breakdown = Object.entries(imp.breakdown).filter(([, v]) => v !== 0).map(([k, v]) => [k, v / p.sample.rounds] as const).sort((a, b) => b[1] - a[1]);
   const maxB = Math.max(...breakdown.map(([, v]) => Math.abs(v)));
@@ -74,10 +74,10 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
         <div data-pdf-section="Resumo" className="grid grid-cols-2 gap-3 md:grid-cols-5">
           <StatTile label="Impacto por round" value={pp(imp.wpa_per_round)} tone={imp.wpa_per_round >= 0 ? "good" : "bad"}
                     info={<TermList terms={[g.impact, g.impactPerRound]} className="" />}
-                    sub={pc?.wpa_per_round != null ? betterThan(pc.wpa_per_round) : `${p.sample.rounds} rounds`} />
-          <StatTile label="K/D" value={num(s.kd, 2)} sub={pc?.kd != null ? betterThan(pc.kd) : `${s.kills}/${s.deaths}`} />
-          <StatTile label="ACS" value={num(s.acs)} sub={pc?.acs != null ? betterThan(pc.acs) : undefined} />
-          <StatTile label="KAST" value={pct(s.kast)} sub={pc?.kast != null ? betterThan(pc.kast) : undefined} />
+                    sub={pc?.wpa_per_round != null ? betterThan(pc.wpa_per_round, " da liga", rk?.wpa_per_round) : `${p.sample.rounds} rounds`} />
+          <StatTile label="K/D" value={num(s.kd, 2)} sub={pc?.kd != null ? betterThan(pc.kd, " da liga", rk?.kd) : `${s.kills}/${s.deaths}`} />
+          <StatTile label="ACS" value={num(s.acs)} sub={pc?.acs != null ? betterThan(pc.acs, " da liga", rk?.acs) : undefined} />
+          <StatTile label="KAST" value={pct(s.kast)} sub={pc?.kast != null ? betterThan(pc.kast, " da liga", rk?.kast) : undefined} />
           <StatTile label="Rounds" value={p.sample.rounds} sub={`${p.sample.maps} mapas`} />
         </div>
 
@@ -87,19 +87,19 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
         </Section>
 
         <Section id="perfil" title="Comparado com a liga" collapsible
-                 teaser={pc ? `Impacto: ${betterThan(pc.wpa_per_round)} · K/D: ${betterThan(pc.kd, "")}` : "Disponível a partir de 60 rounds"}
-                 info="Em cada estatística, a posição do jogador entre os jogadores da liga com 60 rounds ou mais: “melhor que 92%” quer dizer que ele supera 92% deles. A barra vai do pior (vazia) ao melhor da liga (cheia).">
+                 teaser={pc ? `Impacto: ${betterThan(pc.wpa_per_round, " da liga", rk?.wpa_per_round)} · K/D: ${betterThan(pc.kd, "", rk?.kd)}` : "Disponível a partir de 60 rounds"}
+                 info="Em cada estatística, a posição do jogador entre os jogadores da liga com 60 rounds ou mais: “melhor que 92%” quer dizer que ele supera 92% deles, e entre os 5 primeiros aparece a posição (“2º da liga”). A barra vai do pior (vazia) ao melhor da liga (cheia).">
           <div className="max-w-2xl">
             {pc ? (
               <div>
-                <PercentileRow label="Impacto / round" value={pc.wpa_per_round} />
-                <PercentileRow label="K/D" value={pc.kd} />
-                <PercentileRow label="Kills / round" value={pc.kpr} />
-                <PercentileRow label="ADR" value={pc.adr} />
-                <PercentileRow label="KAST" value={pc.kast} />
-                <PercentileRow label="% headshot" value={pc.hs_pct} />
-                <PercentileRow label="Abre rounds" value={pc.opening_rate} hint="frequência com que disputa o primeiro duelo" />
-                <PercentileRow label="Clutches" value={pc.clutch_rate} hint="frequência de situações em que fica sozinho" />
+                <PercentileRow label="Impacto / round" value={pc.wpa_per_round} rank={rk?.wpa_per_round} />
+                <PercentileRow label="K/D" value={pc.kd} rank={rk?.kd} />
+                <PercentileRow label="Kills / round" value={pc.kpr} rank={rk?.kpr} />
+                <PercentileRow label="ADR" value={pc.adr} rank={rk?.adr} />
+                <PercentileRow label="KAST" value={pc.kast} rank={rk?.kast} />
+                <PercentileRow label="% headshot" value={pc.hs_pct} rank={rk?.hs_pct} />
+                <PercentileRow label="Abre rounds" value={pc.opening_rate} rank={rk?.opening_rate} hint="frequência com que disputa o primeiro duelo" />
+                <PercentileRow label="Clutches" value={pc.clutch_rate} rank={rk?.clutch_rate} hint="frequência de situações em que fica sozinho" />
               </div>
             ) : <p className="text-sm text-ink-2">Disponível a partir de 60 rounds.</p>}
           </div>
@@ -143,7 +143,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
                  teaser={!p.abilities.length ? "Disponível com 2+ mapas no mesmo agente" : p.abilities[0].ult
                    ? `${p.abilities[0].agent}: ${num(p.abilities[0].ult.per_map, 1)} ultimates por mapa (média do agente: ${num(p.abilities[0].ult.league, 1)})`
                    : `${p.abilities[0].agent}: uso das habilidades por round, comparado com a média do agente`}
-                 info="Quantas vezes o jogador usou cada habilidade por round, e a ultimate por mapa, comparado com a média de quem joga o mesmo agente na liga. A Riot informa só o total por partida: não dá para saber em que momento do round cada habilidade foi usada.">
+                 info="Quantas vezes o jogador usou cada habilidade por round, e a ultimate por mapa, comparado com a média de quem joga o mesmo agente na liga. Os dados informam só o total por partida: não dá para saber em que momento do round cada habilidade foi usada.">
           {p.abilities.length ? <AbilitiesPanel abilities={p.abilities} /> : <p className="text-sm text-ink-2">Disponível com 2 ou mais mapas no mesmo agente.</p>}
         </Section>
 
