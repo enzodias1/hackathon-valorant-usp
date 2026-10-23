@@ -10,14 +10,17 @@ import Deck from "@/components/site/Deck";
 // fixo, com a origem: o impacto médio do first blood (wp_events, README)
 const FIRST_BLOOD_PTS = 17;
 
-function Slide({ n, kicker, title, children, brand, art }: {
+function Slide({ n, kicker, title, children, brand, art, pattern }: {
   n?: string; kicker?: string; title: React.ReactNode; children?: React.ReactNode; brand?: boolean;
+  /** fundo de espreitadores (o ícone da habilidade da Fade) em cinza, repetido */
+  pattern?: boolean;
   /** arte de agente à direita do título (capa). `place`: altura, distância do nome e deslocamento vertical (o translate
    *  alinha um ponto da arte ao meio do título). */
   art?: { src: string; alt: string; place: string };
 }) {
   return (
     <section data-slide className={`relative isolate flex min-h-[100dvh] snap-start items-center overflow-hidden px-6 py-20 sm:px-12 ${brand ? "bg-brand" : "bg-bg"}`}>
+      {pattern && <div aria-hidden className="pointer-events-none absolute inset-0 -z-20 bg-[url('/art/prowler_tile.webp')] bg-[length:220px_220px] opacity-[0.14]" />}
       <div className="mx-auto w-full max-w-5xl">
         {/* com arte, o texto quebra na largura do título e a arte começa logo depois do nome (lg+) */}
         <div className={art ? "lg:w-min" : undefined}>
@@ -91,7 +94,7 @@ export default async function PresentationDeck() {
         </Link>
       </div>
       <Deck>
-        <Slide brand kicker="Hackathon VALORANT · USP São Carlos / SEMCOMP 2026" title={PRODUCT_NAME}
+        <Slide brand pattern kicker="Hackathon VALORANT · USP São Carlos / SEMCOMP 2026" title={PRODUCT_NAME}
                // Fade andando para a frente, com a capa de pesadelo do lado do nome (Espreitador é uma habilidade dela)
                art={{ src: "/art/agents/fade_cover.webp", alt: "Fade, agente do VALORANT", place: "ml-[10vw] h-[min(84dvh,62vw)] -translate-y-[31%]" }}>
           <p className="max-w-2xl text-xl leading-relaxed text-white/90">{TAGLINE}: análise pós-partida que mostra quais jogadas decidiram cada

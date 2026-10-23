@@ -81,50 +81,48 @@ export default async function Home() {
 function Hero({ stats }: { stats: [number, string][] }) {
   return (
     <section className="relative isolate overflow-hidden bg-brand">
-      {/* arte oficial do Sova, pose de maestria (política "Legal Jibber Jabber" da Riot): o nome estilizado ao fundo e ele à
-          direita, mirando o título */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/art/agents/sova_bg.webp" alt="" aria-hidden className="pointer-events-none absolute -top-10 right-[2%] -z-10 hidden h-[115%] opacity-[0.12] lg:block xl:right-[8%]" />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/art/agents/sova_cover.webp" alt="" aria-hidden
-           className="pointer-events-none absolute bottom-[-6%] right-[-30%] -z-10 h-[80%] opacity-20 lg:bottom-auto lg:right-[1%] lg:top-[5%] lg:h-[min(70%,42vw)] lg:opacity-100 xl:right-[4%] xl:h-[min(74%,42vw)]" />
+      {/* fundo de espreitadores (o ícone da habilidade da Fade) em cinza, repetido */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-20 bg-[url('/art/prowler_tile.webp')] bg-[length:220px_220px] opacity-[0.14]" />
       <span aria-hidden className="absolute left-6 top-5 text-lg text-white/40">+</span>
       <span aria-hidden className="absolute bottom-5 left-6 text-lg text-white/40">+</span>
 
       <div className="mx-auto max-w-6xl px-4 pb-14 pt-14 sm:px-8 sm:pt-20">
-        <div className="max-w-2xl">
-          {/* "não têm" em linha própria com folga em cima: o til e o circunflexo da Anton passam da altura da linha e
-              encostavam em "universitários"; a folga só nessa linha mantém o título compacto */}
-          <h1 className="max-w-[12ch] text-[clamp(2.8rem,6.6vw,5.9rem)] leading-[1.02] text-white">
-            O analista que os times universitários <span className="mt-[0.2em] block">não têm</span>
-          </h1>
-          <p className="label-caps mt-5 inline-block bg-lime px-4 py-2 text-sm text-bg [clip-path:polygon(0_0,100%_0,calc(100%-12px)_100%,0_100%)] sm:text-base">
-            Análise pós-partida
-          </p>
-          <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-white/85">
-            K/D e ACS não dizem o que fazer. A cada kill, um modelo recalcula a chance de vitória do round. Com isso, mostramos as jogadas que
-            decidiram cada mapa, o replay de cada round e quem cobre quem dentro do time.
-          </p>
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            <Link href="/times" className="label-caps bg-bg px-6 py-3.5 text-[12px] text-white transition-colors [clip-path:polygon(0_0,calc(100%-10px)_0,100%_10px,100%_100%,0_100%)] hover:bg-black">
-              Analisar um time
-            </Link>
-            <Link href="/partidas" className="label-caps border-2 border-white px-6 py-3 text-[12px] text-white transition-colors hover:bg-white hover:text-brand">
-              Ver partidas
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-12 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
-          {stats.map(([v, label]) => (
-            <div key={label} className="relative px-4 py-3">
-              <Brackets />
-              <div className="font-display text-4xl leading-none text-white">{num(v)}</div>
-              <div className="label-caps mt-1.5 text-[10px] text-white/75">{label}</div>
+        {/* o bloco de texto fica no meio da faixa (sem arte à direita, o fundo de espreitadores preenche) */}
+        <div className="lg:mx-auto lg:w-fit">
+          <div className="max-w-2xl">
+            {/* "não têm" em linha própria com folga em cima: o til e o circunflexo da Anton passam da altura da linha e
+                encostavam em "universitários"; a folga só nessa linha mantém o título compacto */}
+            <h1 className="max-w-[12ch] text-[clamp(2.8rem,6.6vw,5.9rem)] leading-[1.02] text-white">
+              O analista que os times universitários <span className="mt-[0.2em] block">não têm</span>
+            </h1>
+            <p className="label-caps mt-5 inline-block bg-lime px-4 py-2 text-sm text-bg [clip-path:polygon(0_0,100%_0,calc(100%-12px)_100%,0_100%)] sm:text-base">
+              Análise pós-partida
+            </p>
+            <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-white/85">
+              K/D e ACS não dizem o que fazer. A cada kill, um modelo recalcula a chance de vitória do round. Com isso, mostramos as jogadas que
+              decidiram cada mapa, o replay de cada round e quem cobre quem dentro do time.
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Link href="/times" className="label-caps bg-bg px-6 py-3.5 text-[12px] text-white transition-colors [clip-path:polygon(0_0,calc(100%-10px)_0,100%_10px,100%_100%,0_100%)] hover:bg-black">
+                Analisar um time
+              </Link>
+              <Link href="/partidas" className="label-caps border-2 border-white px-6 py-3 text-[12px] text-white transition-colors hover:bg-white hover:text-brand">
+                Ver partidas
+              </Link>
             </div>
-          ))}
+          </div>
+
+          <div className="mt-12 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
+            {stats.map(([v, label]) => (
+              <div key={label} className="relative px-4 py-3">
+                <Brackets />
+                <div className="font-display text-4xl leading-none text-white">{num(v)}</div>
+                <div className="label-caps mt-1.5 text-[10px] text-white/75">{label}</div>
+              </div>
+            ))}
+          </div>
+          <p className="label-caps mt-3 text-[10px] text-white/60">{"// Temporada 2026 · Univavá + Rush Series"}</p>
         </div>
-        <p className="label-caps mt-3 text-[10px] text-white/60">{"// Temporada 2026 · Univavá + Rush Series"}</p>
       </div>
     </section>
   );
