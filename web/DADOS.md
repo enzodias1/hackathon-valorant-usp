@@ -15,8 +15,14 @@ No código, carregue com `fetch("/data/index.json")` e `fetch(\`/data/matches/${
 ```jsonc
 {
   "teams":     { "<slug>": { "name": "FEI Darkowls", "tag": "FEI DO", "institution": "..." | null } },
-  "team_list": [ { "slug", "name", "tag", "maps", "map_wins", "rounds", "round_win", "competitions": [] } ],
-  "players":   [ { "puuid", "name", "team": "<slug>", "rounds", "agent_role", "kd", "wpa_per_round", "eligible" } ],
+  "team_list": [ { "slug", "name", "tag", "maps", "map_wins", "rounds", "round_win", "competitions": [],
+                   "strength_rank", "strength", "rank_adjusted"?,   // rank_adjusted: posição ajustada pela equipe (RANK_ORDER em export.py)
+                   "by_competition": { "<campeonato>": { "maps", "map_wins", "rounds", "round_win", "strength_rank", "strength", "of", "rank_adjusted"? } },
+                   "by_stage": { "<fase do Univavá>": { ...o mesmo } } } ],
+  "players":   [ { "puuid", "name", "team": "<slug>", "rounds", "agent_role", "kd", "wpa_per_round", "eligible", "other_teams"?,
+                   // o mesmo resumo só com as partidas de cada campeonato e de cada fase do Univavá (abas de /jogadores)
+                   "by_competition": { "<campeonato>": { "team": "<slug>", "other_teams"?: ["<slug>"], "maps", "rounds", "agent_role", "kd", "wpa_per_round" } },
+                   "by_stage": { "<fase do Univavá>": { ...o mesmo } } } ],
   "matches":   [ { "id", "date", "competition", "stage", "map", "red": "<slug>", "blue": "<slug>",
                    "score": { "Red": 13, "Blue": 7 }, "winner": "Red" } ]
 }

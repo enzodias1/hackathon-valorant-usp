@@ -2,6 +2,27 @@
 // Controles dos filtros das listas (Client Components).
 import { useEffect, useState } from "react";
 
+export const UNIVAVA = "Univavá";
+const STAGE_ORDER = ["Classificatória 1", "Classificatória 2", "Classificatória 3", "Classificatória 4", "Fase de Grupos"];
+export const stageSort = (a: string, b: string) => STAGE_ORDER.indexOf(a) - STAGE_ORDER.indexOf(b);
+/** "o Univavá", "a Rush Series ...", "a Classificatória 1 do Univavá" (vira "do"/"da" com o d na frente); vazio no geral */
+export const scopeOf = (comp: string, stage: string) => (stage ? `a ${stage} do ${UNIVAVA}` : comp ? `${comp === UNIVAVA ? "o" : "a"} ${comp}` : "");
+
+/** Abas das listas de times e jogadores: "Geral" (todos os campeonatos) e uma por campeonato. */
+export function CompetitionTabs({ competitions, value, onChange }: { competitions: string[]; value: string; onChange: (c: string) => void }) {
+  return (
+    <div role="tablist" aria-label="Campeonato" className="flex flex-wrap gap-2">
+      {["", ...competitions].map((c) => (
+        <button key={c || "geral"} type="button" role="tab" aria-selected={value === c} onClick={() => onChange(c)}
+                className={`label-caps rounded-lg border px-4 py-2.5 text-[11px] transition-colors ${value === c
+                  ? "border-lime bg-lime text-bg" : "border-line bg-surface text-ink-2 hover:border-ink-2 hover:text-ink"}`}>
+          {c || "Geral"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 const FIELD = "rounded-md border border-line bg-surface-2 px-3 py-1.5 text-sm text-ink focus:border-accent focus:outline-none";
 
 export function SelectFilter({ label, value, onChange, options, all = "Todos" }: {

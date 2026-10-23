@@ -33,6 +33,8 @@ export interface TeamSummary {
   competitions: string[];
   strength_rank: number;
   strength: number;
+  /** posição ajustada pela equipe pelo resultado (não segue a força); só quando é o caso */
+  rank_adjusted?: boolean;
   /** resultado e força em cada campeonato, só com as partidas dele (abas de /times) */
   by_competition: Record<string, CompetitionRecord>;
   /** o mesmo em cada fase do Univavá (Classificatórias 1–4, Fase de Grupos) */
@@ -42,6 +44,7 @@ export interface TeamSummary {
 export interface CompetitionRecord {
   maps: number; map_wins: number; rounds: number; round_win: number | null;
   strength_rank: number | null; strength: number | null; of: number | null;
+  rank_adjusted?: boolean;
 }
 
 export interface PlayerSummary {
@@ -55,6 +58,21 @@ export interface PlayerSummary {
   eligible: boolean;
   /** outros times por que jogou (só quando jogou por mais de um; o principal é `team`) */
   other_teams?: { slug: string; name: string }[];
+  /** o mesmo resumo só com as partidas de cada campeonato (abas de /jogadores) */
+  by_competition: Record<string, PlayerScoped>;
+  /** e de cada fase do Univavá */
+  by_stage: Record<string, PlayerScoped>;
+}
+
+export interface PlayerScoped {
+  /** o time por que mais jogou ali; `other_teams`, os outros (slugs) */
+  team: string;
+  other_teams?: string[];
+  maps: number;
+  rounds: number;
+  agent_role: AgentRole | null;
+  kd: number;
+  wpa_per_round: number;
 }
 
 export interface DataIndex {

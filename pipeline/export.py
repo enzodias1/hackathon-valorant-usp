@@ -75,6 +75,25 @@ def write(path, obj):
     path.write_text(json.dumps(clean(obj), ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
+# Posições ajustadas pela equipe (23/10) onde a força (por round) e o resultado discordam: no Inclusivo, Azure Bears White e
+# USP Stars GC venceram um mapa cada (o Azure, no confronto direto) e a PUC-Campinas Canaries nenhum, mas a força as punha na
+# ordem inversa. Os times de cada lista trocam de posição entre si, nesta ordem; a força (%) continua a do modelo.
+RANK_ORDER = {
+    None: ["usp_stars_gc", "pucc_canaries"],  # ranking geral
+    "Rush Series Inclusivo": ["azure_bears_white", "usp_stars_gc", "pucc_canaries"],
+}
+
+
+def apply_rank_order(t):
+    for comp, order in RANK_ORDER.items():
+        df = t["team_strength"] if comp is None else t["team_strength_comp"]
+        sel = df.team.isin(order) if comp is None else df.team.isin(order) & (df.competition == comp)
+        assert sel.sum() == len(order), (comp, order)
+        ranks = dict(zip(order, sorted(df.loc[sel, "rank"])))
+        df.loc[sel, "rank"] = df.loc[sel, "team"].map(ranks)
+        df["rank_adjusted"] = df.get("rank_adjusted", False) | sel
+
+
 def load():
     names = ["matches", "player_match", "rounds", "kills", "wp_events", "wp_states", "wp_credits", "player_round",
              "player_profile", "pairs", "team_rounds", "death_context"]
@@ -100,6 +119,7 @@ def load():
         t[n] = pd.read_parquet(P / f"{n}.parquet")
     t["economy"] = json.loads((P / "economy.json").read_text(encoding="utf-8"))
     t["wpa_pm"] = t["wp_credits"].groupby(["match_id", "puuid"]).wpa.sum() * 100
+    apply_rank_order(t)
     return t
 
 
@@ -244,7 +264,12 @@ def record_in(ms, st):
             "round_win": sum(x["score_for"] for x in ms) / rounds if rounds else None,
             "strength_rank": int(st["rank"].iloc[0]) if len(st) else None,
             "strength": float(st.p_vs_avg.iloc[0]) if len(st) else None,
-            "of": int(st["of"].iloc[0]) if len(st) else None}
+            "of": int(st["of"].iloc[0]) if len(st) else None} | adjusted(st)
+
+
+def adjusted(st):
+    """Marca a posição ajustada pela equipe (RANK_ORDER), para a lista explicar por que ela não segue a força."""
+    return {"rank_adjusted": True} if len(st) and "rank_adjusted" in st and bool(st.rank_adjusted.iloc[0]) else {}
 
 
 def by_competition(t, slug, mlist):
@@ -425,6 +450,7 @@ def export_teams(t, names):
                         "rounds": team_rounds_n, "round_win": doc["record"]["round_win"],
                         "competitions": sorted({x["competition"] for x in mlist}),
                         "strength_rank": doc["strength"]["rank"], "strength": doc["strength"]["p_vs_avg"],
+                        **adjusted(t["team_strength"][t["team_strength"].team == slug]),
                         "by_competition": by_competition(t, slug, mlist), "by_stage": by_stage(t, slug, mlist)})
     league = {"team_rates": league_rate, "buy_win": league_buy.to_dict(), "map_atk_win": league_map_atk.to_dict(),
               "pair_trade_rate": league_pair_trade}
@@ -526,6 +552,22 @@ def overall_profile(pf):
     return o.drop(columns=["score", "atk_w", "def_w"])
 
 
+def scoped_summary(pmc, key):
+    """{puuid: {campeonato ou fase: resumo}}: o resumo da lista de jogadores (abas de /jogadores) só com as partidas de cada
+    campeonato ou fase, com o time e a função que mais jogou nelas."""
+    out = {}
+    for (pu, k), g in pmc.groupby(["puuid", key]):
+        teams = g.groupby("team").rounds.sum().sort_values(ascending=False, kind="stable")
+        roles = g.role.dropna().value_counts()
+        r = int(g.rounds.sum())
+        out.setdefault(pu, {})[k] = ({"team": teams.index[0], "maps": int(g.match_id.nunique()), "rounds": r,
+                                      "agent_role": roles.index[0] if len(roles) else None,
+                                      "kd": round(float(g.kills.sum() / max(g.deaths.sum(), 1)), 4),
+                                      "wpa_per_round": round(float(g.wpa.sum() / max(r, 1)), 4)}
+                                     | ({"other_teams": list(teams.index[1:])} if len(teams) > 1 else {}))
+    return out
+
+
 def export_players(t, names):
     pf, pm, cr, pr, ev, kl, dc, m, pairs = (t[k] for k in ("player_profile", "player_match", "wp_credits", "player_round", "wp_events", "kills", "death_context", "matches", "pairs"))
     # uma linha por jogador, com todos os times somados (overall_profile), que é o que a página mostra (p, abaixo). Antes, a
@@ -533,6 +575,12 @@ def export_players(t, names):
     # passava de 60 só somando os times ficava de fora
     overall = overall_profile(pf)
     elig = overall[overall.role_eligible]
+    # kills e mortes por round, como no total (overall_profile): quem é revivido e morre de novo no round conta uma morte
+    kd_pm = pr.groupby(["match_id", "puuid"]).agg(kills=("kills", "sum"), deaths=("died", "sum"))
+    pmc = pm.drop(columns=["kills", "deaths"]).join(kd_pm, on=["match_id", "puuid"]).merge(m[["match_id", "competition", "stage"]], on="match_id")
+    pmc["wpa"] = t["wpa_pm"].reindex(pd.MultiIndex.from_frame(pmc[["match_id", "puuid"]])).fillna(0).to_numpy()
+    by_comp = scoped_summary(pmc, "competition")
+    by_stage = scoped_summary(pmc[(pmc.competition == "Univavá") & pmc.stage.notna()], "stage")
     pct_tables = {c: np.sort(elig[c].dropna().to_numpy()) for c in PERCENTILE_COLS}
 
     def percentile(c, v):
@@ -806,7 +854,8 @@ def export_players(t, names):
         }
         write(OUT / "players" / f"{puuid}.json", doc)
         index.append({"puuid": puuid, "name": p["name"], "team": slug, "rounds": rounds, "agent_role": p.main_agent_role, "kd": p.kd,
-                      "wpa_per_round": doc["impact"]["wpa_per_round"], "eligible": bool(p.role_eligible)}
+                      "wpa_per_round": doc["impact"]["wpa_per_round"], "eligible": bool(p.role_eligible),
+                      "by_competition": by_comp.get(puuid, {}), "by_stage": by_stage.get(puuid, {})}
                      | ({"other_teams": [{"slug": t_["slug"], "name": t_["name"]} for t_ in doc["teams"][1:]]} if len(doc["teams"]) > 1 else {}))
     return index, league
 

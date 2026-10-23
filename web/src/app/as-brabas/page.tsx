@@ -57,6 +57,9 @@ export default async function BrabasPage() {
     || (h2h.get(`${b[0]}|${a[0]}`) ?? 0) - (h2h.get(`${a[0]}|${b[0]}`) ?? 0)
     || b[1].rw / b[1].rt - a[1].rw / a[1].rt);
   const teamName = (slug: string) => index.teams[slug]?.name ?? slug;
+  // K/D como na lista de jogadores (aba do Inclusivo) e na página da jogadora: uma morte por round (o placar da partida conta
+  // de novo quem é revivida e morre outra vez, e não conta quem se mata com a própria habilidade)
+  const kdOf = new Map(index.players.map((p) => [p.puuid, p.by_competition?.[COMPETITION]?.kd]));
   const mainAgent = (r: Row) => [...r.agents.entries()].sort((a, b) => b[1].n - a[1].n)[0];
 
   return (
@@ -95,7 +98,7 @@ export default async function BrabasPage() {
                       </Td>
                       <Td className="hidden sm:table-cell"><TeamLink slug={r.team} name={teamName(r.team)} /></Td>
                       <Td right className="hidden sm:table-cell">{r.maps}</Td>
-                      <Td right>{num(r.kills / Math.max(r.deaths, 1), 2)}</Td>
+                      <Td right>{num(kdOf.get(r.puuid) ?? r.kills / Math.max(r.deaths, 1), 2)}</Td>
                       <Td right className="hidden sm:table-cell">{num(r.acsSum / r.rounds)}</Td>
                       <Td><WpaBar value={r.wpa / r.rounds} max={maxWpa} /></Td>
                     </tr>

@@ -6,12 +6,9 @@ import { useRouter } from "next/navigation";
 import { pct } from "@/lib/format";
 import type { TeamSummary } from "@/lib/types";
 import { Badge, Td, Th } from "@/components/analise/ui";
-import { ResultCount, SearchFilter, SelectFilter, fold, useUrlFilters } from "./controls";
+import { CompetitionTabs, ResultCount, SearchFilter, SelectFilter, UNIVAVA, fold, scopeOf, stageSort, useUrlFilters } from "./controls";
 
 const KEYS = ["busca", "campeonato", "fase", "ordem"] as const;
-const UNIVAVA = "Univavá";
-const STAGE_ORDER = ["Classificatória 1", "Classificatória 2", "Classificatória 3", "Classificatória 4", "Fase de Grupos"];
-const stageSort = (a: string, b: string) => STAGE_ORDER.indexOf(a) - STAGE_ORDER.indexOf(b);
 const MIN_ROUNDS_RELIABLE = 100; // abaixo disso a força é uma estimativa imprecisa (puxada para a média)
 const MIN_MAPS_COMP = 2;         // num campeonato só, a régua é 2 mapas: os campeonatos menores têm poucos rounds por time
 
@@ -24,8 +21,7 @@ export default function TeamTable({ teams }: { teams: TeamSummary[] }) {
   // fases do Univavá: só dentro da aba Univavá
   const stages = [...new Set(teams.flatMap((t) => Object.keys(t.by_stage ?? {})))].sort(stageSort);
   const stage = comp === UNIVAVA && stages.includes(filters.fase) ? filters.fase : "";
-  // "o Univavá", "a Rush Series ...", "a Classificatória 1 do Univavá" (vira "do"/"da" com o d na frente)
-  const scope = stage ? `a ${stage} do ${UNIVAVA}` : comp ? `${comp === UNIVAVA ? "o" : "a"} ${comp}` : "";
+  const scope = scopeOf(comp, stage);
 
   // a linha de cada time na aba: geral (todos os campeonatos), só as partidas do campeonato ou só as de uma fase do Univavá
   const rows = teams.flatMap((t) => {
@@ -33,7 +29,7 @@ export default function TeamTable({ teams }: { teams: TeamSummary[] }) {
     if (comp && !c) return [];
     return [{ t, maps: c ? c.maps : t.maps, wins: c ? c.map_wins : t.map_wins, rounds: c ? c.rounds : t.rounds,
               roundWin: c ? c.round_win : t.round_win, rank: (c ? c.strength_rank : t.strength_rank) ?? 999, strength: c ? c.strength : t.strength,
-              reliable: c ? c.maps >= MIN_MAPS_COMP : t.rounds >= MIN_ROUNDS_RELIABLE }];
+              reliable: c ? c.maps >= MIN_MAPS_COMP : t.rounds >= MIN_ROUNDS_RELIABLE, adjusted: c ? c.rank_adjusted : t.rank_adjusted }];
   });
   const q = fold(filters.busca.trim());
   const shown = rows
@@ -42,16 +38,7 @@ export default function TeamTable({ teams }: { teams: TeamSummary[] }) {
 
   return (
     <div className="space-y-4">
-      {/* abas: ranking geral ou de um campeonato */}
-      <div role="tablist" aria-label="Campeonato" className="flex flex-wrap gap-2">
-        {["", ...competitions].map((c) => (
-          <button key={c || "geral"} type="button" role="tab" aria-selected={comp === c} onClick={() => setMany({ campeonato: c, fase: "" })}
-                  className={`label-caps rounded-lg border px-4 py-2.5 text-[11px] transition-colors ${comp === c
-                    ? "border-lime bg-lime text-bg" : "border-line bg-surface text-ink-2 hover:border-ink-2 hover:text-ink"}`}>
-            {c || "Geral"}
-          </button>
-        ))}
-      </div>
+      <CompetitionTabs competitions={competitions} value={comp} onChange={(c) => setMany({ campeonato: c, fase: "" })} />
       <div className={`grid gap-3 ${comp === UNIVAVA ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
         <SearchFilter label="Buscar time" value={filters.busca} onChange={(v) => set("busca", v)} placeholder="ex.: UFMT" />
         {comp === UNIVAVA && (
@@ -76,12 +63,13 @@ export default function TeamTable({ teams }: { teams: TeamSummary[] }) {
             </tr>
           </thead>
           <tbody>
-            {shown.map(({ t, maps, wins, rounds, roundWin, rank, strength, reliable }) => {
+            {shown.map(({ t, maps, wins, rounds, roundWin, rank, strength, reliable, adjusted }) => {
               return (
                 <tr key={t.slug} onClick={() => router.push(`/times/${t.slug}`)} className="cursor-pointer hover:bg-surface-2">
                   <Td right className="whitespace-nowrap">
                     <span className={reliable ? "font-semibold text-ink" : "text-muted"}
-                          title={reliable ? `Vence ${pct(strength)} dos rounds contra um time médio${scope ? ` d${scope}` : ""}`
+                          title={adjusted ? `Posição ajustada pelo resultado no Inclusivo (mapas vencidos e confronto direto). Pela força, vence ${pct(strength)} dos rounds contra um time médio${scope ? ` d${scope}` : ""}`
+                            : reliable ? `Vence ${pct(strength)} dos rounds contra um time médio${scope ? ` d${scope}` : ""}`
                             : comp ? `Menos de ${MIN_MAPS_COMP} mapas ${stage ? "nesta fase" : "neste campeonato"}: estimativa imprecisa` : "Menos de 100 rounds: estimativa imprecisa"}>
                       {rank === 999 ? "—" : `${rank}º`}
                     </span>

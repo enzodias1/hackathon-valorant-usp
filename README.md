@@ -23,7 +23,8 @@ do protótipo e o da apresentação.
 
 Páginas: partidas (replay 2D de cada round), times, jogadores, comparar times e **comparar jogadores** (`/comparar/jogadores`:
 duelos diretos ou a parceria no mesmo time, estatísticas lado a lado), destaques, metodologia e **as brabas** (`/as-brabas`, 23/10:
-só as 13 partidas da Rush Series Inclusivo, com o top 10 de impacto por round e os 7 times). **Busca rápida** no menu
+só as 13 partidas da Rush Series Inclusivo, com o top 10 de impacto por round e os 7 times). **Abas por campeonato** nas listas de times e de jogadores (23/10): Geral, cada Rush Series e o Univavá (com filtro de fase), só com
+quem jogou e só com as partidas de cada um. **Busca rápida** no menu
 (Ctrl+K ou "/"): times, jogadores e partidas. A página "Como usar" saiu (22/10): o que cada número significa (impacto, trade, morte
 isolada, round jogado fora, virada, força) fica no botão "i" dos lugares onde o número aparece, com os textos em
 `web/src/lib/glossary.ts` e os limites tirados do `model.json`; `/como-funciona` redireciona para `/inicio`.
@@ -154,6 +155,10 @@ Um teleporte num intervalo longo (ex.: ultimate do Omen) não aparece pela veloc
 - **Controle de falsos positivos:** toda afirmação de "ponto forte/fraco" ou "mudou" passa por Benjamini-Hochberg (q = 10%) dentro
   da página (time ou jogador). Sem isso, com 15 métricas por time, ~1–2 insights por time seriam ruído.
 - **Força dos times:** Bradley-Terry nos rounds, descontando a economia (regularizado: times com poucos mapas ficam perto da média).
+  Nas abas por campeonato de `/times`, a força é recalculada só com as partidas de cada campeonato (e de cada fase do Univavá).
+  **Posições ajustadas pela equipe (23/10)**, onde a força e o resultado discordam (`RANK_ORDER` em `export.py`): no Inclusivo,
+  Azure Bears White > USP Stars GC > PUC-Campinas Canaries (o Azure venceu a USP; a PUC-Campinas não venceu mapa), e no geral a
+  USP Stars GC troca de posição com a PUC-Campinas Canaries. A força (%) continua a do modelo; passando o mouse na posição, a lista explica o ajuste.
 - **Chance de vencer o mapa (comparador, 23/10):** a conta "primeiro a 13" com rounds independentes exagera a confiança, porque os
   rounds não são independentes (economia, lado, momento). `map_calibration.py` prevê cada mapa da base com a força calculada sem ele:
   quando a conta dava 90–100%, o favorito venceu 90%; com logit × 0,742, 88% vira 81% e o erro (Brier) cai de 0,1665 para 0,1644.
