@@ -6,6 +6,7 @@ import { getIndex, getModel } from "@/lib/data";
 import { num, pct } from "@/lib/format";
 import { PRODUCT_NAME, TAGLINE } from "@/lib/site";
 import Deck from "@/components/site/Deck";
+import { ProwlerPattern } from "@/components/analise/ui";
 
 // fixo, com a origem: o impacto médio do first blood (wp_events, README)
 const FIRST_BLOOD_PTS = 17;
@@ -20,7 +21,7 @@ function Slide({ n, kicker, title, children, brand, art, pattern }: {
 }) {
   return (
     <section data-slide className={`relative isolate flex min-h-[100dvh] snap-start items-center overflow-hidden px-6 py-20 sm:px-12 ${brand ? "bg-brand" : "bg-bg"}`}>
-      {pattern && <div aria-hidden className="pointer-events-none absolute inset-0 -z-20 bg-[url('/art/prowler_tile.webp')] bg-[length:220px_220px] opacity-[0.14]" />}
+      {pattern && <ProwlerPattern />}
       <div className="mx-auto w-full max-w-5xl">
         {/* com arte, o texto quebra na largura do título e a arte começa logo depois do nome (lg+) */}
         <div className={art ? "lg:w-min" : undefined}>
@@ -185,7 +186,7 @@ export default async function PresentationDeck() {
           </div>
         </Slide>
 
-        <Slide brand kicker="Agora é com você" title={<>Curtiu? Bora testar?</>}>
+        <Slide brand pattern kicker="Agora é com você" title={<>Curtiu? Bora testar?</>}>
           <p className="max-w-2xl text-xl leading-relaxed text-white/90">
             Todas as {num(index.matches.length)} partidas, {num(Object.keys(index.teams).length)} times e {num(index.players.length)} jogadores estão no site. Comece por onde quiser:
           </p>

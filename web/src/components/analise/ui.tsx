@@ -54,6 +54,12 @@ export function Section({ title, subtitle, info, teaser, collapsible, defaultOpe
 }
 
 /** Faixa roxa de cabeçalho das páginas de detalhe (time, jogador, partida), com arte opcional à direita. */
+/** Fundo de espreitadores (o ícone da habilidade da Fade) em cinza, repetido: faixas roxas sem arte e a capa e o fim da
+ *  apresentação. Sai no PDF. */
+export function ProwlerPattern() {
+  return <div aria-hidden data-print-hide className="pointer-events-none absolute inset-0 -z-20 bg-[url('/art/prowler_tile.webp')] bg-[length:220px_220px] opacity-[0.14]" />;
+}
+
 export function PageBand({ back, kicker, title, children, actions, art, compact }: {
   back?: { href: string; label: string }; kicker?: React.ReactNode; title: React.ReactNode; children?: React.ReactNode;
   actions?: React.ReactNode; art?: { portrait?: string; background?: string; splash?: string };
@@ -62,6 +68,7 @@ export function PageBand({ back, kicker, title, children, actions, art, compact 
 }) {
   return (
     <section className="relative isolate overflow-hidden bg-brand">
+      {!art && <ProwlerPattern />}
       {/* splash do mapa tingido de roxo (luminosidade da imagem + cor da faixa) e esmaecido do lado do texto */}
       {/* no PDF o splash e a arte de fundo saem (data-print-hide): a mistura de cores vira imagem pesada (~5 MB por arquivo) */}
       {art?.splash && (
