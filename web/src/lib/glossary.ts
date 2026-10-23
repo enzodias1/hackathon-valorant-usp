@@ -34,8 +34,8 @@ export const BUY_BASIS =
   "O tipo de compra sai do que cada jogador comprou e do dinheiro que o time guardou. “Garantir o full buy seguinte” quer dizer que, mesmo perdendo o round, pelo menos 4 jogadores teriam os 3.900 créditos de Vandal ou Phantom e escudo cheio no próximo: a derrota paga 1.900, 2.400 ou 2.900, conforme a sequência de derrotas.";
 export const BUY_TERMS: Term[] = [
   ["Pistol", "os rounds 1 e 13, em que todo mundo começa com 800 créditos."],
-  ["Eco", "o time gasta pouco ou nada (pistola grátis, às vezes Sheriff ou Ghost e escudo leve) para garantir o full buy do round seguinte."],
+  ["Eco", "o time gasta pouco ou nada (Classic, às vezes Sheriff ou Ghost e escudo leve) para garantir o full buy do round seguinte."],
   ["Meia compra", "compra intermediária (Spectre, Stinger ou Bulldog com escudo leve, ou só parte do time com Vandal ou Phantom) que guarda o dinheiro do full buy do round seguinte. Também é a compra do round depois de vencer o pistol."],
   ["Forçado", "o time gasta o dinheiro sem ter o suficiente para o full buy e, se perder, não terá o full buy no round seguinte. Comum para quebrar a sequência do adversário e no último round de cada metade."],
-  ["Full buy", "Vandal ou Phantom (ou Operator) e escudo cheio para o time: 3.900 créditos por jogador, fora as habilidades."],
+  ["Full buy", "arma principal e escudo cheio para o time: quase sempre Vandal ou Phantom (3.900 créditos por jogador com o escudo, fora as habilidades), às vezes Odin ou Operator."],
 ];
