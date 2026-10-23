@@ -203,7 +203,7 @@ export default function PlayerComparator({ players }: { players: PlayerOption[] 
             </div>
             <div className="mt-1 overflow-x-auto"><div className="min-w-[640px]">{rows.map((r) => <StatRow key={r.label} r={r} />)}</div></div>
             <p className="mt-3 text-xs text-muted">
-              Em todas as partidas de cada um. Em amarelo, o melhor da linha. “Melhor que X%” compara com os jogadores da liga com 60 rounds ou mais (do 1º ao 5º, aparece a posição),
+              Em todas as partidas de cada um. Em amarelo, o melhor da linha. “Melhor que X%” compara com os jogadores da liga com 60 rounds ou mais (do 1º ao 10º, aparece a posição),
               e a barra vai do pior ao melhor da liga.
             </p>
           </section>

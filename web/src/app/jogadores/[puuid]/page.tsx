@@ -88,7 +88,7 @@ export default async function PlayerPage({ params }: { params: Promise<{ puuid: 
 
         <Section id="perfil" title="Comparado com a liga" collapsible
                  teaser={pc ? `Impacto: ${betterThan(pc.wpa_per_round, " da liga", rk?.wpa_per_round)} · K/D: ${betterThan(pc.kd, "", rk?.kd)}` : "Disponível a partir de 60 rounds"}
-                 info="Em cada estatística, a posição do jogador entre os jogadores da liga com 60 rounds ou mais: “melhor que 92%” quer dizer que ele supera 92% deles, e entre os 5 primeiros aparece a posição (“2º da liga”). A barra vai do pior (vazia) ao melhor da liga (cheia).">
+                 info="Em cada estatística, a posição do jogador entre os jogadores da liga com 60 rounds ou mais: “melhor que 92%” quer dizer que ele supera 92% deles, e entre os 10 primeiros aparece a posição (“2º da liga”). A barra vai do pior (vazia) ao melhor da liga (cheia).">
           <div className="max-w-2xl">
             {pc ? (
               <div>

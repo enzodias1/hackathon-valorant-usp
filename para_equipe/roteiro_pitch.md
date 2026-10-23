@@ -58,7 +58,7 @@ Link direto: https://espreitador-gg.vercel.app/partidas/11bcbdbd-ef01-409b-9e90-
 > "E isso importa: morrer a menos de 5 metros de um aliado dá **41%** de chance de a morte ser trocada; a mais de 30 metros, **4%**."
 
 **2:45 · Jogador**: BRaim (Unicamp Tritons Black): perfil → "Duelos" → "Quando morre no round" → "Habilidades".
-> "O K/D engana. No K/D, este jogador é melhor que só 32% da liga; em impacto, é melhor que **64%**: as jogadas dele acontecem
+> "O K/D engana. No K/D, este jogador é melhor que só 43% da liga; em impacto, é melhor que **82%**: as jogadas dele acontecem
 > quando o round está em jogo."
 >
 > "E o que os jogadores pediram nas entrevistas está aqui: contra quem ele mais perde duelos, em que momento do round costuma morrer
@@ -100,8 +100,8 @@ Link direto: https://espreitador-gg.vercel.app/partidas/11bcbdbd-ef01-409b-9e90-
 ## Números de reserva (se precisar trocar algum exemplo)
 - Modelo: AUC 0,885; erro de calibração 1,2%; validado com 5 grupos de partidas.
 - Uma vantagem de 55% por round vira ~65% de chance de vencer o mapa (já ajustada pelo histórico: os rounds não são independentes).
-- "K/D engana" com mais contraste que o BRaim (32% → 64%): **LHC JF** (Liga Vulkanica), melhor que 23% da liga em K/D e que
-  **75%** em impacto (sentinela); **sunevj** (FEI Whiteowls), 43% em K/D e **87%** em impacto (iniciador).
+- "K/D engana" com mais contraste que o BRaim (43% → 82%): **LHC JF** (Liga Vulkanica), melhor que 22% da liga em K/D e que
+  **74%** em impacto (sentinela); **sunevj** (FEI Whiteowls), 21% em K/D e **76%** em impacto (iniciador).
 - Replay: a mira de quem mata aponta para a vítima em 99% das 45.440 kills; 99,97% das posições ficam no chão do mapa.
 - UFG Eagles (um dos 4 times dos entrevistados): 13º mais forte de 68; vence 77% dos rounds defendendo (liga: 48%); o darnubra tem o maior
   impacto por round entre os jogadores com 60+ rounds.

@@ -206,7 +206,17 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
           <p className="mt-1 text-sm leading-relaxed text-ink">{story.join(" ")}</p>
         </div>
       )}
-      <div className={`grid gap-5 ${full ? "grid-cols-[minmax(0,calc(100vh-22rem))_24rem] justify-center" : "lg:grid-cols-[minmax(0,1fr)_22rem]"}`}>
+      <div className={`grid gap-5 ${full ? "grid-cols-[19rem_minmax(0,calc(100vh-22rem))_24rem] justify-center" : "lg:grid-cols-[minmax(0,1fr)_22rem]"}`}>
+        {/* tela cheia: elenco e a opção de movimento estimado numa coluna à esquerda do mapa */}
+        {full && (
+          <div className="min-w-0 space-y-3">
+            <Rosters match={match} round={round} poses={poses} t={t} focus={focus} onPick={pick} stacked />
+            <label data-print-hide className="flex items-start gap-2 px-1 text-xs text-muted">
+              <input type="checkbox" checked={smooth} onChange={(e) => setSmooth(e.target.checked)} className="mt-0.5 accent-[var(--brand-2)]" />
+              <span>Movimento estimado entre os registros. Desmarque para ver só os instantes registrados nos dados.</span>
+            </label>
+          </div>
+        )}
         <div className="min-w-0 space-y-3">
           <WinBar match={match} wp={wp} swing={swing} byId={byId} />
 
@@ -230,8 +240,8 @@ function Replay({ match, round, initialT, nav }: { match: Match; round: Round; i
                 )}
                 {t === 0 && !playing && (
                   <button type="button" onClick={togglePlay}
-                          className="label-caps absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-lime px-6 py-3.5 text-[12px] text-bg shadow-xl [clip-path:polygon(0_0,calc(100%-10px)_0,100%_10px,100%_100%,0_100%)] hover:opacity-90">
-                    ▶ Assistir o round
+                          className="label-caps absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 bg-lime px-6 py-3.5 text-[12px] text-bg shadow-xl [clip-path:polygon(0_0,calc(100%-10px)_0,100%_10px,100%_100%,0_100%)] hover:opacity-90">
+                    <PlayIcon /> Assistir o round
                   </button>
                 )}
               </>
@@ -455,6 +465,10 @@ function FocusLabel({ at, e, meters, spotters, offMap }: { at: UV; e: RoundEvent
   );
 }
 
+/** Ícones desenhados: o caractere "▶" vira emoji (quadrado azul) no Windows. Herdam a cor do texto. */
+const PlayIcon = () => <svg viewBox="0 0 12 12" aria-hidden className="h-3 w-3 fill-current"><path d="M2.5 1.2v9.6L10.5 6z" /></svg>;
+const PauseIcon = () => <svg viewBox="0 0 12 12" aria-hidden className="h-3 w-3 fill-current"><path d="M2 1.2h3v9.6H2zM7 1.2h3v9.6H7z" /></svg>;
+
 function Controls({ t, maxT, end, playing, speed, events, byId, onToggle, onSeek, onSpeed, onCopy, copied, onFull, full }: {
   t: number; maxT: number; end: number; playing: boolean; speed: number; events: RoundEvent[]; byId: Map<string, MatchPlayer>;
   onToggle: () => void; onSeek: (ms: number) => void; onSpeed: (s: number) => void; onCopy: () => void; copied: boolean;
@@ -465,7 +479,7 @@ function Controls({ t, maxT, end, playing, speed, events, byId, onToggle, onSeek
     <div data-print-hide className="flex flex-wrap items-center gap-3">
       <button type="button" onClick={onToggle} aria-label={playing ? "Pausar replay" : "Tocar replay"}
               className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-lime text-bg hover:opacity-90">
-        {playing ? "❚❚" : "▶"}
+        {playing ? <PauseIcon /> : <PlayIcon />}
       </button>
       <div className="flex shrink-0 overflow-hidden rounded-md border border-line" role="group" aria-label="Velocidade">
         {SPEEDS.map((s) => (
@@ -589,14 +603,16 @@ function KillIcon({ e }: { e: RoundEvent }) {
   return <span className="label-caps shrink-0 rounded-sm bg-surface-2 px-1 py-0.5 text-[9px] text-ink-2">{e.weapon ?? "?"}</span>;
 }
 
-function Rosters({ match, round, poses, t, focus, onPick }: {
+function Rosters({ match, round, poses, t, focus, onPick, stacked }: {
   match: Match; round: Round; poses: { tr: Track; dead: boolean }[]; t: number; focus: number | null; onPick: (i: number) => void;
+  /** um time embaixo do outro (coluna da tela cheia) */
+  stacked?: boolean;
 }) {
   const killsBy = new Map<string, number>();
   for (const e of round.events) if (e.type === "kill" && e.actor && !e.teamkill && e.t <= t) killsBy.set(e.actor, (killsBy.get(e.actor) ?? 0) + 1);
   const side = (c: Color) => (round.attacker === c ? "Ataque" : "Defesa");
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className={`grid content-start gap-3 ${stacked ? "" : "sm:grid-cols-2"}`}>
       {(["Red", "Blue"] as Color[]).map((c) => (
         <div key={c} className="rounded-xl border border-line bg-surface-2/40 px-3 py-2.5">
           <div className="mb-1.5 flex items-baseline justify-between gap-2">

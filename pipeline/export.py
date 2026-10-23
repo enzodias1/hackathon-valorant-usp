@@ -476,13 +476,37 @@ def team_evolution(t, slug, core):
 
 
 # ----------------------------------------------------------------------------------------------- players
+MIN_ROUNDS_ROLE = 60  # o mesmo de team.py: a partir daqui o jogador entra na comparação com a liga
+
+
+def overall_profile(pf):
+    """Uma linha por jogador, somando as passagens por times diferentes; as razões são refeitas com as fórmulas de team.py.
+    A página mostra o jogador inteiro (impacto e rounds já somavam os times), então o resumo, os percentis e a regra dos 60
+    rounds também usam o total: o Kayden jogou 59 + 58 rounds por dois times da FEI e aparecia como "amostra pequena" com 117."""
+    cnt = ["rounds", "kills", "deaths", "assists", "damage", "hs", "bs", "ls", "fk", "fd", "clutch_att", "clutch_won", "kast_rounds", "wpa_total"]
+    x = pf.assign(score=pf.acs * pf.rounds, atk_w=pf.wpa_pr_atk * pf.rounds, def_w=pf.wpa_pr_def * pf.rounds)
+    o = x.groupby("puuid")[cnt + ["score", "atk_w", "def_w"]].sum(min_count=1)
+    r = o.rounds
+    o["kpr"], o["dpr"], o["apr"], o["adr"] = o.kills / r, o.deaths / r, o.assists / r, o.damage / r
+    o["kd"] = o.kills / o.deaths.clip(lower=1)
+    o["kast"] = o.kast_rounds / r
+    o["hs_pct"] = o.hs / (o.hs + o.bs + o.ls).clip(lower=1)
+    o["acs"] = o.score / r
+    o["wpa_per_round"] = o.wpa_total / r
+    o["wpa_pr_atk"], o["wpa_pr_def"] = o.atk_w / r, o.def_w / r   # média dos times, ponderada pelos rounds
+    o["opening_rate"] = (o.fk + o.fd) / r
+    o["clutch_rate"] = o.clutch_att / r
+    o["role_eligible"] = r >= MIN_ROUNDS_ROLE
+    return o.drop(columns=["score", "atk_w", "def_w"])
+
+
 def export_players(t, names):
     pf, pm, cr, pr, ev, kl, dc, m, pairs = (t[k] for k in ("player_profile", "player_match", "wp_credits", "player_round", "wp_events", "kills", "death_context", "matches", "pairs"))
-    # uma linha por jogador: a do time em que ele jogou mais rounds, que é a que a página mostra (p, abaixo). Antes, quem jogou
-    # por dois times com 60+ rounds entrava duas vezes na comparação (14 jogadores), e a passagem pelo outro time ficava "à frente"
-    # de todo mundo sem aparecer na página (ex.: lule, K/D 2,68 em 89 rounds por um time; 1,13 em 132 pelo time principal)
-    main = pf.sort_values("rounds", ascending=False, kind="stable").drop_duplicates("puuid")
-    elig = main[main.role_eligible]
+    # uma linha por jogador, com todos os times somados (overall_profile), que é o que a página mostra (p, abaixo). Antes, a
+    # comparação tinha uma linha por jogador por time: quem jogou por dois times com 60+ rounds entrava duas vezes, e quem
+    # passava de 60 só somando os times ficava de fora
+    overall = overall_profile(pf)
+    elig = overall[overall.role_eligible]
     pct_tables = {c: np.sort(elig[c].dropna().to_numpy()) for c in PERCENTILE_COLS}
 
     def percentile(c, v):
@@ -631,7 +655,9 @@ def export_players(t, names):
     index = []
     for puuid, stints in pf.groupby("puuid"):
         stints = stints.sort_values("rounds", ascending=False, kind="stable")
-        p = stints.iloc[0]
+        p = stints.iloc[0].copy()                     # time principal (o de mais rounds) para slug, nome e agentes...
+        for c, v in overall.loc[puuid].items():       # ...e as estatísticas do jogador inteiro, todos os times somados
+            p[c] = v
         slug = p.team
         rounds = int(stints.rounds.sum())
         g_pm = pm_by[puuid]
