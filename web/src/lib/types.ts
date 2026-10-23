@@ -33,6 +33,9 @@ export interface TeamSummary {
   competitions: string[];
   strength_rank: number;
   strength: number;
+  /** resultado e força em cada campeonato, só com as partidas dele (abas de /times) */
+  by_competition: Record<string, { maps: number; map_wins: number; rounds: number; round_win: number | null;
+    strength_rank: number | null; strength: number | null; of: number | null }>;
 }
 
 export interface PlayerSummary {

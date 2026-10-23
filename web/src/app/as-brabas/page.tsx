@@ -56,7 +56,7 @@ export default async function BrabasPage() {
   return (
     <main>
       <PageBand kicker={`${COMPETITION} · 2026`} title="As brabas">
-        Não dava para deixar de fora as brabas do cenário inclusivo. Em homenagem ao Game Changers Championship acontecendo no Brasil,
+        Não dava pra deixar de fora as brabas do cenário inclusivo. Em homenagem ao Game Changers Championship acontecendo no Brasil,
         separamos as {matches.length} partidas da {COMPETITION}: {teams.size} times, {players.size} jogadoras e muita mira envolvida.
       </PageBand>
 

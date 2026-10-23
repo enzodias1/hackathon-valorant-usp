@@ -8,7 +8,8 @@ Evolution (per team): for each stage of the championship, rounds won above/below
 opponent's strength and the economy -> "playing above your own level"; plus first-half vs second-half
 comparisons of the collective metrics (two-proportion z-tests) -> "what changed".
 
-Writes data/processed/: team_strength.parquet, team_stage.parquet, team_changes.parquet, player_stage.parquet
+Writes data/processed/: team_strength.parquet, team_strength_comp.parquet (força por campeonato), team_stage.parquet,
+team_changes.parquet, player_stage.parquet
 """
 import math
 from pathlib import Path
@@ -170,6 +171,20 @@ def main():
     pr["team"] = team_of.reindex(pd.MultiIndex.from_frame(pr[["match_id", "puuid"]])).to_numpy()
     ps = pr.groupby(["puuid", "team", "etapa", "etapa_idx"]).agg(rounds=("wpa", "size"), wpa_per_round=("wpa", "mean"),
                                                                kills=("kills", "sum"), deaths=("died", "sum")).reset_index()
+
+    # ---- força dentro de cada campeonato, só com as partidas dele (abas de /times): mesmo modelo, outra amostra
+    trc = tr.merge(m[["match_id", "competition"]], on="match_id")
+    comp_rows = []
+    for comp, gc in trc.groupby("competition"):
+        th, _ = fit_strength(gc)
+        n_rounds = gc.groupby("team").size()
+        comp_rows += [{"competition": comp, "team": tm, "theta": float(v), "rounds": int(n_rounds.get(tm, 0))} for tm, v in th.items()]
+    cs = pd.DataFrame(comp_rows)
+    cs["p_vs_avg"] = expit(cs.theta)
+    cs["rank"] = cs.groupby("competition").theta.rank(ascending=False, method="min").astype(int)
+    cs["of"] = cs.groupby("competition").team.transform("size")
+    cs.to_parquet(P / "team_strength_comp.parquet", index=False)
+    print("força por campeonato:", cs.groupby("competition").team.size().to_dict())
 
     strength.to_parquet(P / "team_strength.parquet", index=False)
     stage.to_parquet(P / "team_stage.parquet", index=False)
